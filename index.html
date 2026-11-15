@@ -1,0 +1,2724 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101317">
+<title>筋トレ記録</title>
+<style>
+:root{--bg:#101317;--card:#1a1f26;--card2:#222933;--line:#2c343f;--text:#e9eef3;--muted:#8d98a6;--acc:#ff7a1a;--acc2:#ffb066;--ok:#3ecf8e;--warn:#f5b84b;--bad:#ff5d5d;--r:14px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif}
+body{padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+body.resting{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+#hud{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:8px;min-height:36px;padding:calc(3px + env(safe-area-inset-top)) 12px 3px;background:rgba(16,19,23,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+#hud-main{flex:1;min-width:0;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text);padding:5px 2px;white-space:nowrap;overflow:hidden;text-align:left}
+.badge{font-size:12px;padding:5px 10px;border-radius:99px;border:1px solid var(--line);white-space:nowrap}
+.badge.ok{color:var(--ok);border-color:rgba(62,207,142,.4)}
+.badge.warn{color:var(--warn);border-color:rgba(245,184,75,.5)}
+.badge.bad{color:var(--bad);border-color:rgba(255,93,93,.5)}
+.badge.busy{color:var(--acc2)}
+.badge.muted{color:var(--muted)}
+main{padding:12px 14px;max-width:640px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin:0 0 12px}
+.ex-head{display:flex;align-items:center;gap:8px}
+.ex-head h2{margin:0;font-size:22px;flex:1;min-width:0}
+.tag{font-size:12px;color:var(--muted);background:var(--card2);padding:3px 8px;border-radius:99px;white-space:nowrap}
+.x{width:36px;height:36px;border-radius:50%;color:var(--muted);flex:none}
+.x:active{background:var(--card2)}
+.sugg{margin:12px 0 8px;padding:12px;border-radius:12px;background:linear-gradient(135deg,rgba(255,122,26,.18),rgba(255,122,26,.05));border:1px solid rgba(255,122,26,.35)}
+.sugg.up{background:linear-gradient(135deg,rgba(62,207,142,.2),rgba(62,207,142,.05));border-color:rgba(62,207,142,.4)}
+.sugg.down{background:linear-gradient(135deg,rgba(245,184,75,.2),rgba(245,184,75,.05));border-color:rgba(245,184,75,.45)}
+.lbl{font-size:12px;color:var(--muted);margin:6px 0 4px}
+.sugg .lbl{margin:0}
+.goal{font-size:22px;font-weight:700;letter-spacing:.01em}
+.why{font-size:13px;color:#c9d2dc;margin-top:2px}
+.last,.note{font-size:13px;color:var(--muted);margin:4px 0}
+.inputs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.inputs label{font-size:12px;color:var(--muted)}
+.stepper{display:flex;align-items:stretch;margin-top:4px;background:var(--card2);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.stepper button{width:44px;font-size:22px;color:var(--acc2)}
+.stepper button:active{background:#2d3542}
+.stepper input{color:var(--text);flex:1;min-width:0;width:100%;text-align:center;font-size:24px;font-weight:700;background:none;border:0;padding:8px 0;outline:none}
+.stepper input::-webkit-inner-spin-button{display:none}
+.primary{display:block;width:100%;padding:14px;border-radius:12px;background:var(--acc);color:#1a0d00;font-weight:700;font-size:17px}
+.primary:active{filter:brightness(.9)}
+.primary.danger{background:var(--bad);color:#fff}
+.ghost{display:block;width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--card2);text-align:center;margin-top:10px}
+.progress{display:flex;align-items:center;gap:6px;margin-top:12px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+.dot{width:12px;height:12px;border-radius:50%;border:2px solid var(--line)}
+.dot.done{background:var(--ok);border-color:var(--ok)}
+.progress span:last-child{margin-left:6px}
+.empty p{margin:0 0 8px;color:#c9d2dc}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:7px 12px;border-radius:99px;background:var(--card2);border:1px solid var(--line);font-size:14px}
+.chip.on{background:#e9eef3;color:#101317;border-color:#e9eef3;font-weight:700}
+.sec{font-size:15px;margin:18px 2px 8px}
+.sec small{color:var(--muted);font-weight:400;margin-left:6px}
+.muted{color:var(--muted)}
+.pad{padding:8px 4px}
+.small{font-size:13px}
+.err{color:var(--bad)}
+.log{padding:10px 14px}
+.log-title{font-weight:700;padding:0;text-align:left;color:var(--acc2)}
+.log ol{margin:6px 0 0;padding-left:22px}
+.log li{display:flex;align-items:center;justify-content:space-between}
+.log li::marker{color:var(--muted)}
+.log li .x{width:30px;height:30px}
+.picker .filters{position:static}
+.filters{position:sticky;top:calc(37px + env(safe-area-inset-top));z-index:2;background:var(--bg);padding-bottom:4px}
+.exlist{list-style:none;margin:0;padding:0}
+.exlist li button{display:flex;flex-direction:column;width:100%;text-align:left;padding:12px 14px;background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:8px}
+.exlist .nm{font-weight:700}
+.exlist .meta{font-size:12px;color:var(--muted)}
+.day h3{margin:0 0 8px;font-size:16px}
+.day h3 small{color:var(--muted);font-weight:400}
+.hrow{padding:6px 0;border-top:1px solid var(--line)}
+.pills{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.pill{font-size:13px;padding:3px 9px;border-radius:8px;background:var(--card2)}
+.vol{font-size:12px;color:var(--muted);margin-top:2px}
+.field{display:block;font-size:13px;color:var(--muted);margin:8px 0}
+.field input,.field select{color:var(--text);display:block;width:100%;margin-top:4px;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card2);font-size:16px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.toggle{display:flex;align-items:center;gap:8px;margin-top:8px}
+.toggle input{width:20px;height:20px;accent-color:var(--acc)}
+.card h3{margin:0 0 6px;font-size:16px}
+.filebtn{cursor:pointer;font-size:15px}
+/* 入力バー */
+.cmdbar{padding:0 0 12px}
+.cmdbar[hidden]{display:none}
+.cmdbar form{display:flex;gap:8px;align-items:center;max-width:640px;margin:0 auto}
+.cmdbar input{flex:1;min-width:0;padding:13px 14px;border-radius:99px;border:1px solid var(--line);background:var(--card);font-size:16px;outline:none}
+.cmdbar input:focus{border-color:var(--acc2)}
+#mic{width:58px;height:58px;border-radius:50%;background:var(--acc);color:#1a0d00;flex:none;display:grid;place-items:center;box-shadow:0 4px 16px rgba(255,122,26,.35)}
+#mic svg{width:26px;height:26px}
+#mic.on{background:var(--bad);color:#fff;animation:pulse 1.2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,93,93,.6)}100%{box-shadow:0 0 0 18px rgba(255,93,93,0)}}
+@media (prefers-reduced-motion:reduce){#mic.on{animation:none}}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:7;display:flex;background:#0c0f12;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11px;color:var(--muted)}
+nav button svg{width:22px;height:22px}
+nav button.on{color:var(--text);box-shadow:inset 0 2px 0 var(--text)}
+#toast{position:fixed;left:6px;right:6px;top:calc(2px + env(safe-area-inset-top));transform:translateY(-130%);min-height:32px;display:flex;align-items:center;justify-content:center;text-align:center;padding:5px 12px;border-radius:10px;background:#2b333e;border:1px solid #3d4856;color:var(--text);font-size:14px;line-height:1.35;opacity:0;pointer-events:none;transition:.25s;z-index:28;box-shadow:0 6px 20px rgba(0,0,0,.4)}
+#toast.show{opacity:1;transform:none;pointer-events:auto}
+#modal{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center}
+#modal[hidden]{display:none}
+.sheet{width:100%;max-width:640px;background:var(--card);border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
+.sheet h3{margin:0 0 6px}
+.sheet .row2{margin-top:12px}
+.sheet .row2 .ghost{margin-top:0}
+
+.plate-btn{display:block;width:100%;margin:-2px 0 10px;padding:10px;border-radius:12px;border:1px dashed #3a4452;color:var(--acc2);font-size:14px}
+.orm{background:var(--card2);border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:13px}
+.orm:empty{display:none}
+.orm-main{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.orm-main .lbl{margin:0}
+.orm-main b{font-size:20px}
+.orm-past{color:#c9d2dc;margin-top:2px}
+.orm-past small{color:var(--muted);margin-left:3px}
+.orm-calc{color:var(--muted);margin-top:4px}
+.pr{color:#1a0d00;background:var(--ok);font-size:11px;font-weight:700;padding:2px 7px;border-radius:99px}
+.log-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.orm-tag{font-size:12px;color:var(--muted);background:var(--card2);padding:2px 8px;border-radius:99px;white-space:nowrap}
+.orm-tag.pr{background:rgba(62,207,142,.18);color:var(--ok)}
+.log li .row{flex:1;text-align:left;padding:6px 0;display:flex;align-items:baseline;gap:4px}
+.log li .row small{color:var(--muted);font-size:12px}
+.log li .row .pen{margin-left:auto;color:var(--muted);font-size:13px;padding-right:6px}
+.pd-tabs{margin-bottom:6px}
+.pd-total{font-size:40px;font-weight:800;text-align:center;margin:6px 0}
+.pd-total small{font-size:18px;margin-left:2px}
+.pd-total span{display:block;font-size:13px;font-weight:400;color:var(--muted)}
+.barvis{display:flex;align-items:center;height:90px;margin:4px 0 6px;padding-left:10px}
+.barvis .sleeve{width:70px;height:10px;background:#9aa3ad;border-radius:3px}
+.barvis i{display:block;width:12px;margin-left:2px;border-radius:3px;border:1px solid rgba(0,0,0,.35)}
+.barvis .cap{width:26px;height:10px;background:#9aa3ad;border-radius:0 3px 3px 0;margin-left:2px}
+.plates{display:flex;flex-wrap:wrap;gap:8px}
+.plate{width:56px;height:56px;border-radius:50%;font-weight:800;font-size:15px;box-shadow:inset 0 0 0 5px rgba(0,0,0,.18)}
+.plate:active{transform:scale(.94)}
+.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.steps .chip{padding:11px 0;text-align:center}
+.danger-t{color:var(--bad)}
+.sheet{max-height:88vh;overflow:auto}
+
+.seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:3px;margin-bottom:12px}
+.seg button{flex:1;padding:8px 0;border-radius:9px;font-size:14px;color:var(--muted)}
+.trendbox{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}
+.trend-tg{color:var(--acc2);font-size:14px;padding:4px 0}
+.trend{margin-top:6px}
+.trend .chips{margin:8px 0 2px}
+.trend .chip{padding:5px 10px;font-size:13px}
+.seg.sm{margin:0}
+.seg.sm button{padding:6px 0;font-size:13px}
+.upc{color:var(--ok)}.dnc{color:var(--warn)}
+.seg button.on{background:#3b4654;color:#fff;font-weight:700}
+.pnav{display:flex;align-items:center;justify-content:space-between;margin:0 0 10px}
+.jump{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:-4px 0 12px}
+.jump select,.jump input{padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:15px;color-scheme:dark}
+.pnav b{font-size:17px}
+.pnav .x{font-size:26px;color:var(--acc2)}
+.pnav .x:disabled{opacity:.25}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kpis div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
+.kpis span{display:block;font-size:12px;color:var(--muted)}
+.kpis b{font-size:22px;display:block;line-height:1.3}
+.kpis em{display:block;font-style:normal;font-size:11px;color:var(--muted);margin-top:2px}
+.exrow .pv{grid-column:1/3;font-size:11px;color:var(--muted)}
+.kpis b small{font-size:12px;font-weight:400;margin-left:1px}
+.cmp{margin:4px 2px 12px}
+.dlt{font-size:12px;color:var(--muted);white-space:nowrap}
+.dlt.up{color:var(--ok)}
+.dlt.down{color:var(--warn)}
+.chart{width:100%;height:auto;display:block;margin-top:6px;overflow:visible}
+.chart .ax{stroke:var(--line);stroke-width:1}
+.chart .bar{fill:#5b4a3d}
+.chart .bar.on{fill:var(--acc)}
+.chart .xl{fill:var(--muted);font-size:10px;text-anchor:middle}
+.chart .xl.on{fill:var(--text);font-weight:700}
+.chart .vl{fill:var(--text);font-size:11px;font-weight:700;text-anchor:middle}
+.chart .ln{fill:none;stroke:var(--acc);stroke-width:2;stroke-linejoin:round}
+.chart .pt{fill:var(--acc);stroke:var(--card);stroke-width:2}
+.chart .pt.on{fill:#fff;stroke:var(--acc)}
+.chart .hb{cursor:pointer}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.cal .wd{font-size:11px;color:var(--muted)}
+.cal .cd{min-height:44px;border-radius:8px;background:var(--card2);padding:3px 1px;display:flex;flex-direction:column;align-items:center}
+.cal .cd b{font-size:12px;font-weight:400;color:var(--muted)}
+.cal .cd.on{background:rgba(255,122,26,.22);outline:1px solid rgba(255,122,26,.5)}
+.cal .cd.on b{color:var(--text);font-weight:700}
+.cal .cd i{font-style:normal;font-size:9px;color:var(--acc2);line-height:1.2}
+.cal .cd.td{box-shadow:inset 0 0 0 2px var(--ok)}
+.pbar{display:grid;grid-template-columns:3.2em 1fr 2em 3.4em;align-items:center;gap:8px;font-size:13px;margin:6px 0}
+.pbar div{height:10px;background:var(--card2);border-radius:5px;overflow:hidden}
+.pbar i{display:block;height:100%;background:#7c8da3;border-radius:0 4px 4px 0}
+.pbar b{text-align:right}
+.exrow{display:grid;grid-template-columns:1fr auto;gap:0 8px;width:100%;text-align:left;padding:9px 4px;border-top:1px solid var(--line);font-size:13px}
+.exrow .nm{font-weight:700;font-size:15px;grid-column:1/3}
+.exrow span:nth-child(2){color:var(--muted)}
+.exrow .o{text-align:right}
+.exrow.on .nm{color:var(--acc2)}
+.card h3 small{font-weight:400;font-size:12px}
+
+.sess{border-color:#3b4654}
+.ex-head h2.sm{font-size:18px}
+.plist{list-style:none;margin:8px 0 0;padding:0}
+.plist li button{display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:8px;width:100%;text-align:left;padding:8px 6px;border-radius:10px}
+.plist li.cur button{background:rgba(255,255,255,.07)}
+.plist .ck{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:12px;background:var(--card2);color:var(--muted)}
+.plist li.done .ck{background:var(--ok);color:#06200f;font-weight:700}
+.plist li.done .nm{color:var(--muted);text-decoration:line-through}
+.plist li.cur .nm{color:var(--acc2);font-weight:700}
+.plist .meta{font-size:12px;color:var(--muted)}
+.ghost.slim{padding:9px;font-size:14px;color:var(--acc2)}
+
+.pats h3{margin:0}
+.patrow{display:flex;align-items:center;gap:8px;border-top:1px solid var(--line);padding:8px 0}
+.patrow:first-of-type{border-top:0}
+.pname{flex:1;text-align:left;display:flex;flex-direction:column;min-width:0}
+.pname small{color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pe-list{margin:4px 0;padding-left:22px}
+.pe-list li{display:flex;align-items:center;gap:2px}
+.pe-list li span{flex:1}
+.pe-list .x{width:32px;height:32px}
+.pe-list .x:disabled{opacity:.25}
+.pe-add{border:1px solid var(--line);border-radius:12px;padding:10px;margin:8px 0;background:var(--bg)}
+.pe-add .ex-head{justify-content:space-between}
+.pe-add .exlist button{position:relative}
+.pe-add .exlist .nm{display:flex;justify-content:space-between;gap:8px}
+.pe-add .exlist em{font-style:normal;font-size:13px;color:var(--acc2);white-space:nowrap}
+.pe-add .exlist button.added{border-color:rgba(62,207,142,.5);background:rgba(62,207,142,.08)}
+.pe-add .exlist button.added em{color:var(--ok)}
+.addrow select{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--text);font-size:16px;margin:6px 0 4px}
+.ghost:disabled{opacity:.4}
+
+.hero{display:grid;grid-template-columns:44% 1fr;gap:10px;align-items:center;background:radial-gradient(circle at 30% 40%,#2a2218,var(--card) 70%)}
+.hero-svg{width:100%;height:auto;display:block}
+.hero-info .ttl{font-size:12px;color:var(--acc2)}
+.hero-info .lvl{font-size:15px}.hero-info .lvl b{font-size:30px}
+.xpbar,.mbar,.hpbar{height:8px;background:var(--card2);border-radius:4px;overflow:hidden;margin:4px 0}
+.xpbar i,.mbar i{display:block;height:100%;background:#5aa9ff;border-radius:4px}
+.mbar i{background:#38c6b4}
+.coin{font-size:18px;margin:8px 0 6px}.coin b{color:#f2c230}
+.stats{display:flex;flex-direction:column;gap:2px;font-size:13px;color:#c9d2dc}
+.mrow{display:grid;grid-template-columns:3.6em 1fr 2.6em 5em;align-items:center;gap:8px;font-size:13px;margin:8px 0}
+.mrow small{color:var(--muted);text-align:right}
+.coinlog{list-style:none;margin:6px 0;padding:0;font-size:13px}
+.coinlog li{display:grid;grid-template-columns:4.6em 1fr auto;gap:6px;padding:5px 0;border-top:1px solid var(--line)}
+.coinlog b{color:#f2c230}
+.eqrow{padding:8px 0;border-top:1px solid var(--line)}
+.eqh{display:flex;justify-content:space-between;margin-bottom:6px;font-size:14px}
+.eqh span{color:var(--muted)}
+.chip.sp{border-color:#b38cff;color:#d6c2ff}
+.chip.sp.on{background:#7b2fd0;color:#fff;border-color:#7b2fd0}
+.chip small{opacity:.75;font-size:11px}
+.shoprow{display:grid;grid-template-columns:32px 1fr auto;gap:8px;align-items:center;width:100%;text-align:left;padding:9px 4px;border-top:1px solid var(--line)}
+.shoprow .ic{font-size:22px;text-align:center}
+.shoprow .nm small{display:block;color:var(--muted);font-size:12px}
+.shoprow .pr{font-weight:700;color:#f2c230}
+.shoprow .pr.ng{color:var(--muted)}
+.shoprow .pr.own{color:var(--ok);font-weight:400;font-size:13px}
+.shopdlg .pv{width:150px;margin:0 auto}
+.shopdlg h3,.shopdlg p{text-align:center;margin:4px 0}
+.primary:disabled{background:#4a3a2c;color:#9c8b7a}
+.bosscard{text-align:center}
+.bicon{width:132px;margin:0 auto}
+.bstats{display:flex;justify-content:center;gap:14px;margin:4px 0 8px}
+.bosshp{max-width:260px;margin:0 auto 8px}.bosshp small{color:var(--muted);font-size:12px}
+.wr{display:flex;justify-content:center;gap:8px;align-items:baseline;margin:6px 0 12px}.wr b{font-size:18px}
+.blist{list-style:none;margin:0;padding:0}
+.blist li{display:grid;grid-template-columns:32px 1fr auto;gap:8px;align-items:center;padding:7px 0;border-top:1px solid var(--line);font-size:14px}
+.blist li span:first-child{font-size:20px;text-align:center}
+.blist .boss-svg{width:32px;height:32px}
+.blist li small{color:var(--muted);font-size:12px}
+.blist li.done small{color:var(--ok)}
+.blist li.cur{color:var(--acc2);font-weight:700}
+.blist li.lock{opacity:.5}
+.battle .bt-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px;text-align:center}
+.bt-side .mini{width:90px;margin:0 auto}
+.bt-boss{height:122px;display:grid;place-items:center;transition:.4s}
+.bt-boss .boss-svg{width:112px;height:112px}
+.bt-boss.down{filter:grayscale(1);opacity:.45;transform:rotate(14deg) translateY(8px)}
+.bt-vs{font-weight:800;color:var(--acc)}
+.hpbar i{display:block;height:100%;background:var(--ok);transition:width .3s}
+.hpbar.boss i{background:var(--bad)}
+.bt-side small{color:var(--muted);font-size:12px}
+.bt-log{height:92px;overflow:auto;background:var(--card2);border-radius:10px;padding:8px;margin:10px 0;font-size:13px}
+.bt-log .me{color:#ffd2ad}.bt-log .en{color:#ffb3b3}
+.bt-res{font-size:28px;font-weight:800;text-align:center}
+.bt-res.win{color:#f2c230}.bt-res.lose{color:var(--muted)}
+#bt-end p{text-align:center}
+.shake{animation:shake .35s}
+@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-6px) rotate(-4deg)}75%{transform:translateX(6px) rotate(4deg)}}
+@media (prefers-reduced-motion:reduce){.shake{animation:none}.hpbar i{transition:none}}
+
+/* ---- 上部ステータス帯 ---- */
+.hud-lv b{font-size:16px;margin-left:2px}
+.hud-xp{flex:1;max-width:90px;min-width:30px;height:6px;border-radius:3px;background:var(--card2);overflow:hidden}
+.hud-xp i{display:block;height:100%;background:#5aa9ff;transition:width .5s}
+.hud-coin b{color:#f2c230;margin-left:2px;display:inline-block}
+.hud-coin.bump b{animation:bump .3s}
+.hud-wk{display:flex;align-items:center;gap:4px;color:var(--muted);font-size:12px}
+.hud-st{font-size:12px}
+.wdots{display:inline-flex;gap:3px;vertical-align:middle}
+.wdots i{width:9px;height:9px;border-radius:50%;border:1.5px solid #4a5563}
+.wdots i.on{background:var(--ok);border-color:var(--ok)}
+body.local #badge{display:none}
+/* ---- 休憩タイマー ---- */
+#rest{position:fixed;left:0;right:0;bottom:calc(60px + env(safe-area-inset-bottom));z-index:6;padding:6px 10px;pointer-events:none}
+#rest[hidden]{display:none}
+.rest-in{pointer-events:auto;max-width:640px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:5px 5px 5px 14px;border-radius:12px;background:#243042;border:1px solid #3a4a61;box-shadow:0 6px 20px rgba(0,0,0,.4)}
+#rest-t{font-variant-numeric:tabular-nums;white-space:nowrap}
+.rest-track{flex:1;height:6px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden}
+#rest-bar{display:block;height:100%;background:#5aa9ff}
+.rest-in button{height:36px;min-width:36px;padding:0 10px;border-radius:9px;background:rgba(255,255,255,.09);font-size:13px}
+#rest.done .rest-in{background:#1f4a35;border-color:var(--ok)}
+#rest.done #rest-bar{background:var(--ok)}
+/* ---- 記録した瞬間の演出 ---- */
+#fx{position:fixed;inset:0;z-index:25;pointer-events:none;overflow:hidden}
+.fx-pop{position:absolute;right:10px;bottom:calc(124px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:6px;padding:6px 14px 6px 4px;border-radius:14px;background:rgba(26,31,38,.97);border:1px solid #f2c230;box-shadow:0 8px 24px rgba(0,0,0,.5);animation:fxin .35s cubic-bezier(.2,1.4,.4,1) both}
+.fx-char{width:60px}
+.fx-gain{font-weight:800;color:#f2c230;font-size:18px;white-space:nowrap}
+.fx-msg{font-size:13px;max-width:170px;line-height:1.35}
+.fx-pop.big .fx-msg{max-width:none;margin-bottom:6px;color:#c9d2dc}
+.fx-pop.big{left:50%;right:auto;bottom:auto;top:20%;flex-direction:column;padding:14px 24px 16px;text-align:center;pointer-events:auto;min-width:240px;animation-name:fxbig;transform:translateX(-50%);box-shadow:0 0 0 100vmax rgba(0,0,0,.35),0 0 40px rgba(242,194,48,.45)}
+.fx-pop.big .fx-char{width:124px}
+.fx-big{margin-bottom:6px}
+.fx-big b{display:block;font-size:22px;color:#f2c230;letter-spacing:.04em}
+.fx-big span{font-size:15px}
+.fx-c{position:fixed;font-size:18px;margin:-10px 0 0 -10px;will-change:transform}
+@keyframes fxin{from{opacity:0;transform:translateY(20px) scale(.8)}to{opacity:1;transform:none}}
+@keyframes fxbig{from{opacity:0;transform:translateX(-50%) scale(.6)}to{opacity:1;transform:translateX(-50%)}}
+@keyframes bump{50%{transform:scale(1.4)}}
+.hero-svg.idle{animation:breathe 3.2s ease-in-out infinite;transform-origin:50% 100%}
+@keyframes breathe{50%{transform:scaleY(1.018)}}
+/* ---- 冒険 ---- */
+.boss-svg{display:block;width:100%;height:auto}
+.hero .weekrow{grid-column:1/3;display:flex;justify-content:space-between;gap:4px 10px;flex-wrap:wrap;font-size:13px;border-top:1px solid var(--line);padding-top:8px;color:#c9d2dc}
+.chal{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;width:100%;text-align:left;padding:8px 14px 8px 10px;margin:14px 0 0;border-radius:var(--r);background:linear-gradient(135deg,#2b2440,#1a1f26);border:1px solid #5b4a8a}
+.claim{border-color:#f2c230}
+.claim p{margin:0 0 10px}
+.claim p:last-child{margin:10px 0 0}
+.chal small{display:block;color:var(--muted);font-size:12px}
+.chal-go{color:#b9a4ff}
+.bt-top{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted);margin-bottom:4px}
+.kidots{display:inline-flex;gap:4px;vertical-align:middle}
+.kidots i{width:12px;height:12px;border-radius:50%;border:2px solid #6b5a2a}
+.kidots i.on{background:#f2c230;border-color:#f2c230;box-shadow:0 0 6px rgba(242,194,48,.7)}
+.bt-log .spx{color:#f2c230;font-weight:700}
+.bt-log .warnl{color:var(--warn);font-weight:700}
+.bt-acts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:10px 0}
+.bt-acts[hidden]{display:none}
+.bt-a{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:62px;padding:8px 4px;border-radius:12px;background:var(--card2);border:1px solid var(--line);line-height:1.3}
+.bt-a b{font-size:15px}
+.bt-a small{font-size:10.5px;color:var(--muted)}
+.bt-a:active{background:#2d3542}
+.bt-a:disabled{opacity:.4}
+.bt-a.sp.ready:not(:disabled){background:var(--acc);border-color:var(--acc);color:#1a0d00}
+.bt-a.sp.ready:not(:disabled) small{color:#4a2500}
+.bt-a.warn:not(:disabled){border-color:var(--warn);box-shadow:0 0 0 2px rgba(245,184,75,.35)}
+.battle .row2 .ghost{margin-top:0}
+@media (prefers-reduced-motion:reduce){.fx-pop,.hero-svg.idle,.hud-coin.bump b{animation:none}.fx-pop.big{transform:translateX(-50%)}.bt-boss{transition:none}}
+:focus-visible{outline:2px solid var(--acc2);outline-offset:2px}
+#mic{display:none!important}
+</style>
+</head>
+<body>
+<header id="hud">
+  <button id="hud-main" data-go="game" aria-label="冒険の状況（タップで冒険へ）"></button>
+  <button id="badge" class="badge muted">…</button>
+</header>
+<main>
+  <div class="cmdbar">
+    <form id="cmdform" autocomplete="off">
+      <input id="cmd" type="text" enterkeyhint="send" aria-label="種目名で探す、または種目・重量・回数を入力して記録">
+      <button id="mic" type="button" aria-label="音声入力">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+      </button>
+    </form>
+  </div>
+  <div id="view-today"></div>
+  <div id="view-browse" hidden></div>
+  <div id="view-history" hidden></div>
+  <div id="view-game" hidden></div>
+  <div id="view-settings" hidden></div>
+</main>
+
+<nav>
+  <button data-go="today"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6.5 6.5v11M17.5 6.5v11M3 9.5v5M21 9.5v5M6.5 12h11"/></svg>今日</button>
+  <button data-go="browse"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>種目</button>
+  <button data-go="history"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg>履歴</button>
+  <button data-go="game"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5 3 6V3h3l11.5 11.5M13 19l6-6M16 16l4 4M19 21l2-2"/></svg>冒険</button>
+  <button data-go="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>設定</button>
+</nav>
+
+<div id="rest" hidden><div class="rest-in"><b id="rest-t"></b><span class="rest-track"><i id="rest-bar"></i></span><button data-act="rest+">+30秒</button><button data-act="rest-x" aria-label="休憩タイマーを止める">✕</button></div></div>
+<div id="fx" aria-hidden="true"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<div id="modal" hidden></div>
+<script>window.LOCAL_ONLY=true;</script>
+<script>
+'use strict';
+/* =========================================================
+   筋トレ記録 PWA
+   - 音声 / 画面で 種目・重量・回数を記録
+   - 種目だけ伝えると前回の記録から今日の重量・回数・セット数を提案
+   - 部位・器具を伝えると種目一覧
+   - 端末(localStorage)に即保存 → 通信可能時に Google Drive へ同期
+   ========================================================= */
+
+// ---------- 定数・種目データ ----------
+const PARTS = ['胸', '背中', '肩', '二頭', '三頭', '前腕', '脚', '臀部', '腹', 'その他'];
+const EQUIPS = ['バーベル', 'ダンベル', 'マシン', 'ケーブル', 'スミス', '自重', 'ケトルベル', 'チューブ', 'その他'];
+const INC = { バーベル: 2.5, スミス: 2.5, ダンベル: 1, マシン: 2.5, ケーブル: 2.5, ケトルベル: 4, 自重: 0, チューブ: 0, その他: 2.5 };
+
+// [種目名, 部位, 器具, 別名]
+const EX_DB = [
+  ['ベンチプレス', '胸', 'バーベル', ['ベンチ', 'バーベルベンチプレス']],
+  ['インクラインベンチプレス', '胸', 'バーベル', ['インクラインベンチ']],
+  ['デクラインベンチプレス', '胸', 'バーベル', ['デクラインベンチ']],
+  ['ダンベルプレス', '胸', 'ダンベル', ['ダンベルベンチプレス']],
+  ['インクラインダンベルプレス', '胸', 'ダンベル', ['インクラインダンベル']],
+  ['ダンベルフライ', '胸', 'ダンベル', ['フライ']],
+  ['インクラインダンベルフライ', '胸', 'ダンベル', ['インクラインフライ']],
+  ['チェストプレス', '胸', 'マシン', ['マシンチェストプレス']],
+  ['ペックフライ', '胸', 'マシン', ['ペックデック', 'バタフライ', 'マシンフライ']],
+  ['ケーブルクロスオーバー', '胸', 'ケーブル', ['ケーブルクロス', 'ケーブルフライ']],
+  ['スミスベンチプレス', '胸', 'スミス', ['スミスベンチ']],
+  ['腕立て伏せ', '胸', '自重', ['プッシュアップ', '腕立て', 'うでたて']],
+  ['ディップス', '胸', '自重', ['ディップ']],
+
+  ['デッドリフト', '背中', 'バーベル', ['デッド']],
+  ['ベントオーバーロウ', '背中', 'バーベル', ['ベントオーバーロー', 'バーベルロウ', 'バーベルロー']],
+  ['Tバーロウ', '背中', 'バーベル', ['ティーバーロウ', 'Tバーロー', 'ティーバーロー']],
+  ['ダンベルロウ', '背中', 'ダンベル', ['ワンハンドロウ', 'ワンハンドロー', 'ダンベルロー']],
+  ['ダンベルプルオーバー', '背中', 'ダンベル', ['プルオーバー']],
+  ['ラットプルダウン', '背中', 'マシン', ['ラットプル', 'プルダウン']],
+  ['マシンロウ', '背中', 'マシン', ['マシンロー', 'ローイング']],
+  ['シーテッドロウ', '背中', 'ケーブル', ['シーテッドロー', 'ケーブルロウ', 'ケーブルロー']],
+  ['懸垂', '背中', '自重', ['チンニング', 'プルアップ', 'けんすい', 'チンアップ']],
+  ['バックエクステンション', '背中', '自重', ['背筋', 'はいきん']],
+
+  ['ミリタリープレス', '肩', 'バーベル', ['オーバーヘッドプレス', 'バーベルショルダープレス']],
+  ['アップライトロウ', '肩', 'バーベル', ['アップライトロー']],
+  ['ショルダープレス', '肩', 'ダンベル', ['ダンベルショルダープレス']],
+  ['サイドレイズ', '肩', 'ダンベル', ['ラテラルレイズ', 'サイドレイズ', 'ダンベルサイドレイズ']],
+  ['フロントレイズ', '肩', 'ダンベル', []],
+  ['リアレイズ', '肩', 'ダンベル', ['ベントオーバーリアレイズ']],
+  ['シュラッグ', '肩', 'ダンベル', ['ダンベルシュラッグ', 'シュラグ']],
+  ['マシンショルダープレス', '肩', 'マシン', []],
+  ['リアデルトフライ', '肩', 'マシン', ['リアデルト', 'リアフライ']],
+  ['ケーブルサイドレイズ', '肩', 'ケーブル', []],
+  ['フェイスプル', '肩', 'ケーブル', ['フェイスプール']],
+  ['スミスショルダープレス', '肩', 'スミス', []],
+
+  ['バーベルカール', '二頭', 'バーベル', []],
+  ['EZバーカール', '二頭', 'バーベル', ['イージーバーカール']],
+  ['ダンベルカール', '二頭', 'ダンベル', ['カール', 'アームカール']],
+  ['ハンマーカール', '二頭', 'ダンベル', ['ハンマー']],
+  ['インクラインダンベルカール', '二頭', 'ダンベル', ['インクラインカール']],
+  ['コンセントレーションカール', '二頭', 'ダンベル', []],
+  ['プリーチャーカール', '二頭', 'マシン', ['プリチャーカール']],
+  ['ケーブルカール', '二頭', 'ケーブル', []],
+
+  ['ナローベンチプレス', '三頭', 'バーベル', ['ナローベンチ', 'クローズグリップベンチプレス']],
+  ['ライイングトライセプスエクステンション', '三頭', 'バーベル', ['スカルクラッシャー', 'ライイングエクステンション']],
+  ['フレンチプレス', '三頭', 'ダンベル', ['オーバーヘッドエクステンション']],
+  ['キックバック', '三頭', 'ダンベル', ['ダンベルキックバック']],
+  ['プレスダウン', '三頭', 'ケーブル', ['トライセプスプレスダウン', 'プッシュダウン', 'ケーブルプレスダウン']],
+  ['ベンチディップス', '三頭', '自重', ['リバースディップス']],
+
+  ['スクワット', '脚', 'バーベル', ['バーベルスクワット', 'バックスクワット']],
+  ['フロントスクワット', '脚', 'バーベル', []],
+  ['スミススクワット', '脚', 'スミス', []],
+  ['ブルガリアンスクワット', '脚', 'ダンベル', ['ブルガリアン', 'ブルガリアンスプリットスクワット']],
+  ['ゴブレットスクワット', '脚', 'ダンベル', ['ゴブレット']],
+  ['ランジ', '脚', 'ダンベル', ['ダンベルランジ', 'ウォーキングランジ']],
+  ['レッグプレス', '脚', 'マシン', []],
+  ['レッグエクステンション', '脚', 'マシン', ['レッグエクステ']],
+  ['レッグカール', '脚', 'マシン', ['ライイングレッグカール', 'シーテッドレッグカール']],
+  ['ハックスクワット', '脚', 'マシン', []],
+  ['カーフレイズ', '脚', 'マシン', ['カーフ']],
+  ['アダクション', '脚', 'マシン', ['アダクター', '内転筋']],
+  ['自重スクワット', '脚', '自重', ['エアスクワット']],
+
+  ['ルーマニアンデッドリフト', '臀部', 'バーベル', ['ルーマニアンデッド', 'RDL']],
+  ['ヒップスラスト', '臀部', 'バーベル', []],
+  ['アブダクション', '臀部', 'マシン', ['アブダクター']],
+  ['ケーブルキックバック', '臀部', 'ケーブル', []],
+  ['ヒップリフト', '臀部', '自重', ['グルートブリッジ']],
+  ['ケトルベルスイング', '臀部', 'ケトルベル', ['スイング']],
+
+  ['クランチ', '腹', '自重', []],
+  ['レッグレイズ', '腹', '自重', ['ハンギングレッグレイズ']],
+  ['アブローラー', '腹', '自重', ['腹筋ローラー']],
+  ['ロシアンツイスト', '腹', '自重', []],
+  ['プランク', '腹', '自重', []],
+  ['ケーブルクランチ', '腹', 'ケーブル', []],
+  ['アブドミナルクランチ', '腹', 'マシン', ['アブクランチ']],
+
+  // ---- 追加分 ----
+  ['インクラインチェストプレス', '胸', 'マシン', ['マシンインクラインプレス']],
+  ['ケーブルチェストプレス', '胸', 'ケーブル', []],
+  ['インクラインケーブルフライ', '胸', 'ケーブル', ['ローケーブルフライ', 'ロープーリーフライ']],
+  ['スミスインクラインプレス', '胸', 'スミス', ['スミスインクライン']],
+  ['スクイーズプレス', '胸', 'ダンベル', ['ダンベルスクイーズプレス']],
+  ['ワイドプッシュアップ', '胸', '自重', ['ワイド腕立て']],
+  ['デクラインプッシュアップ', '胸', '自重', ['足上げ腕立て']],
+  ['膝つき腕立て伏せ', '胸', '自重', ['膝つき腕立て', '膝つきプッシュアップ']],
+
+  ['バックプルダウン', '背中', 'マシン', ['ビハインドネックプルダウン']],
+  ['アシスト懸垂', '背中', 'マシン', ['アシストチンニング', 'アシストプルアップ']],
+  ['ストレートアームプルダウン', '背中', 'ケーブル', ['ケーブルプルオーバー']],
+  ['ワンハンドケーブルロウ', '背中', 'ケーブル', ['ワンハンドケーブルロー']],
+  ['ペンドレイロウ', '背中', 'バーベル', ['ペンドレイロー']],
+  ['ラックプル', '背中', 'バーベル', []],
+  ['シールロウ', '背中', 'ダンベル', ['シールロー']],
+  ['斜め懸垂', '背中', '自重', ['インバーテッドロウ', 'インバーテッドロー', 'オーストラリアン懸垂']],
+  ['スーパーマン', '背中', '自重', []],
+
+  ['アーノルドプレス', '肩', 'ダンベル', []],
+  ['ダンベルアップライトロウ', '肩', 'ダンベル', ['ダンベルアップライトロー']],
+  ['バーベルシュラッグ', '肩', 'バーベル', []],
+  ['ランドマインプレス', '肩', 'バーベル', []],
+  ['マシンサイドレイズ', '肩', 'マシン', ['サイドレイズマシン']],
+  ['ケーブルフロントレイズ', '肩', 'ケーブル', []],
+  ['ケーブルリアレイズ', '肩', 'ケーブル', ['ケーブルリアデルトフライ']],
+  ['パイクプッシュアップ', '肩', '自重', ['パイク腕立て']],
+  ['逆立ち腕立て伏せ', '肩', '自重', ['ハンドスタンドプッシュアップ', '逆立ち腕立て']],
+  ['バンドプルアパート', '肩', 'チューブ', []],
+
+  ['ドラッグカール', '二頭', 'バーベル', []],
+  ['スパイダーカール', '二頭', 'ダンベル', []],
+  ['マシンカール', '二頭', 'マシン', ['アームカールマシン', 'バイセップスカール']],
+  ['ケーブルハンマーカール', '二頭', 'ケーブル', ['ロープハンマーカール']],
+  ['チューブカール', '二頭', 'チューブ', []],
+
+  ['JMプレス', '三頭', 'バーベル', ['ジェイエムプレス']],
+  ['テイトプレス', '三頭', 'ダンベル', []],
+  ['ローププレスダウン', '三頭', 'ケーブル', ['ロープエクステンション', 'ロープトライセプスエクステンション']],
+  ['オーバーヘッドケーブルエクステンション', '三頭', 'ケーブル', ['ケーブルオーバーヘッドエクステンション', 'ケーブルフレンチプレス']],
+  ['マシンディップス', '三頭', 'マシン', ['ディップスマシン']],
+  ['トライセプスエクステンションマシン', '三頭', 'マシン', ['マシントライセプスエクステンション']],
+  ['ダイヤモンドプッシュアップ', '三頭', '自重', ['ナロープッシュアップ', 'ダイヤモンド腕立て']],
+
+  ['リストカール', '前腕', 'ダンベル', []],
+  ['リバースリストカール', '前腕', 'ダンベル', []],
+  ['リバースカール', '前腕', 'バーベル', []],
+  ['ファーマーズウォーク', '前腕', 'ダンベル', ['ファーマーズキャリー']],
+
+  ['ダンベルスクワット', '脚', 'ダンベル', []],
+  ['スプリットスクワット', '脚', 'ダンベル', []],
+  ['ステップアップ', '脚', 'ダンベル', ['ダンベルステップアップ']],
+  ['バーベルランジ', '脚', 'バーベル', []],
+  ['スティッフレッグドデッドリフト', '脚', 'バーベル', ['スティッフレッグデッドリフト', 'SLDL']],
+  ['スモウデッドリフト', '脚', 'バーベル', ['相撲デッドリフト', 'スモウデッド']],
+  ['ベルトスクワット', '脚', 'マシン', []],
+  ['ペンデュラムスクワット', '脚', 'マシン', []],
+  ['シーテッドカーフレイズ', '脚', 'マシン', []],
+  ['ワイドスクワット', '脚', '自重', ['スモウスクワット', '相撲スクワット']],
+  ['ジャンプスクワット', '脚', '自重', []],
+  ['シシースクワット', '脚', '自重', []],
+  ['ピストルスクワット', '脚', '自重', ['片足スクワット']],
+  ['ノルディックハムストリング', '脚', '自重', ['ノルディックカール']],
+
+  ['ダンベルルーマニアンデッドリフト', '臀部', 'ダンベル', ['ダンベルRDL', 'ダンベルルーマニアン']],
+  ['マシンヒップスラスト', '臀部', 'マシン', ['ヒップスラストマシン']],
+  ['ケーブルプルスルー', '臀部', 'ケーブル', []],
+  ['ケトルベルデッドリフト', '臀部', 'ケトルベル', []],
+  ['バックキック', '臀部', '自重', ['ドンキーキック']],
+  ['ファイヤーハイドラント', '臀部', '自重', []],
+
+  ['バイシクルクランチ', '腹', '自重', []],
+  ['クロスクランチ', '腹', '自重', []],
+  ['シットアップ', '腹', '自重', ['上体起こし']],
+  ['ニーアップ', '腹', '自重', ['ニーレイズ', 'ハンギングニーレイズ']],
+  ['Vシット', '腹', '自重', ['Vアップ', 'ブイシット']],
+  ['サイドプランク', '腹', '自重', []],
+  ['デッドバグ', '腹', '自重', []],
+  ['マウンテンクライマー', '腹', '自重', []],
+  ['ドラゴンフラッグ', '腹', '自重', []],
+  ['ケーブルウッドチョップ', '腹', 'ケーブル', ['ウッドチョップ']],
+  ['パロフプレス', '腹', 'ケーブル', []],
+];
+
+const PART_AL = {
+  胸: ['胸', 'むね', 'チェスト', '大胸筋'],
+  背中: ['背中', 'せなか', '広背筋', 'バック', '背'],
+  肩: ['肩', 'かた', '三角筋', 'ショルダー'],
+  二頭: ['上腕二頭筋', '上腕二頭', '二頭筋', '二頭', '力こぶ', 'バイセップス'],
+  三頭: ['上腕三頭筋', '上腕三頭', '三頭筋', '三頭', 'トライセップス'],
+  前腕: ['前腕', 'ぜんわん', '握力', 'フォアアーム'],
+  腕: ['腕', 'うで', 'アーム'],
+  脚: ['下半身', '太もも', '太腿', '大腿', '脚', '足', 'あし', 'レッグ', 'もも'],
+  臀部: ['臀部', 'お尻', 'おしり', '尻', 'ケツ', 'ヒップ', 'グルート', 'でんぶ'],
+  腹: ['腹筋', 'お腹', 'おなか', '腹', '体幹', 'アブ'],
+};
+const EQUIP_AL = {
+  スミス: ['スミスマシン', 'スミス'],
+  バーベル: ['バーベル'],
+  ダンベル: ['ダンベル'],
+  マシン: ['マシン', 'マシーン'],
+  ケーブル: ['ケーブル'],
+  自重: ['自重', 'じじゅう', 'ボディウェイト', '自体重'],
+  ケトルベル: ['ケトルベル'],
+  チューブ: ['トレーニングチューブ', 'チューブ', 'ゴムバンド', 'バンド'],
+};
+
+// ---------- ユーティリティ ----------
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+function ymd(d = new Date()) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+const today = () => ymd();
+const num = x => +(+x).toFixed(2);
+const fmtW = w => (w === 0 ? '自重' : num(w) + 'kg');
+const fmtDate = d => { const t = new Date(d + 'T00:00:00'); return `${t.getMonth() + 1}/${t.getDate()}(${'日月火水木金土'[t.getDay()]})`; };
+
+// ひらがな→カタカナ、全角半角統一、空白・記号除去、小文字化
+function norm(s) {
+  return String(s).normalize('NFKC').toLowerCase()
+    .replace(/[ぁ-ゖ]/g, c => String.fromCharCode(c.charCodeAt(0) + 0x60))
+    .replace(/[\s・、。,!?「」『』()（）]/g, '');
+}
+
+// 単位の直前にある漢数字を算用数字に (二頭・三頭 などは変換しない)
+const KD = { '〇': 0, '零': 0, '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9 };
+function kanjiInt(s) {
+  let total = 0, cur = 0;
+  for (const c of s) {
+    if (c in KD) cur = KD[c];
+    else if (c === '十') { total += (cur || 1) * 10; cur = 0; }
+    else if (c === '百') { total += (cur || 1) * 100; cur = 0; }
+    else if (c === '千') { total += (cur || 1) * 1000; cur = 0; }
+  }
+  return total + cur;
+}
+function convertKanjiNums(t) {
+  return t.replace(/([〇零一二三四五六七八九十百千]+)(?:[点.]([〇零一二三四五六七八九]+))?(?=\s*(?:キロ|きろ|kg|回|かい|レップ|れっぷ|セット|せっと))/gi,
+    (m, a, b) => kanjiInt(a) + (b ? '.' + [...b].map(c => KD[c]).join('') : ''));
+}
+
+function lev(a, b) {
+  const m = a.length, n = b.length; if (!m) return n; if (!n) return m;
+  let prev = Array.from({ length: n + 1 }, (_, j) => j);
+  for (let i = 1; i <= m; i++) {
+    const cur = [i];
+    for (let j = 1; j <= n; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    prev = cur;
+  }
+  return prev[n];
+}
+
+// ---------- パターン（メニュー）初期値 ----------
+const PRESET_PATTERNS = [
+  { id: 'preset-full', name: '全身の日', items: ['スクワット', 'ベンチプレス', 'ラットプルダウン', 'ショルダープレス', 'ルーマニアンデッドリフト', 'クランチ'] },
+  { id: 'preset-legs', name: '脚の日', items: ['スクワット', 'レッグプレス', 'ルーマニアンデッドリフト', 'レッグエクステンション', 'レッグカール', 'カーフレイズ'] },
+  { id: 'preset-chest', name: '胸の日', items: ['ベンチプレス', 'インクラインダンベルプレス', 'ダンベルフライ', 'ケーブルクロスオーバー', 'ディップス'] },
+  { id: 'preset-back', name: '背中の日', items: ['デッドリフト', 'ラットプルダウン', 'ベントオーバーロウ', 'シーテッドロウ', 'ストレートアームプルダウン'] },
+  { id: 'preset-arms', name: '肩と腕の日', items: ['ショルダープレス', 'サイドレイズ', 'リアデルトフライ', 'ダンベルカール', 'プレスダウン'] },
+];
+
+// ---------- 状態 ----------
+const KEY = 'trainingLog.v1';
+function loadState() {
+  let d = null;
+  try { d = JSON.parse(localStorage.getItem(KEY)); } catch (e) { /* なし */ }
+  d = d || {};
+  return {
+    sets: d.sets || [],
+    customEx: d.customEx || [],
+    game: d.game || null,
+    patterns: d.patterns || PRESET_PATTERNS.map(p => ({ ...p, items: [...p.items], u: 1 })),
+    session: d.session || null,
+    settings: Object.assign({ clientId: '', repMin: 8, repMax: 12, speak: true, rest: 90, weekGoal: 3 }, d.settings),
+    sync: Object.assign({ fileId: null, dirty: false, lastSync: null, connected: false, seq: 0, token: null, tokenExp: 0 }, d.sync),
+  };
+}
+let S = loadState();
+const cur = { ex: null, w: '', r: '' };
+let browse = { parts: [], equip: null };
+let tab = 'today';
+const trend = { unit: 'week', metric: null, open: true };
+const hist = { unit: 'day', anchor: null, ex: null, dayMonth: '' };
+
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(S)); }
+  catch (e) { toast('端末への保存に失敗しました'); }
+}
+function touch() {
+  S.sync.dirty = true; S.sync.seq++;
+  save(); scheduleSync(); render();
+}
+
+// ---------- 種目 ----------
+function allEx() {
+  const m = new Map();
+  EX_DB.forEach(([n, p, e, a]) => m.set(n, { name: n, part: p, equip: e, aliases: a || [] }));
+  S.customEx.filter(x => !x.del).forEach(x => m.set(x.name, { name: x.name, part: x.part, equip: x.equip, aliases: [], custom: true }));
+  return [...m.values()];
+}
+function exInfo(name) { return allEx().find(x => x.name === name) || { name, part: 'その他', equip: 'その他', aliases: [] }; }
+
+function matchEx(q, allowFuzzy = true) {
+  if (!q) return null;
+  const list = allEx();
+  // 1) 発話に種目名(別名)が含まれる → 最長一致
+  let best = null, bl = 0;
+  for (const x of list) for (const k of [x.name, ...x.aliases]) {
+    const nk = norm(k);
+    if (nk && q.includes(nk) && nk.length > bl) { best = x; bl = nk.length; }
+  }
+  if (best) return best;
+  // 2) 種目名の一部を言った (3文字以上) → 最短の名前
+  if (q.length >= 3) {
+    let bs = null, blen = 1e9;
+    for (const x of list) for (const k of [x.name, ...x.aliases]) {
+      const nk = norm(k);
+      if (nk.includes(q) && nk.length < blen) { bs = x; blen = nk.length; }
+    }
+    if (bs) return bs;
+  }
+  if (!allowFuzzy) return null;
+  // 3) 聞き間違い対策のあいまい一致
+  let fb = null, fd = 1e9;
+  for (const x of list) for (const k of [x.name, ...x.aliases]) {
+    const nk = norm(k); const d = lev(q, nk) / Math.max(nk.length, q.length);
+    if (d < fd) { fd = d; fb = x; }
+  }
+  return fd <= 0.34 ? fb : null;
+}
+
+function matchPartEquip(q) {
+  let t = q; const parts = new Set(); let equip = null;
+  const all = [];
+  for (const [p, al] of Object.entries(PART_AL)) al.forEach(a => all.push(['p', p, norm(a)]));
+  for (const [e, al] of Object.entries(EQUIP_AL)) al.forEach(a => all.push(['e', e, norm(a)]));
+  all.sort((a, b) => b[2].length - a[2].length);
+  for (const [k, v, a] of all) {
+    if (t.includes(a)) {
+      if (k === 'p') { if (v === '腕') { parts.add('二頭'); parts.add('三頭'); parts.add('前腕'); } else parts.add(v); }
+      else if (!equip) equip = v;
+      t = t.split(a).join(' ');
+    }
+  }
+  if (!parts.size && !equip) return null;
+  const left = t.replace(/\s|ノ|ト|ヲ|デ|系|オ|ゴ|種目|シュモク|一覧|イチラン|メニュー|トレーニング|エクササイズ/g, '');
+  return { parts: [...parts], equip, left };
+}
+
+// ---------- 発話・入力の解釈 ----------
+function parseCommand(raw) {
+  let t = convertKanjiNums(String(raw).normalize('NFKC'));
+  if (/取り?消|とりけ|キャンセル|元に戻|もとにもど|削除|さくじょ|やり直|やりなお/.test(t)) return { type: 'undo' };
+
+  {
+    const pn = norm(t).replace(/^(今日ハ|キョウハ|今日|キョウ)/, '');
+    if (/^(次|ツギ)(ノ種目|ノシュモク|ヘ|ニ|ニイク|イコウ)?$/.test(pn)) return { type: 'next' };
+    if (/^(パターン|メニュー)?(ヲ)?(終了|シュウリョウ|オワリ|終ワリ|オワル|終ワル|終ワリ)$/.test(pn)) return { type: 'end' };
+    const ps = (typeof S !== 'undefined' ? S.patterns : []).filter(p => !p.del).sort((a, b) => b.name.length - a.name.length);
+    for (const p of ps) {
+      const full = norm(p.name), core = full.replace(/(ノ日|ノヒ|デー|day)$/, '');
+      if (pn.includes(full)) return { type: 'pattern', p };
+      if (core.length >= 1 && pn.startsWith(core) && pn.length > core.length && /^(ノ日|ノヒ)?(ヲ)?(ハジメル|始メル|ハジメ|開始|カイシ|スタート|ヤル|ヤリマス)$/.test(pn.slice(core.length))) return { type: 'pattern', p };
+    }
+  }
+  let w = null, r = null, sets = null;
+  t = t.replace(/(\d+(?:\.\d+)?)\s*(?:kg|キログラム|キロ|きろ)/i, (m, a) => { w = parseFloat(a); return ' '; });
+  t = t.replace(/(\d+)\s*(?:セット|せっと|sets?)/i, (m, a) => { sets = parseInt(a, 10); return ' '; });
+  t = t.replace(/(\d+)\s*(?:回|かい|レップ|れっぷ|reps?)/i, (m, a) => { r = parseInt(a, 10); return ' '; });
+  const bare = [];
+  t = t.replace(/\d+(?:\.\d+)?/g, m => { bare.push(parseFloat(m)); return ' '; });
+  if (w == null && r == null && bare.length >= 2) { w = bare[0]; r = bare[1]; }
+  else if (w != null && r == null && bare.length >= 1) r = bare[0];
+  else if (w == null && r != null && bare.length >= 1) w = bare[0];
+  else if (w == null && r == null && bare.length === 1) r = bare[0];
+
+  let rest = norm(t).replace(/[×x*]/g, '');
+  // 前後のつなぎ言葉を除去
+  const tail = /(ヲ|デ|ハ|ガ|記録|キロク|ヤッタ|ヤル|シタ|シテ|シマス|オネガイ|オネガイシマス|今日|キョウ|ヲヤル|ヲヤリタイ|ヤリタイ|教エテ|オシエテ|見セテ|ミセテ|一覧|イチラン|種目|シュモク|メニュー|系)$/;
+  const head = /^(今日ハ|キョウハ|今日|キョウ|次ハ|ツギハ|次|ツギ)/;
+  for (let i = 0; i < 6; i++) { const b = rest; rest = rest.replace(tail, '').replace(head, ''); if (b === rest) break; }
+
+  const full = norm(t).replace(/[×x*]/g, '');
+  const hasNum = w != null || r != null;
+  if (hasNum) return { type: 'record', ex: (full && matchEx(full, false)) || matchEx(rest), rawName: rest, w, r, sets };
+  if (!rest) return { type: 'unknown', rawName: '' };
+  const pe = matchPartEquip(rest);
+  if (pe && !pe.left) return { type: 'browse', parts: pe.parts, equip: pe.equip };
+  const exact = matchEx(full, false) || matchEx(rest, false);
+  if (exact) return { type: 'suggest', ex: exact };
+  if (pe) return { type: 'browse', parts: pe.parts, equip: pe.equip };
+  const fz = matchEx(rest, true);
+  if (fz) return { type: 'suggest', ex: fz };
+  return { type: 'unknown', rawName: rest };
+}
+
+// ---------- 1RM (Epley式) ----------
+const r1 = x => Math.round(x * 10) / 10;
+function e1rm(w, r) { w = +w; r = +r; if (!(w > 0) || !(r > 0)) return 0; return r === 1 ? w : w * (1 + r / 30); }
+function dayOrm(sets) { return sets.reduce((m, s) => Math.max(m, e1rm(s.w, s.r)), 0); }
+function ormStats(name, day = today()) {
+  const ss = sessions(name); // 新しい順
+  const past = ss.filter(x => x.date < day), cur = ss.find(x => x.date === day);
+  let best = null;
+  for (const x of past) { const o = dayOrm(x.sets); if (o > 0 && (!best || o > best.o)) best = { o, date: x.date }; }
+  const last = past.find(x => dayOrm(x.sets) > 0);
+  return { best, last: last ? { o: dayOrm(last.sets), date: last.date } : null, today: cur ? dayOrm(cur.sets) : 0 };
+}
+// 指定重量での最大回数 / 指定回数での最大重量
+const repsAt = (w, orm) => (w >= orm ? (w === orm ? 1 : 0) : Math.floor(30 * (orm / w - 1)));
+const weightFor = (r, orm) => (r <= 1 ? orm : orm / (1 + r / 30));
+// その日の1RMがそれまでの自己ベストを上回ったか
+function isPrDay(name, day) {
+  const ss = sessions(name); const d = ss.find(x => x.date === day); if (!d) return false;
+  const o = dayOrm(d.sets); if (!o) return false;
+  const prev = ss.filter(x => x.date < day);
+  return prev.length > 0 && prev.every(x => dayOrm(x.sets) < o);
+}
+
+// ---------- 提案ロジック (ダブルプログレッション) ----------
+function sessions(name) {
+  const by = {};
+  for (const s of S.sets) { if (s.del || s.ex !== name) continue; (by[s.date] = by[s.date] || []).push(s); }
+  return Object.keys(by).sort().reverse().map(d => ({ date: d, sets: by[d].sort((a, b) => a.ts - b.ts) }));
+}
+function roundTo(x, inc) { return inc > 0 ? num(Math.round(x / inc) * inc) : num(x); }
+
+function suggest(name, day = today()) {
+  const ex = exInfo(name);
+  const lo = +S.settings.repMin || 8, hi = Math.max(+S.settings.repMax || 12, lo);
+  const inc = INC[ex.equip] ?? 2.5;
+  const past = sessions(name).filter(x => x.date < day);
+  if (!past.length) {
+    return { first: true, w: ex.equip === '自重' ? 0 : null, r: hi, sets: 3,
+      reason: ex.equip === '自重' ? 'はじめての種目です。できる回数を3セット記録しましょう。'
+        : `はじめての種目です。${hi}回がぎりぎりできる重量を探しながら3セット行いましょう。` };
+  }
+  const last = past[0];
+  const top = Math.max(...last.sets.map(s => s.w));
+  const work = last.sets.filter(s => (top > 0 ? s.w >= top * 0.9 : true));
+  const nSets = work.length >= 2 ? Math.min(work.length, 6) : 3;
+  const minTop = Math.min(...last.sets.filter(s => s.w === top).map(s => s.r));
+  const minWork = Math.min(...work.map(s => s.r));
+  const base = { last, sets: nSets };
+
+  if (top === 0 || inc === 0) {
+    const t = minTop + 1;
+    return { ...base, w: top, r: t, reason: `前回 ${fmtW(top)}で最少${minTop}回 → 各セット${t}回を目指しましょう` };
+  }
+  if (minWork >= hi) {
+    const nw = roundTo(top + inc, inc);
+    return { ...base, w: nw, r: lo, up: true, reason: `前回 ${fmtW(top)}で全セット${hi}回以上 → +${inc}kgして${lo}回から` };
+  }
+  if (minTop < lo) {
+    const prev = past[1];
+    let prevFail = false;
+    if (prev) {
+      const pt = Math.max(...prev.sets.map(s => s.w));
+      const pr = Math.min(...prev.sets.filter(s => s.w === pt).map(s => s.r));
+      prevFail = pt >= top && pr < lo;
+    }
+    if (prevFail) {
+      const nw = roundTo(top * 0.9, inc);
+      return { ...base, w: nw, r: lo, down: true, reason: `2回続けて${lo}回未満 → 約10%下げて${fmtW(nw)}で立て直し` };
+    }
+    return { ...base, w: top, r: lo, reason: `前回 ${fmtW(top)}で最少${minTop}回 → 同じ重量で${lo}回を目指しましょう` };
+  }
+  const t = Math.min(minTop + 1, hi);
+  return { ...base, w: top, r: t, reason: `前回 ${fmtW(top)}で最少${minTop}回 → 同じ重量で${t}回を目指しましょう` };
+}
+
+// ---------- パターンでの実施 ----------
+const livePatterns = () => S.patterns.filter(p => !p.del);
+function sessionInfo() {
+  if (!S.session || S.session.date !== today()) return null;
+  const p = S.patterns.find(x => x.id === S.session.pid && !x.del); if (!p) return null;
+  const items = p.items.map(n => { const sg = suggest(n); return { n, done: todaySets(n).length, target: sg.sets, sg }; });
+  return { p, items };
+}
+function nextItem(skip) {
+  const si = sessionInfo(); if (!si) return null;
+  const i0 = si.items.findIndex(i => i.n === skip);
+  const order = i0 < 0 ? si.items : [...si.items.slice(i0 + 1), ...si.items.slice(0, i0 + 1)];
+  const it = order.find(i => i.done < i.target && i.n !== skip);
+  return it ? it.n : null;
+}
+function sugText(sg) { return sg.first ? '初回' : sg.w === 0 ? `${sg.r}回×${sg.sets}` : `${fmtW(sg.w)}×${sg.r}×${sg.sets}`; }
+function startPattern(id, speak = false) {
+  const p = S.patterns.find(x => x.id === id && !x.del); if (!p) return;
+  S.session = { pid: p.id, date: today() }; save();
+  const first = nextItem(null) || p.items[0];
+  if (first) selectEx(first, false); else go('today');
+  if (speak) { const sg = first ? suggest(first) : null; say(`${p.name}を始めます。${p.items.length}種目。最初は${first}${sg && !sg.first ? `、${fmtW(sg.w)}で${sg.r}回を${sg.sets}セット` : ''}`); }
+}
+function endSession() { S.session = null; save(); render(); }
+
+// ---------- 記録操作 ----------
+function todaySets(name) { return S.sets.filter(s => !s.del && s.date === today() && (!name || s.ex === name)).sort((a, b) => a.ts - b.ts); }
+
+function addSets(name, w, r, n = 1) {
+  const now = Date.now();
+  const g0 = typeof gameSnap === 'function' ? gameSnap() : null;
+  for (let i = 0; i < n; i++) S.sets.push({ id: uid(), date: today(), ts: now + i, ex: name, w: num(w), r: Math.round(r), u: now });
+  cur.ex = name; cur.w = num(w); cur.r = Math.round(r);
+  touch();
+  const done = todaySets(name).length;
+  const sg = suggest(name);
+  let msg = `${name} ${fmtW(w)} ${r}回${n > 1 ? `×${n}セット` : ''} を記録。今日${done}セット目`;
+  let short = `✓ ${fmtW(w)} × ${r}回${n > 1 ? ` ×${n}` : ''}・${done}/${sg.sets}セット`;
+  if (done === sg.sets) {
+    msg += `。目標の${sg.sets}セット完了`;
+    if (sessionInfo()) {
+      const nx = nextItem(name);
+      if (nx) { const s2 = suggest(nx); msg += `。次は${nx}${s2.first ? '' : `、${fmtW(s2.w)}で${s2.r}回`}`; short += `　次は${nx}`; selectEx(nx, false); }
+      else { msg += '。パターンの全種目が完了しました。お疲れさまでした'; short += '　全種目完了！'; }
+    }
+  }
+  if (g0) { const gd = gameDiffText(g0); if (gd) msg += '。' + gd; }
+  const fxOk = g0 && typeof celebrate === 'function';
+  say(msg, fxOk ? false : short);
+  if (fxOk) celebrate(g0, short);
+  primeAudio(); startRest();
+}
+function deleteSet(id) {
+  const s = S.sets.find(x => x.id === id); if (!s) return;
+  s.del = true; s.u = Date.now(); touch();
+}
+function undoLast() {
+  const t = todaySets(); const s = t[t.length - 1];
+  if (!s) { say('今日の記録はありません'); return; }
+  deleteSet(s.id); say(`${s.ex} ${fmtW(s.w)} ${s.r}回 を取り消しました`);
+}
+
+function selectEx(name, speak = false) {
+  cur.ex = name;
+  const sg = suggest(name);
+  const t = todaySets(name);
+  if (t.length) { const l = t[t.length - 1]; cur.w = l.w; cur.r = l.r; }
+  else { cur.w = sg.w ?? ''; cur.r = sg.r ?? ''; }
+  go('today');
+  if (speak) {
+    if (sg.first) say(`${name}は記録がありません。${sg.reason}`);
+    else say(`${name}、今日は${fmtW(sg.w)}で${sg.r}回を${sg.sets}セット${t.length ? `。${t.length}セット完了済み` : ''}`);
+  }
+}
+
+// ---------- コマンド実行 ----------
+async function handleCommand(text, alts = []) {
+  text = (text || '').trim(); if (!text) return;
+  let c = null;
+  for (const cand of [text, ...alts]) { const p = parseCommand(cand); if (p.type !== 'unknown') { c = p; break; } if (!c) c = p; }
+  switch (c.type) {
+    case 'undo': undoLast(); break;
+    case 'pattern': startPattern(c.p.id, true); break;
+    case 'next': {
+      const nx = nextItem(cur.ex);
+      if (nx) selectEx(nx, true); else say(sessionInfo() ? 'パターンの種目はすべて完了しています' : 'パターンが始まっていません');
+      break;
+    }
+    case 'end': if (sessionInfo()) { endSession(); say('パターンを終了しました'); } else say('パターンは始まっていません'); break;
+    case 'suggest': selectEx(c.ex.name, true); break;
+    case 'browse': {
+      browse = { parts: c.parts, equip: c.equip }; pick.tab = 'ex'; go('browse');
+      const n = filteredEx().length;
+      say(`${[c.parts.length ? (c.parts.includes('二頭') && c.parts.includes('三頭') ? '腕' : c.parts.join('・')) : '', c.equip || ''].filter(Boolean).join('・')}の種目は${n}件です`);
+      break;
+    }
+    case 'record': {
+      primeAudio();
+      let ex = c.ex;
+      if (!ex && !c.rawName && cur.ex) ex = exInfo(cur.ex);
+      if (!ex && c.rawName) ex = await openAddDialog(c.rawName);
+      if (!ex) { if (!c.rawName) say('種目を指定してください'); return; }
+      let w = c.w;
+      if (w == null) {
+        if (ex.equip === '自重') w = 0;
+        else if (cur.ex === ex.name && cur.w !== '') w = +cur.w;
+        else { say('重量が聞き取れませんでした'); selectEx(ex.name); return; }
+      }
+      if (c.r == null) { say('回数が聞き取れませんでした'); selectEx(ex.name); cur.w = w; render(); return; }
+      addSets(ex.name, w, c.r, Math.min(c.sets || 1, 10));
+      break;
+    }
+    default:
+      if (c.rawName) {
+        const ex = await openAddDialog(c.rawName);
+        if (ex) selectEx(ex.name, true);
+      } else say('うまく聞き取れませんでした');
+  }
+}
+
+// =========================================================
+//  Google Drive 同期
+// =========================================================
+const SCOPE = 'https://www.googleapis.com/auth/drive.file';
+const FILE_NAME = 'training-log.json';
+let syncing = false, syncTimer = null, gisPromise = null, lastError = '';
+
+function loadGis() {
+  if (typeof google !== 'undefined' && google.accounts && google.accounts.oauth2) return Promise.resolve();
+  if (gisPromise) return gisPromise;
+  gisPromise = new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = 'https://accounts.google.com/gsi/client'; s.async = true;
+    s.onload = res; s.onerror = () => { gisPromise = null; rej(new Error('gis')); };
+    document.head.appendChild(s);
+  });
+  return gisPromise;
+}
+const LOCAL_ONLY = typeof window !== 'undefined' && !!window.LOCAL_ONLY;
+const tokenValid = () => S.sync.token && Date.now() < S.sync.tokenExp - 60000;
+
+function requestToken() {
+  return new Promise((res, rej) => {
+    if (typeof google === 'undefined' || !google.accounts) { rej(new Error('Googleのログイン部品を読み込み中です。もう一度タップしてください')); loadGis().catch(() => {}); return; }
+    const tc = google.accounts.oauth2.initTokenClient({
+      client_id: S.settings.clientId.trim(), scope: SCOPE,
+      callback: r => {
+        if (r.error) { rej(new Error(r.error)); return; }
+        S.sync.token = r.access_token; S.sync.tokenExp = Date.now() + (r.expires_in || 3600) * 1000;
+        S.sync.connected = true; save(); res();
+      },
+      error_callback: e => rej(new Error(e && e.type ? e.type : 'popup')),
+    });
+    tc.requestAccessToken({ prompt: S.sync.connected ? '' : 'consent' });
+  });
+}
+
+async function gfetch(url, opt = {}) {
+  const r = await fetch(url, { ...opt, headers: { ...(opt.headers || {}), Authorization: 'Bearer ' + S.sync.token } });
+  if (r.status === 401) { S.sync.token = null; save(); throw new Error('auth'); }
+  return r;
+}
+
+function mergeData(a, b) {
+  const m = new Map();
+  for (const s of [...(a.sets || []), ...(b.sets || [])]) { const o = m.get(s.id); if (!o || (s.u || 0) > (o.u || 0)) m.set(s.id, s); }
+  const c = new Map();
+  for (const x of [...(a.customEx || []), ...(b.customEx || [])]) { const o = c.get(x.name); if (!o || (x.u || 0) > (o.u || 0)) c.set(x.name, x); }
+  const pm = new Map();
+  for (const x of [...(a.patterns || []), ...(b.patterns || [])]) { const o = pm.get(x.id); if (!o || (x.u || 0) > (o.u || 0)) pm.set(x.id, x); }
+  const ga = a.game, gb = b.game, game = !gb ? ga : !ga ? gb : (ga.u || 0) >= (gb.u || 0) ? ga : gb;
+  return { sets: [...m.values()].sort((x, y) => x.ts - y.ts), customEx: [...c.values()], patterns: [...pm.values()], game };
+}
+
+function scheduleSync() { clearTimeout(syncTimer); syncTimer = setTimeout(() => syncNow(false), 1500); }
+
+async function syncNow(interactive) {
+  if (LOCAL_ONLY || syncing) return;
+  if (!S.settings.clientId.trim()) { if (interactive) { toast('設定でGoogleのクライアントIDを入力してください'); go('settings'); } return; }
+  if (!navigator.onLine) { if (interactive) toast('オフラインです。端末に保存し、通信が戻ったら同期します'); renderBadge(); return; }
+  if (!tokenValid()) {
+    if (!interactive) { renderBadge(); return; }
+    try { await requestToken(); } catch (e) { toast('Googleに接続できませんでした: ' + e.message); return; }
+  }
+  syncing = true; lastError = ''; renderBadge();
+  const seq = S.sync.seq;
+  try {
+    let id = S.sync.fileId, remote = null;
+    const getFile = async fid => {
+      const r = await gfetch(`https://www.googleapis.com/drive/v3/files/${fid}?alt=media`);
+      if (r.status === 404) return undefined;
+      if (!r.ok) throw new Error('読込 ' + r.status);
+      return r.json();
+    };
+    if (id) { remote = await getFile(id); if (remote === undefined) { id = null; remote = null; } }
+    if (!id) {
+      const q = encodeURIComponent(`name='${FILE_NAME}' and trashed=false`);
+      const r = await gfetch(`https://www.googleapis.com/drive/v3/files?q=${q}&spaces=drive&fields=files(id)&orderBy=modifiedTime%20desc`);
+      if (!r.ok) throw new Error('検索 ' + r.status);
+      const j = await r.json();
+      if (j.files && j.files[0]) { id = j.files[0].id; remote = (await getFile(id)) || null; }
+    }
+    const merged = mergeData({ sets: S.sets, customEx: S.customEx, patterns: S.patterns, game: S.game }, remote || {});
+    const body = JSON.stringify({ app: 'training-log', version: 1, savedAt: new Date().toISOString(), ...merged });
+    if (id) {
+      const r = await gfetch(`https://www.googleapis.com/upload/drive/v3/files/${id}?uploadType=media`,
+        { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body });
+      if (!r.ok) throw new Error('保存 ' + r.status);
+    } else {
+      const b = 'tl' + uid();
+      const meta = JSON.stringify({ name: FILE_NAME, mimeType: 'application/json' });
+      const mp = `--${b}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${meta}\r\n--${b}\r\nContent-Type: application/json\r\n\r\n${body}\r\n--${b}--`;
+      const r = await gfetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',
+        { method: 'POST', headers: { 'Content-Type': 'multipart/related; boundary=' + b }, body: mp });
+      if (!r.ok) throw new Error('作成 ' + r.status);
+      id = (await r.json()).id;
+    }
+    // 同期中に追加された記録も失わないよう再マージ
+    const fin = mergeData({ sets: S.sets, customEx: S.customEx, patterns: S.patterns, game: S.game }, merged);
+    S.sets = fin.sets; S.customEx = fin.customEx; S.patterns = fin.patterns; if (fin.game) S.game = fin.game;
+    S.sync.fileId = id; S.sync.lastSync = Date.now();
+    if (S.sync.seq === seq) S.sync.dirty = false;
+    save();
+    if (interactive) toast('Google Driveに同期しました');
+  } catch (e) {
+    lastError = e.message === 'auth' ? 'ログインの有効期限切れ（タップで再接続）' : e.message;
+    if (interactive) toast('同期に失敗しました: ' + lastError);
+  } finally {
+    syncing = false; render();
+    if (S.sync.dirty && S.sync.seq !== seq) scheduleSync();
+  }
+}
+
+// =========================================================
+//  音声
+// =========================================================
+const SR = typeof window !== 'undefined' ? (window.SpeechRecognition || window.webkitSpeechRecognition) : null;
+let rec = null, listening = false;
+const PH = '種目名で探す・「ベンチ 60キロ 10回」';
+
+function toggleMic() {
+  if (!SR) { toast('このブラウザは音声入力に対応していません（Chromeを使ってください）'); return; }
+  if (listening && rec) { rec.stop(); return; }
+  try { speechSynthesis.cancel(); } catch (e) { /* noop */ }
+  rec = new SR(); rec.lang = 'ja-JP'; rec.interimResults = true; rec.maxAlternatives = 3; rec.continuous = false;
+  const inp = $('#cmd'), mic = $('#mic');
+  rec.onstart = () => { listening = true; mic.classList.add('on'); inp.placeholder = '聞き取り中…'; };
+  rec.onresult = e => {
+    let txt = '', fin = false;
+    for (let i = e.resultIndex; i < e.results.length; i++) { txt += e.results[i][0].transcript; if (e.results[i].isFinal) fin = true; }
+    inp.value = txt;
+    if (fin) {
+      const last = e.results[e.results.length - 1];
+      const alts = []; for (let i = 1; i < last.length; i++) alts.push(last[i].transcript);
+      handleCommand(txt, alts); inp.value = '';
+    }
+  };
+  rec.onerror = e => {
+    if (e.error === 'network') toast('音声認識には通信が必要です。オフライン時は文字で入力してください');
+    else if (e.error === 'not-allowed') toast('マイクの使用を許可してください');
+    else if (e.error !== 'no-speech' && e.error !== 'aborted') toast('音声認識エラー: ' + e.error);
+  };
+  rec.onend = () => { listening = false; mic.classList.remove('on'); inp.placeholder = PH; };
+  try { rec.start(); } catch (e) { toast('音声入力を開始できませんでした'); }
+}
+
+function say(msg, short) {
+  if (short !== false) toast(short || msg);
+  if (!S.settings.speak) return;
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(msg.replace(/kg/g, 'キロ').replace(/×/g, ' '));
+    u.lang = 'ja-JP'; u.rate = 1.1; speechSynthesis.speak(u);
+  } catch (e) { /* noop */ }
+}
+
+// =========================================================
+//  画面
+// =========================================================
+const $ = s => document.querySelector(s);
+let toastTimer = null;
+function toast(msg) {
+  const el = $('#toast'); if (!el) return;
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+}
+function go(t) { tab = t; render(); window.scrollTo(0, 0); }
+
+// ---------- 休憩タイマー（記録すると自動で始まる） ----------
+let rest = null, restTick = null, actx = null;
+function primeAudio() { try { const A = window.AudioContext || window.webkitAudioContext; if (!A) return; actx = actx || new A(); if (actx.state === 'suspended') actx.resume(); } catch (e) { /* 音なしで続行 */ } }
+function beep() {
+  try {
+    if (!actx) return;
+    [0, 0.22].forEach(d => { const o = actx.createOscillator(), g = actx.createGain(); o.frequency.value = 880; g.gain.value = 0.15; o.connect(g); g.connect(actx.destination); o.start(actx.currentTime + d); o.stop(actx.currentTime + d + 0.14); });
+  } catch (e) { /* noop */ }
+}
+function startRest(sec) {
+  if (typeof document === 'undefined') return;
+  sec = sec == null ? +S.settings.rest : sec;
+  if (!(sec > 0)) return;
+  rest = { end: Date.now() + sec * 1000, total: sec, done: false };
+  clearInterval(restTick); restTick = setInterval(renderRest, 250); renderRest();
+}
+function stopRest() { rest = null; clearInterval(restTick); renderRest(); }
+function renderRest() {
+  const el = $('#rest'); if (!el) return;
+  document.body.classList.toggle('resting', !!rest);
+  if (!rest) { el.hidden = true; return; }
+  const ms = rest.end - Date.now(), left = Math.ceil(ms / 1000);
+  if (left <= 0 && !rest.done) { rest.done = true; rest.doneAt = Date.now(); beep(); try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch (e) { /* noop */ } }
+  if (rest.done && Date.now() - rest.doneAt > 6000) return stopRest();
+  el.hidden = false; el.classList.toggle('done', rest.done);
+  $('#rest-t').textContent = rest.done ? '休憩おわり！次のセットへ' : `休憩 ${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}`;
+  $('#rest-bar').style.width = (rest.done ? 100 : Math.max(0, ms / (rest.total * 1000)) * 100) + '%';
+}
+
+// ---------- 記録の引っ越し（コピー＆貼り付け） ----------
+const dumpJson = () => JSON.stringify({ app: 'training-log', version: 1, sets: S.sets, customEx: S.customEx, patterns: S.patterns, game: S.game, settings: { repMin: S.settings.repMin, repMax: S.settings.repMax, rest: S.settings.rest, weekGoal: S.settings.weekGoal } });
+async function copyOut() {
+  const txt = dumpJson();
+  try { await navigator.clipboard.writeText(txt); toast(`${S.sets.filter(s => !s.del).length}セット分をコピーしました。移した先の「読み込み」に貼り付けてください`); return; } catch (e) { /* 下で手動コピー */ }
+  dialog(`<h3>記録を書き出し</h3><p class="small muted">下の文字をすべて選んでコピーしてください。</p><textarea id="mv-out" readonly style="width:100%;height:160px;background:var(--card2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:8px;font-size:12px">${esc(txt)}</textarea><button class="ghost" data-c="0">閉じる</button>`,
+    (m, close) => { const t = m.querySelector('#mv-out'); t.focus(); t.select(); m.querySelector('[data-c]').onclick = () => close(null); });
+}
+function pasteIn() {
+  return dialog(`<h3>記録を読み込み</h3><p class="small muted">「書き出し」でコピーした文字を貼り付けてください。今の記録と合わせて保存されます（同じ記録は重複しません）。</p><textarea id="mv-in" style="width:100%;height:160px;background:var(--card2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:8px;font-size:12px"></textarea><div class="row2"><button class="ghost" data-c="0">キャンセル</button><button class="primary" data-c="1">読み込む</button></div>`,
+    (m, close) => m.querySelectorAll('[data-c]').forEach(b => (b.onclick = () => {
+      if (b.dataset.c !== '1') return close(null);
+      try {
+        const j = JSON.parse(m.querySelector('#mv-in').value.trim());
+        if (!j || !Array.isArray(j.sets)) throw 0;
+        const before = S.sets.length, mg = mergeData({ sets: S.sets, customEx: S.customEx, patterns: S.patterns, game: S.game }, j);
+        S.sets = mg.sets; S.customEx = mg.customEx; S.patterns = mg.patterns;
+        if (j.game && (!S.game || (j.game.u || 0) >= (S.game.u || 0))) S.game = j.game;
+        if (j.settings) for (const k of ['repMin', 'repMax', 'rest', 'weekGoal']) if (j.settings[k] != null) S.settings[k] = j.settings[k];
+        close(null); touch(); toast(`読み込みました（${S.sets.length - before}セット追加）`);
+      } catch (e) { toast('読み込めませんでした。書き出した文字をそのまま貼り付けてください'); }
+    })));
+}
+
+
+function filteredEx() {
+  return allEx().filter(x => (!browse.parts.length || browse.parts.includes(x.part)) && (!browse.equip || x.equip === browse.equip));
+}
+function lastOf(name) { const s = sessions(name); return s[0] || null; }
+function recentExNames(n = 8) {
+  const seen = []; const arr = S.sets.filter(s => !s.del).sort((a, b) => b.ts - a.ts);
+  for (const s of arr) { if (!seen.includes(s.ex)) seen.push(s.ex); if (seen.length >= n) break; }
+  return seen;
+}
+
+function renderBadge() {
+  const b = $('#badge'); if (!b) return;
+  let cls = 'ok', txt = '同期済み';
+  if (LOCAL_ONLY) { b.className = 'badge ok'; b.textContent = '端末に保存'; return; }
+  if (!S.settings.clientId.trim()) { cls = 'muted'; txt = 'Drive未設定'; }
+  else if (syncing) { cls = 'busy'; txt = '同期中…'; }
+  else if (!navigator.onLine) { cls = 'warn'; txt = S.sync.dirty ? 'オフライン・端末に保存中' : 'オフライン'; }
+  else if (lastError) { cls = 'bad'; txt = '同期エラー'; }
+  else if (S.sync.dirty) { cls = 'warn'; txt = tokenValid() ? '未同期' : '未同期（タップで同期）'; }
+  else if (!S.sync.lastSync) { cls = 'muted'; txt = 'タップで同期'; }
+  b.className = 'badge ' + cls; b.textContent = txt;
+}
+
+function ormHtml(name) {
+  const ex = exInfo(name); if (ex.equip === '自重' || ex.equip === 'チューブ') return '';
+  const w = +cur.w, r = +cur.r, st = ormStats(name);
+  const now = e1rm(w, r);
+  const base = st.last ? st.last.o : st.best ? st.best.o : 0;
+  let h = '<div class="orm-main"><span class="lbl">この入力の推定1RM</span><b>' + (now ? r1(now) + 'kg' : '—') + '</b>';
+  if (now && st.best && now > st.best.o) h += '<span class="pr">自己ベスト超え</span>';
+  h += '</div><div class="orm-past">';
+  h += st.last ? `前回 <b>${r1(st.last.o)}kg</b><small>${fmtDate(st.last.date)}</small>` : '前回 —';
+  h += st.best ? `　ベスト <b>${r1(st.best.o)}kg</b><small>${fmtDate(st.best.date)}</small>` : '';
+  if (st.today) h += `　今日 <b>${r1(st.today)}kg</b>`;
+  h += '</div>';
+  if (base) {
+    const tips = [];
+    if (w > 0) { const n = repsAt(w, base); tips.push(n > 0 ? `${num(w)}kgなら 最大 約${n}回` : `${num(w)}kgは前回1RM以上`); }
+    if (r > 0) tips.push(`${r}回なら 最大 約${r1(weightFor(r, base))}kg`);
+    if (tips.length) h += `<div class="orm-calc">前回1RM換算：${tips.join('／')}</div>`;
+  }
+  return h;
+}
+
+function setsLine(sets) { return sets.map(s => `${s.w === 0 ? '自重' : num(s.w)}×${s.r}`).join(', '); }
+
+function sessionHtml() {
+  const si = sessionInfo(); if (!si) return '';
+  const fin = si.items.filter(i => i.done >= i.target).length;
+  return `<section class="card sess"><div class="ex-head"><h2 class="sm">📋 ${esc(si.p.name)}</h2><span class="tag">${fin}/${si.items.length}種目</span><button class="x" data-act="end-sess" aria-label="パターンを終了">✕</button></div>
+    <ol class="plist">${si.items.map((i, k) => `<li class="${i.n === cur.ex ? 'cur' : ''} ${i.done >= i.target ? 'done' : ''}"><button data-ex="${esc(i.n)}"><span class="ck">${i.done >= i.target ? '✓' : k + 1}</span><span class="nm">${esc(i.n)}</span><span class="meta">${i.done}/${i.target}・${esc(sugText(i.sg))}</span></button></li>`).join('')}</ol>
+    ${cur.ex && si.items.some(i => i.n === cur.ex) && nextItem(cur.ex) ? `<button class="ghost slim" data-act="next">次の種目へ ▶ ${esc(nextItem(cur.ex))}</button>` : ''}</section>`;
+}
+
+function renderToday() {
+  const el = $('#view-today');
+  let h = sessionHtml();
+  if (cur.ex) {
+    const ex = exInfo(cur.ex), sg = suggest(cur.ex), t = todaySets(cur.ex), inc = INC[ex.equip] || 1;
+    const goal = sg.first ? (sg.w === 0 ? `自重 × できる回数 × ${sg.sets}セット` : `${sg.r}回できる重量を探す × ${sg.sets}セット`)
+      : `${fmtW(sg.w)} × ${sg.r}回 × ${sg.sets}セット`;
+    h += `<section class="card ex-card">
+      <div class="ex-head"><h2>${esc(ex.name)}</h2><span class="tag">${esc(ex.part)}・${esc(ex.equip)}</span><button class="x" data-act="clear" aria-label="選択解除">✕</button></div>
+      <div class="sugg ${sg.up ? 'up' : sg.down ? 'down' : ''}"><div class="lbl">今日の目安</div><div class="goal">${goal}</div><div class="why">${esc(sg.reason)}</div></div>
+      ${sg.last ? `<div class="last">前回 ${fmtDate(sg.last.date)}：${esc(setsLine(sg.last.sets))}</div>` : ''}
+      ${ex.equip === 'ダンベル' ? '<div class="note">ダンベルは片手の重量で記録</div>' : ''}
+      <div class="inputs">
+        <label>重量(kg)<div class="stepper"><button data-act="w-" aria-label="重量を下げる">−</button><input id="in-w" type="number" inputmode="decimal" step="any" value="${esc(cur.w)}" placeholder="0"><button data-act="w+" aria-label="重量を上げる">＋</button></div></label>
+        <label>回数<div class="stepper"><button data-act="r-" aria-label="回数を減らす">−</button><input id="in-r" type="number" inputmode="numeric" value="${esc(cur.r)}" placeholder="0"><button data-act="r+" aria-label="回数を増やす">＋</button></div></label>
+      </div>
+      <button class="plate-btn" data-act="plates">🏋️ プレート・増減で重量を入れる</button>
+      <div class="orm" id="orm">${ormHtml(cur.ex)}</div>
+      <button class="primary" data-act="rec">1セット記録</button>
+      <div class="progress">${Array.from({ length: Math.max(sg.sets, t.length) }, (_, i) => `<span class="dot ${i < t.length ? 'done' : ''}"></span>`).join('')}<span>今日 ${t.length} / ${sg.sets} セット</span></div>
+      <div class="trendbox">${trendHtml(cur.ex)}</div>
+    </section>`;
+    h = h.replace('data-act="w-"', `data-act="w-" data-inc="${inc}"`).replace('data-act="w+"', `data-act="w+" data-inc="${inc}"`);
+  } else {
+    h += `<section class="card empty"><p>下のリストから<b>種目</b>か<b>パターン</b>を選ぶと、前回の記録から今日の重量・回数の目安が出ます。</p><p class="muted small">上の入力欄に「ベンチ」と打って探したり、「ベンチプレス 60キロ 10回」でそのまま記録もできます。</p>
+      ${LOCAL_ONLY && !S.sets.length ? '<button class="ghost" data-act="seed">サンプル記録を入れて試す</button>' : ''}</section>
+      <div class="picker">${pickerHtml()}</div>`;
+  }
+  const all = todaySets();
+  if (typeof gameTodayHtml === 'function') h += gameTodayHtml();
+  h += `<h3 class="sec">今日の記録 <small>${fmtDate(today())}・${all.length}セット</small></h3>`;
+  if (!all.length) h += '<p class="muted pad">まだ記録がありません</p>';
+  const order = []; all.forEach(s => { if (!order.includes(s.ex)) order.push(s.ex); });
+  for (const n of order) {
+    const ss = all.filter(s => s.ex === n);
+    const o = dayOrm(ss), pr = isPrDay(n, today());
+    h += `<section class="card log"><div class="log-head"><button class="log-title" data-ex="${esc(n)}">${esc(n)}</button>${o ? `<span class="orm-tag ${pr ? 'pr' : ''}">${pr ? '★ ' : ''}1RM ${r1(o)}kg</span>` : ''}</div><ol>${ss.map(s => `<li><button class="row" data-edit="${s.id}">${fmtW(s.w)} × ${s.r}回<small>${e1rm(s.w, s.r) && s.r > 1 ? ' → ' + r1(e1rm(s.w, s.r)) : ''}</small><span class="pen">✎</span></button><button class="x" data-del="${s.id}" aria-label="削除">✕</button></li>`).join('')}</ol></section>`;
+  }
+  el.innerHTML = h;
+}
+
+// 最近／パターン／種目 をタブで切り替える選択パネル（今日タブと種目タブで共通）
+const pick = { tab: null };
+function exRow(x) {
+  const l = lastOf(x.name);
+  return `<li><button data-ex="${esc(x.name)}"><span class="nm">${esc(x.name)}</span><span class="meta">${esc(x.part)}・${esc(x.equip)}${l ? `｜前回 ${fmtDate(l.date)} ${esc(setsLine(l.sets.slice(0, 1)))}` : ''}</span></button></li>`;
+}
+function pickerHtml() {
+  const rec = recentExNames(12);
+  if (!pick.tab) pick.tab = rec.length ? 'recent' : 'pattern';
+  const seg = `<div class="seg">${[['recent', '最近'], ['pattern', 'パターン'], ['ex', '種目']].map(([k, l]) => `<button class="${pick.tab === k ? 'on' : ''}" data-pick="${k}">${l}</button>`).join('')}</div>`;
+  let body = '';
+  if (pick.tab === 'recent') {
+    body = rec.length ? `<ul class="exlist">${rec.map(n => exRow(exInfo(n))).join('')}</ul>` : '<p class="muted pad">まだ記録がありません。「種目」タブから選んでください。</p>';
+  } else if (pick.tab === 'pattern') {
+    const ps = livePatterns();
+    body = `<section class="card pats">${ps.map(p => `<div class="patrow"><button class="pname" data-pat="${p.id}"><b>📋 ${esc(p.name)}</b><small>${p.items.length}種目：${esc(p.items.slice(0, 3).join('、'))}${p.items.length > 3 ? '…' : ''}</small></button><button class="chip" data-pedit="${p.id}">編集</button></div>`).join('') || '<p class="muted small">パターンがありません</p>'}
+      <p class="muted small">名前をタップするとそのパターンで始めます。</p>
+      <div class="row2"><button class="ghost" data-act="pat-new">＋ 新しいパターン</button><button class="ghost" data-act="pat-today" ${todaySets().length ? '' : 'disabled'}>今日の記録から作る</button></div></section>`;
+  } else {
+    const list = filteredEx();
+    const partBtns = ['すべて', ...PARTS.filter(p => p !== 'その他' || allEx().some(x => x.part === 'その他'))].map(p => {
+      const on = p === 'すべて' ? !browse.parts.length : browse.parts.length === 1 && browse.parts[0] === p;
+      return `<button class="chip ${on ? 'on' : ''}" data-part="${p}">${p}</button>`;
+    }).join('');
+    const eqBtns = ['すべて', ...EQUIPS.filter(e => e !== 'その他' || allEx().some(x => x.equip === 'その他'))].map(e => {
+      const on = e === 'すべて' ? !browse.equip : browse.equip === e;
+      return `<button class="chip ${on ? 'on' : ''}" data-equip="${e}">${e}</button>`;
+    }).join('');
+    body = `<div class="filters"><div class="lbl">部位</div><div class="chips">${partBtns}</div><div class="lbl">器具</div><div class="chips">${eqBtns}</div></div>
+      <h3 class="sec">${list.length}件</h3>
+      <ul class="exlist">${list.map(exRow).join('') || '<li class="muted pad">該当する種目がありません</li>'}</ul>
+      <button class="ghost" data-act="add-ex">＋ 種目を追加</button>`;
+  }
+  return seg + body;
+}
+function renderBrowse() { $('#view-browse').innerHTML = pickerHtml(); }
+
+// ---------- 俯瞰（週・月・四半期・年） ----------
+const UNITS = [['day', '日別'], ['week', '週'], ['month', '月'], ['quarter', '四半期'], ['year', '年']];
+const UNIT_N = { week: 12, month: 12, quarter: 8, year: 5 };
+const pd = d => new Date(d + 'T00:00:00');
+function startOf(dateStr, unit) {
+  const d = pd(dateStr);
+  if (unit === 'week') { const k = (d.getDay() + 6) % 7; d.setDate(d.getDate() - k); }
+  else if (unit === 'month') d.setDate(1);
+  else if (unit === 'quarter') { d.setMonth(Math.floor(d.getMonth() / 3) * 3, 1); }
+  else if (unit === 'year') d.setMonth(0, 1);
+  return ymd(d);
+}
+function addUnit(key, unit, n) {
+  const d = pd(key);
+  if (unit === 'week') d.setDate(d.getDate() + 7 * n);
+  else if (unit === 'month') d.setMonth(d.getMonth() + n, 1);
+  else if (unit === 'quarter') d.setMonth(d.getMonth() + 3 * n, 1);
+  else d.setFullYear(d.getFullYear() + n, 0, 1);
+  return ymd(d);
+}
+function unitLabel(key, unit, short = false) {
+  const d = pd(key), y = d.getFullYear(), m = d.getMonth() + 1;
+  if (unit === 'week') { const e = pd(addUnit(key, 'week', 1)); e.setDate(e.getDate() - 1); return short ? `${m}/${d.getDate()}` : `${y}年 ${m}/${d.getDate()}〜${e.getMonth() + 1}/${e.getDate()}`; }
+  if (unit === 'month') return short ? `${m}月` : `${y}年${m}月`;
+  if (unit === 'quarter') return short ? `${String(y).slice(2)}Q${Math.floor((m - 1) / 3) + 1}` : `${y}年 Q${Math.floor((m - 1) / 3) + 1}（${m}〜${m + 2}月）`;
+  return short ? `${y}` : `${y}年`;
+}
+function inBucket(s, key, unit) { return s.date >= key && s.date < addUnit(key, unit, 1); }
+function bucketStats(key, unit, cutoff) {
+  const ss = S.sets.filter(s => !s.del && inBucket(s, key, unit) && (!cutoff || s.date < cutoff));
+  const days = new Set(ss.map(s => s.date));
+  const vol = ss.reduce((a, s) => a + s.w * s.r, 0);
+  const byEx = {};
+  ss.forEach(s => { const e = byEx[s.ex] = byEx[s.ex] || { sets: 0, vol: 0, orm: 0, reps: 0 }; e.sets++; e.vol += s.w * s.r; e.reps += s.r; e.orm = Math.max(e.orm, e1rm(s.w, s.r)); });
+  const byPart = {};
+  ss.forEach(s => { const p = exInfo(s.ex).part; byPart[p] = (byPart[p] || 0) + 1; });
+  return { ss, days, vol, byEx, byPart };
+}
+const fmtVol = v => (v >= 10000 ? r1(v / 1000) + 't' : Math.round(v).toLocaleString() + 'kg');
+function deltaHtml(cur, prev, unit = '%') {
+  if (!prev) return '';
+  const d = unit === '%' ? Math.round((cur / prev - 1) * 100) : r1(cur - prev);
+  if (!d) return '<span class="dlt">±0</span>';
+  return `<span class="dlt ${d > 0 ? 'up' : 'down'}">${d > 0 ? '▲' : '▼'}${Math.abs(d)}${unit}</span>`;
+}
+
+// 棒グラフ（直近の期間ごとの総負荷）
+function volChart(keys, unit, sel) {
+  const vals = keys.map(k => bucketStats(k, unit).vol);
+  const max = Math.max(...vals, 1), W = 340, H = 150, top = 18, bot = 22, n = keys.length;
+  const bw = Math.min(28, (W - 8) / n - 4), gap = (W - bw * n) / (n + 1);
+  let g = `<line x1="0" y1="${H - bot}" x2="${W}" y2="${H - bot}" class="ax"/>`;
+  keys.forEach((k, i) => {
+    const x = gap + i * (bw + gap), h = vals[i] ? Math.max(3, (vals[i] / max) * (H - top - bot)) : 0, y = H - bot - h;
+    const on = k === sel;
+    g += `<g class="hb" data-hb="${k}"><rect x="${x - gap / 2}" y="0" width="${bw + gap}" height="${H}" fill="transparent"/>`;
+    if (h) g += `<path d="M${x},${H - bot} V${y + 4} Q${x},${y} ${x + 4},${y} H${x + bw - 4} Q${x + bw},${y} ${x + bw},${y + 4} V${H - bot} Z" class="${on ? 'bar on' : 'bar'}"><title>${unitLabel(k, unit)}：${fmtVol(vals[i])}</title></path>`;
+    if (on && vals[i]) g += `<text x="${x + bw / 2}" y="${y - 5}" class="vl">${fmtVol(vals[i])}</text>`;
+    if (n <= 8 || i % 2 === (n - 1) % 2 || on) g += `<text x="${x + bw / 2}" y="${H - 6}" class="xl ${on ? 'on' : ''}">${unitLabel(k, unit, true)}</text>`;
+    g += '</g>';
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="期間ごとの総負荷">${g}</svg>`;
+}
+// 折れ線（種目の期間ベスト推定1RM）
+function ormChart(keys, unit, ex, sel) {
+  const pts = keys.map(k => { const ss = S.sets.filter(s => !s.del && s.ex === ex && inBucket(s, k, unit)); return ss.length ? dayOrm(ss) : null; });
+  const have = pts.filter(v => v);
+  if (!have.length) return '<p class="muted small">この期間の記録がありません</p>';
+  let lo = Math.min(...have), hi = Math.max(...have); const pad = Math.max((hi - lo) * 0.15, 2); lo = Math.max(0, lo - pad); hi += pad;
+  const W = 340, H = 150, top = 16, bot = 22, L = 6, R = 6, n = keys.length;
+  const X = i => L + (n === 1 ? (W - L - R) / 2 : i * (W - L - R) / (n - 1)), Y = v => top + (1 - (v - lo) / (hi - lo)) * (H - top - bot);
+  let path = '', g = `<line x1="0" y1="${H - bot}" x2="${W}" y2="${H - bot}" class="ax"/>`;
+  pts.forEach((v, i) => { if (v) path += (path ? 'L' : 'M') + X(i).toFixed(1) + ',' + Y(v).toFixed(1); });
+  g += `<path d="${path}" class="ln"/>`;
+  const lastI = pts.map((v, i) => (v ? i : -1)).filter(i => i >= 0).pop();
+  const bestV = Math.max(...have);
+  pts.forEach((v, i) => {
+    const on = keys[i] === sel;
+    g += `<g class="hb" data-hb="${keys[i]}"><rect x="${X(i) - 14}" y="0" width="28" height="${H}" fill="transparent"/>`;
+    if (v) {
+      g += `<circle cx="${X(i)}" cy="${Y(v)}" r="${on ? 5.5 : 4}" class="pt ${on ? 'on' : ''}"><title>${unitLabel(keys[i], unit)}：1RM ${r1(v)}kg</title></circle>`;
+      if (on || i === lastI || v === bestV) g += `<text x="${Math.min(Math.max(X(i), 20), W - 20)}" y="${Y(v) - 9}" class="vl">${r1(v)}</text>`;
+    }
+    if (n <= 8 || i % 2 === (n - 1) % 2 || on) g += `<text x="${Math.min(Math.max(X(i), 12), W - 12)}" y="${H - 6}" class="xl ${on ? 'on' : ''}">${unitLabel(keys[i], unit, true)}</text>`;
+    g += '</g>';
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="${esc(ex)}の推定1RMの推移">${g}</svg>`;
+}
+function calHtml(key, unit) {
+  if (unit !== 'week' && unit !== 'month') return '';
+  const end = addUnit(key, unit, 1); const trained = {};
+  S.sets.forEach(s => { if (!s.del && s.date >= key && s.date < end) (trained[s.date] = trained[s.date] || new Set()).add(exInfo(s.ex).part); });
+  let cells = '';
+  const first = pd(key); const lead = unit === 'month' ? (first.getDay() + 6) % 7 : 0;
+  for (let i = 0; i < lead; i++) cells += '<span></span>';
+  for (let d = new Date(first); ymd(d) < end; d.setDate(d.getDate() + 1)) {
+    const k = ymd(d), t = trained[k];
+    cells += `<span class="cd ${t ? 'on' : ''} ${k === today() ? 'td' : ''}" title="${t ? [...t].join('・') : ''}"><b>${d.getDate()}</b>${t ? `<i>${esc([...t].slice(0, 2).join('・'))}</i>` : ''}</span>`;
+  }
+  return `<div class="cal">${'月火水木金土日'.split('').map(w => `<span class="wd">${w}</span>`).join('')}${cells}</div>`;
+}
+function yearRange() {
+  const ys = S.sets.filter(s => !s.del).map(s => +s.date.slice(0, 4));
+  const now = +today().slice(0, 4), lo = Math.min(now, ...ys);
+  return Array.from({ length: now - lo + 1 }, (_, i) => now - i);
+}
+const opt = (v, l, sel) => `<option value="${v}" ${String(v) === String(sel) ? 'selected' : ''}>${l}</option>`;
+function jumpHtml(key, u) {
+  const d = pd(key), y = d.getFullYear(), m = d.getMonth() + 1;
+  const ysel = `<select id="hj-y" aria-label="年">${yearRange().map(v => opt(v, v + '年', y)).join('')}</select>`;
+  if (u === 'year') return ysel;
+  if (u === 'quarter') return ysel + `<select id="hj-q" aria-label="四半期">${[1, 2, 3, 4].map(q => opt(q, 'Q' + q, Math.floor((m - 1) / 3) + 1)).join('')}</select>`;
+  if (u === 'month') return ysel + `<select id="hj-m" aria-label="月">${Array.from({ length: 12 }, (_, i) => opt(i + 1, i + 1 + '月', m)).join('')}</select>`;
+  return `<input id="hj-w" type="date" value="${key}" max="${today()}" aria-label="週を日付で選ぶ">`;
+}
+
+// 種目ごとの推移（今日タブの種目カード内）
+const METRICS = { orm: ['推定1RM', 'kg'], maxw: ['最大重量', 'kg'], vol: ['総負荷', ''], reps: ['最大回数', '回'] };
+function lineChart(keys, unit, vals, fmt, label) {
+  const have = vals.filter(v => v != null);
+  if (!have.length) return '<p class="muted small pad">この範囲の記録がありません</p>';
+  let lo = Math.min(...have), hi = Math.max(...have); const pad = Math.max((hi - lo) * 0.15, hi * 0.03, 1); lo = Math.max(0, lo - pad); hi += pad;
+  const W = 340, H = 140, top = 16, bot = 22, L = 8, R = 8, n = keys.length;
+  const X = i => L + (n === 1 ? (W - L - R) / 2 : i * (W - L - R) / (n - 1)), Y = v => top + (1 - (v - lo) / (hi - lo)) * (H - top - bot);
+  let path = '', g = `<line x1="0" y1="${H - bot}" x2="${W}" y2="${H - bot}" class="ax"/>`;
+  vals.forEach((v, i) => { if (v != null) path += (path ? 'L' : 'M') + X(i).toFixed(1) + ',' + Y(v).toFixed(1); });
+  g += `<path d="${path}" class="ln"/>`;
+  const lastI = vals.map((v, i) => (v != null ? i : -1)).filter(i => i >= 0).pop(), bestV = Math.max(...have);
+  let bestShown = false;
+  vals.forEach((v, i) => {
+    if (v != null) {
+      const isBest = v === bestV && !bestShown; if (isBest) bestShown = true;
+      g += `<circle cx="${X(i)}" cy="${Y(v)}" r="${i === lastI ? 5 : 3.5}" class="pt ${i === lastI ? 'on' : ''}"><title>${unitLabel(keys[i], unit)}：${label} ${fmt(v)}</title></circle>`;
+      if (i === lastI || isBest) g += `<text x="${Math.min(Math.max(X(i), 22), W - 22)}" y="${Y(v) - 9}" class="vl">${fmt(v)}</text>`;
+    }
+    if (n <= 8 || i % 2 === (n - 1) % 2) g += `<text x="${Math.min(Math.max(X(i), 12), W - 12)}" y="${H - 6}" class="xl">${unitLabel(keys[i], unit, true)}</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="${esc(label)}の推移">${g}</svg>`;
+}
+function barChart(keys, unit, vals, fmt, label) {
+  const max = Math.max(...vals.map(v => v || 0), 1); if (max <= 1 && !vals.some(v => v)) return '<p class="muted small pad">この範囲の記録がありません</p>';
+  const W = 340, H = 140, top = 16, bot = 22, n = keys.length, bw = Math.min(26, (W - 8) / n - 4), gap = (W - bw * n) / (n + 1);
+  const lastI = vals.map((v, i) => (v ? i : -1)).filter(i => i >= 0).pop();
+  let g = `<line x1="0" y1="${H - bot}" x2="${W}" y2="${H - bot}" class="ax"/>`;
+  vals.forEach((v, i) => {
+    const x = gap + i * (bw + gap), h = v ? Math.max(3, (v / max) * (H - top - bot)) : 0, y = H - bot - h;
+    if (h) g += `<path d="M${x},${H - bot} V${y + 4} Q${x},${y} ${x + 4},${y} H${x + bw - 4} Q${x + bw},${y} ${x + bw},${y + 4} V${H - bot} Z" class="bar ${i === lastI ? 'on' : ''}"><title>${unitLabel(keys[i], unit)}：${label} ${fmt(v)}</title></path>`;
+    if (h && i === lastI) g += `<text x="${Math.min(Math.max(x + bw / 2, 24), W - 24)}" y="${y - 5}" class="vl">${fmt(v)}</text>`;
+    if (n <= 8 || i % 2 === (n - 1) % 2) g += `<text x="${x + bw / 2}" y="${H - 6}" class="xl">${unitLabel(keys[i], unit, true)}</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="${esc(label)}の推移">${g}</svg>`;
+}
+function trendHtml(name) {
+  const ex = exInfo(name), bw = ex.equip === '自重' || ex.equip === 'チューブ';
+  const avail = bw ? ['reps', 'vol'] : ['orm', 'maxw', 'vol', 'reps'];
+  if (!trend.metric || !avail.includes(trend.metric)) trend.metric = avail[0];
+  const head = `<button class="trend-tg" data-act="trend-tg">📈 推移 ${trend.open ? '▲' : '▼'}</button>`;
+  if (!trend.open) return head;
+  const u = trend.unit, N = UNIT_N[u], end = startOf(today(), u);
+  const keys = Array.from({ length: N }, (_, i) => addUnit(end, u, i - N + 1));
+  const vals = keys.map(k => {
+    const ss = S.sets.filter(s => !s.del && s.ex === name && inBucket(s, k, u));
+    if (!ss.length) return null;
+    if (trend.metric === 'orm') return r1(dayOrm(ss)) || null;
+    if (trend.metric === 'maxw') return Math.max(...ss.map(s => s.w)) || null;
+    if (trend.metric === 'reps') return Math.max(...ss.map(s => s.r));
+    return bw ? ss.reduce((a, s) => a + s.r, 0) : ss.reduce((a, s) => a + s.w * s.r, 0);
+  });
+  const [label, us] = trend.metric === 'vol' && bw ? ['総回数', '回'] : METRICS[trend.metric];
+  const fmt = trend.metric === 'vol' && !bw ? fmtVol : v => r1(v) + us;
+  const have = vals.filter(v => v != null);
+  const first = have[0], lastV = have[have.length - 1];
+  const chg = have.length >= 2 && first ? Math.round((lastV / first - 1) * 100) : null;
+  return `${head}<div class="trend">
+    <div class="seg sm">${[['week', '週'], ['month', '月'], ['quarter', '四半期'], ['year', '年']].map(([k, l]) => `<button class="${u === k ? 'on' : ''}" data-tunit="${k}">${l}</button>`).join('')}</div>
+    <div class="chips">${avail.map(m => `<button class="chip ${trend.metric === m ? 'on' : ''}" data-tmetric="${m}">${m === 'vol' && bw ? '総回数' : METRICS[m][0]}</button>`).join('')}</div>
+    ${trend.metric === 'vol' ? barChart(keys, u, vals, fmt, label) : lineChart(keys, u, vals, fmt, label)}
+    ${have.length ? `<p class="muted small">直近${N}${{ week: '週', month: 'か月', quarter: '四半期', year: '年' }[u]}の${label}（各期間の${trend.metric === 'vol' ? '合計' : '最高'}）${chg != null ? `：最初の期間から <b class="${chg >= 0 ? 'upc' : 'dnc'}">${chg >= 0 ? '+' : ''}${chg}%</b>` : ''}</p>` : ''}
+  </div>`;
+}
+
+function renderOverview(el) {
+  const u = hist.unit;
+  if (!hist.anchor || startOf(hist.anchor, u) !== hist.anchor) hist.anchor = startOf(hist.anchor || today(), u);
+  const key = hist.anchor, prevKey = addUnit(key, u, -1);
+  const N = UNIT_N[u];
+  // 選択期間を右端寄りに、直近N期間を表示
+  let right = key; const curNow = startOf(today(), u);
+  for (let i = 0; i < Math.floor(N / 3) && right < curNow; i++) right = addUnit(right, u, 1);
+  const keys = Array.from({ length: N }, (_, i) => addUnit(right, u, i - N + 1));
+  const st = bucketStats(key, u), pv = bucketStats(prevKey, u);
+  const unitWord = { week: '先週', month: '前月', quarter: '前四半期', year: '前年' }[u];
+  let h = `<div class="pnav"><button class="x" data-hnav="-1" aria-label="前の期間">‹</button><b>${unitLabel(key, u)}</b><button class="x" data-hnav="1" aria-label="次の期間" ${key >= curNow ? 'disabled' : ''}>›</button></div>
+    <div class="jump">${jumpHtml(key, u)}${key !== curNow ? `<button class="chip" data-act="hj-now">${{ week: '今週', month: '今月', quarter: '今四半期', year: '今年' }[u]}へ</button>` : ''}</div>`;
+  h += `<div class="kpis">
+    <div><span>トレ日数</span><b>${st.days.size}<small>日</small></b>${deltaHtml(st.days.size, pv.days.size, '')}<em>${unitWord} ${pv.days.size}日</em></div>
+    <div><span>セット</span><b>${st.ss.length}</b>${deltaHtml(st.ss.length, pv.ss.length)}<em>${unitWord} ${pv.ss.length}</em></div>
+    <div><span>総負荷</span><b>${fmtVol(st.vol)}</b>${deltaHtml(st.vol, pv.vol)}<em>${unitWord} ${fmtVol(pv.vol)}</em></div></div>
+    <p class="muted small cmp">▲▼は${unitWord}（期間全体）との比較</p>`;
+  h += `<section class="card"><h3>総負荷の推移</h3>${volChart(keys, u, key)}<p class="muted small">棒をタップするとその期間を表示</p></section>`;
+  h += calHtml(key, u) ? `<section class="card"><h3>トレーニングした日</h3>${calHtml(key, u)}</section>` : '';
+  const parts = Object.entries(st.byPart).sort((a, b) => b[1] - a[1]);
+  if (parts.length) {
+    const mx = parts[0][1];
+    h += `<section class="card"><h3>部位別セット数</h3>${parts.map(([p, n]) => `<div class="pbar"><span>${esc(p)}</span><div><i style="width:${(n / mx) * 100}%"></i></div><b>${n}</b><small>${deltaHtml(n, pv.byPart[p] || 0, '') || (pv.byPart[p] ? '' : '<span class="dlt up">新</span>')}</small></div>`).join('')}</section>`;
+  }
+  const exs = Object.entries(st.byEx).sort((a, b) => b[1].sets - a[1].sets);
+  if (exs.length) {
+    h += `<section class="card"><h3>種目別 <small class="muted">1RMは期間内の最高（推定）</small></h3><div class="extab">${exs.map(([n, e]) => {
+      const p = pv.byEx[n]; const pr = e.orm && S.sets.every(s => s.del || s.ex !== n || s.date >= key || e1rm(s.w, s.r) < e.orm) && S.sets.some(s => !s.del && s.ex === n && s.date < key);
+      return `<button class="exrow ${hist.ex === n ? 'on' : ''}" data-hex="${esc(n)}"><span class="nm">${esc(n)}</span><span>${e.sets}セット・${fmtVol(e.vol)}</span><span class="o">${e.orm ? `1RM ${r1(e.orm)}kg ${p && p.orm ? deltaHtml(e.orm, p.orm, 'kg') : ''}${pr ? ' <span class="dlt up">★</span>' : ''}` : `${e.reps}回`}</span>${p ? `<span class="pv">${unitWord}：${p.sets}セット・${fmtVol(p.vol)}${p.orm ? `・1RM ${r1(p.orm)}kg` : `・${p.reps}回`}</span>` : `<span class="pv">${unitWord}：なし</span>`}</button>`;
+    }).join('')}</div></section>`;
+  } else h += '<p class="muted pad">この期間の記録はありません</p>';
+  // 1RM推移
+  const withOrm = [...new Set(S.sets.filter(s => !s.del && s.w > 0).map(s => s.ex))];
+  if (withOrm.length) {
+    if (!hist.ex || !withOrm.includes(hist.ex)) hist.ex = (exs.find(([n, e]) => e.orm) || [withOrm[0]])[0];
+    h += `<section class="card"><h3>推定1RMの推移</h3><label class="field"><select id="hex-sel">${withOrm.map(n => `<option ${n === hist.ex ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>${ormChart(keys, u, hist.ex, key)}</section>`;
+  }
+  el.innerHTML = h;
+}
+
+function renderHistory() {
+  const el = $('#view-history');
+  const seg = `<div class="seg">${UNITS.map(([k, l]) => `<button class="${hist.unit === k ? 'on' : ''}" data-unit="${k}">${l}</button>`).join('')}</div>`;
+  if (hist.unit !== 'day') { const box = document.createElement('div'); renderOverview(box); el.innerHTML = seg + box.innerHTML; return; }
+  const by = {};
+  S.sets.filter(s => !s.del).forEach(s => (by[s.date] = by[s.date] || []).push(s));
+  const months = [...new Set(Object.keys(by).map(d => d.slice(0, 7)))].sort().reverse();
+  const dm = hist.dayMonth && months.includes(hist.dayMonth) ? hist.dayMonth : '';
+  const days = Object.keys(by).filter(d => !dm || d.startsWith(dm)).sort().reverse().slice(0, dm ? 31 : 60);
+  const mjump = months.length ? `<div class="jump"><select id="hj-dm" aria-label="表示する月">${opt('', '最近の記録', dm)}${months.map(m => opt(m, `${m.slice(0, 4)}年${+m.slice(5)}月`, dm)).join('')}</select></div>` : '';
+  if (!days.length) { el.innerHTML = seg + '<p class="muted pad">まだ記録がありません</p>'; return; }
+  el.innerHTML = seg + mjump + '<p class="muted small pad">記録をタップすると修正・削除できます。★はその時点の自己ベスト1RM（推定）です。</p>' + days.map(d => {
+    const ss = by[d].sort((a, b) => a.ts - b.ts); const order = [];
+    ss.forEach(s => { if (!order.includes(s.ex)) order.push(s.ex); });
+    return `<section class="card day"><h3>${fmtDate(d)} <small>${d.slice(0, 4)}</small></h3>${order.map(n => {
+      const x = ss.filter(s => s.ex === n);
+      const vol = x.reduce((a, s) => a + s.w * s.r, 0);
+      const o = dayOrm(x), pr = isPrDay(n, d);
+      return `<div class="hrow"><div class="log-head"><button class="log-title" data-ex="${esc(n)}">${esc(n)}</button>${o ? `<span class="orm-tag ${pr ? 'pr' : ''}">${pr ? '★ ' : ''}1RM ${r1(o)}kg</span>` : ''}</div><div class="pills">${x.map(s => `<button class="pill" data-edit="${s.id}">${s.w === 0 ? '自重' : num(s.w)}×${s.r}</button>`).join('')}</div>${vol ? `<div class="vol">総負荷 ${Math.round(vol).toLocaleString()}kg</div>` : ''}</div>`;
+    }).join('')}</section>`;
+  }).join('');
+}
+
+function renderSettings() {
+  const el = $('#view-settings');
+  const st = S.settings;
+  el.innerHTML = (LOCAL_ONLY ? '' : `
+  <section class="card"><h3>Google Drive 同期</h3>
+    <label class="field">OAuth クライアントID<input id="cid" type="text" autocomplete="off" spellcheck="false" placeholder="xxxx.apps.googleusercontent.com" value="${esc(st.clientId)}"></label>
+    <button class="primary" data-act="sync">${S.sync.connected ? '今すぐ同期' : 'Googleに接続して同期'}</button>
+    <p class="muted small">保存先：マイドライブの <b>${FILE_NAME}</b><br>最終同期：${S.sync.lastSync ? new Date(S.sync.lastSync).toLocaleString('ja-JP') : 'なし'}${lastError ? `<br><span class="err">エラー：${esc(lastError)}</span>` : ''}<br>記録はまず端末に保存され、通信できるときに自動で同期されます。ログインは約1時間で切れるので、その後は上の「未同期」バッジをタップしてください。</p>
+  </section>`) + `
+  <section class="card"><h3>提案の設定</h3>
+    <div class="row2"><label class="field">目標回数の下限<input id="rmin" type="number" inputmode="numeric" value="${st.repMin}"></label><label class="field">上限<input id="rmax" type="number" inputmode="numeric" value="${st.repMax}"></label></div>
+    <p class="muted small">前回すべてのセットで上限回数に届いたら重量を上げ（バーベル・マシン +2.5kg、ダンベル +1kg）、下限から再スタート。2回続けて下限に届かなければ約10%下げます。</p>
+    <label class="toggle"><input id="speak" type="checkbox" ${st.speak ? 'checked' : ''}> 音声で読み上げる</label>
+  </section>
+  <section class="card"><h3>休憩と週の目標</h3>
+    <div class="row2"><label class="field">セット間の休憩<select id="rest-sec">${[[0, 'タイマーなし'], [60, '60秒'], [90, '90秒'], [120, '2分'], [150, '2分30秒'], [180, '3分'], [240, '4分']].map(([v, l]) => opt(v, l, st.rest)).join('')}</select></label><label class="field">週の目標<select id="wgoal">${[1, 2, 3, 4, 5, 6, 7].map(v => opt(v, `週${v}日`, st.weekGoal)).join('')}</select></label></div>
+    <p class="muted small">記録すると休憩タイマーが自動で始まり、終わると音と振動でお知らせします（+30秒・✕で調整）。週の目標を達成するとコインがもらえ、連続で達成すると冒険の攻撃力が上がります。</p>
+  </section>
+  ${LOCAL_ONLY ? '<section class="card"><h3>データ</h3><p class="muted small">記録はこの端末（ブラウザ）に保存されます。別のページや端末へ移すときは「書き出し」でコピーし、移した先で「読み込み」に貼り付けます。</p><div class="row2"><button class="ghost" data-act="copy-out">記録を書き出し（コピー）</button><button class="ghost" data-act="paste-in">記録を読み込み（貼り付け）</button></div><button class="ghost" data-act="seed">サンプル記録を入れる</button><button class="ghost" data-act="wipe">記録をすべて消す</button></section>' : `<section class="card"><h3>データ</h3>
+    <div class="row2"><button class="ghost" data-act="csv">CSVで書き出し</button><button class="ghost" data-act="json">JSONで書き出し</button></div>
+    <label class="ghost filebtn">JSONを読み込む（統合）<input id="imp" type="file" accept=".json,application/json" hidden></label>
+  </section>`}
+  <section class="card"><h3>入力欄で使える言葉 <small class="muted">今日タブの上の欄</small></h3><ul class="small">
+    <li>「ベンチプレス 60キロ 10回」→ 1セット記録</li>
+    <li>「スクワット 80キロ 8回 3セット」→ 3セット分記録</li>
+    <li>「62.5キロ 8回」→ 選択中の種目に記録</li>
+    <li>「ラットプルダウン」→ 今日の重量・回数・セット数を提案</li>
+    <li>「胸 ダンベル」「腕」「マシン」→ 種目一覧</li>
+    <li>「取り消し」→ 直前の記録を削除</li>
+    <li>「脚の日」「全身の日を始める」→ パターン開始</li>
+    <li>「次」→ パターンの次の種目へ／「終了」→ パターン終了</li></ul></section>`;
+}
+
+function render() {
+  if (typeof document === 'undefined') return;
+  for (const v of ['today', 'browse', 'history', 'game', 'settings']) {
+    $('#view-' + v).hidden = v !== tab;
+    document.querySelector(`nav [data-go="${v}"]`).classList.toggle('on', v === tab);
+  }
+  if (tab === 'today') renderToday();
+  if (tab === 'browse') renderBrowse();
+  if (tab === 'history') renderHistory();
+  if (tab === 'settings') renderSettings();
+  if (tab === 'game' && typeof renderGame === 'function') renderGame();
+  const cb = $('.cmdbar'); if (cb) cb.hidden = !(tab === 'today' && !cur.ex);
+  if (typeof renderHud === 'function') renderHud();
+  renderBadge();
+}
+
+// ---------- ダイアログ ----------
+function dialog(html, onOpen) {
+  return new Promise(res => {
+    const m = $('#modal'); m.innerHTML = `<div class="sheet">${html}</div>`; m.hidden = false;
+    const close = v => { m.hidden = true; m.innerHTML = ''; res(v); };
+    m.onclick = e => { if (e.target === m) close(null); };
+    onOpen(m, close);
+  });
+}
+function confirmDialog(msg, ok = '削除') {
+  return dialog(`<p>${esc(msg)}</p><div class="row2"><button class="ghost" data-c="0">キャンセル</button><button class="primary danger" data-c="1">${esc(ok)}</button></div>`,
+    (m, close) => m.querySelectorAll('[data-c]').forEach(b => (b.onclick = () => close(b.dataset.c === '1'))));
+}
+function openAddDialog(name = '') {
+  const pre = matchPartEquip(norm(name)) || { parts: [], equip: null };
+  return dialog(`<h3>新しい種目${name ? `「${esc(name)}」` : ''}を追加</h3>
+    <label class="field">種目名<input id="ad-n" value="${esc(name)}"></label>
+    <div class="row2"><label class="field">部位<select id="ad-p">${PARTS.map(p => `<option ${pre.parts[0] === p ? 'selected' : ''}>${p}</option>`).join('')}</select></label>
+    <label class="field">器具<select id="ad-e">${EQUIPS.map(e => `<option ${pre.equip === e ? 'selected' : ''}>${e}</option>`).join('')}</select></label></div>
+    <div class="row2"><button class="ghost" data-c="0">キャンセル</button><button class="primary" data-c="1">追加</button></div>`,
+  (m, close) => {
+    m.querySelector('[data-c="0"]').onclick = () => close(null);
+    m.querySelector('[data-c="1"]').onclick = () => {
+      const n = m.querySelector('#ad-n').value.trim(); if (!n) return;
+      const x = { name: n, part: m.querySelector('#ad-p').value, equip: m.querySelector('#ad-e').value, u: Date.now() };
+      S.customEx = S.customEx.filter(c => c.name !== n); S.customEx.push(x); touch();
+      close(exInfo(n));
+    };
+    setTimeout(() => m.querySelector('#ad-n').focus(), 50);
+  });
+}
+
+const PLATES = [25, 20, 15, 10, 5, 2.5, 1.25];
+const PLATE_STYLE = { 25: ['#d23a3a', 100], 20: ['#2f6fd6', 92], 15: ['#e2b100', 84], 10: ['#2f9e55', 74], 5: ['#e8e8e8', 56], 2.5: ['#9a9a9a', 46], 1.25: ['#c9c9c9', 38] };
+const BARS = [20, 15, 10, 7, 0];
+function platesFor(w, bar) {
+  let side = num((w - bar) / 2); const out = [];
+  if (side <= 0) return out;
+  for (const p of PLATES) while (side >= p - 1e-9) { out.push(p); side = num(side - p); }
+  return out;
+}
+function plateDialog(curW, equip) {
+  let mode = ['バーベル', 'スミス'].includes(equip) ? 'plate' : 'step';
+  let bar = S.settings.bar ?? 20;
+  let total = +curW || 0;
+  let plates = platesFor(total || bar, bar);
+  return dialog('<div id="pd"></div>', (m, close) => {
+    const box = m.querySelector('#pd');
+    const draw = () => {
+      if (mode === 'plate') total = num(bar + 2 * plates.reduce((a, b) => a + b, 0));
+      const sorted = [...plates].sort((a, b) => b - a);
+      box.innerHTML = `
+        <div class="chips pd-tabs"><button class="chip ${mode === 'plate' ? 'on' : ''}" data-mode="plate">バー＋プレート</button><button class="chip ${mode === 'step' ? 'on' : ''}" data-mode="step">増減ボタン</button></div>
+        <div class="pd-total">${num(total)}<small>kg</small>${mode === 'plate' && plates.length ? `<span>片側 ${num(plates.reduce((a, b) => a + b, 0))}kg</span>` : ''}</div>
+        ${mode === 'plate' ? `
+          <div class="barvis"><div class="sleeve"></div>${sorted.map(p => `<i style="background:${PLATE_STYLE[p][0]};height:${PLATE_STYLE[p][1]}%"></i>`).join('')}<div class="cap"></div></div>
+          <div class="lbl">バーの重さ</div><div class="chips">${BARS.map(b => `<button class="chip ${b === bar ? 'on' : ''}" data-pbar="${b}">${b ? b + 'kg' : 'なし'}</button>`).join('')}</div>
+          <div class="lbl">プレートを追加（両側に1枚ずつ）</div>
+          <div class="plates">${PLATES.map(p => `<button class="plate" data-pl="${p}" style="background:${PLATE_STYLE[p][0]};color:${p === 5 || p === 1.25 ? '#111' : '#fff'}">${p}</button>`).join('')}</div>
+          <div class="lbl">付けているプレート（タップで外す）</div>
+          <div class="chips">${sorted.length ? sorted.map(p => `<button class="chip" data-rm="${p}">${p}kg ✕</button>`).join('') : '<span class="muted small">なし</span>'}</div>`
+        : `<div class="steps">${[-10, -5, -2.5, -1, -0.5, 0.5, 1, 2.5, 5, 10].map(v => `<button class="chip" data-step="${v}">${v > 0 ? '+' : '−'}${Math.abs(v)}</button>`).join('')}</div>
+          <label class="field">直接入力(kg)<input id="pd-in" type="number" inputmode="decimal" step="any" value="${num(total)}"></label>`}
+        <div class="row2"><button class="ghost" data-c="clear">クリア</button><button class="primary" data-c="ok">決定</button></div>`;
+      const inp = box.querySelector('#pd-in'); if (inp) inp.oninput = () => { total = Math.max(0, +inp.value || 0); box.querySelector('.pd-total').firstChild.textContent = num(total); };
+    };
+    box.onclick = e => {
+      const b = e.target.closest('button'); if (!b) return; const d = b.dataset;
+      if (d.mode) { if (d.mode === 'plate') plates = platesFor(total || bar, bar); mode = d.mode; }
+      else if (d.pbar != null) { bar = +d.pbar; S.settings.bar = bar; save(); }
+      else if (d.pl) plates.push(+d.pl);
+      else if (d.rm) { const i = plates.indexOf(+d.rm); if (i >= 0) plates.splice(i, 1); }
+      else if (d.step) total = Math.max(0, num(total + +d.step));
+      else if (d.c === 'clear') { plates = []; total = mode === 'plate' ? bar : 0; }
+      else if (d.c === 'ok') return close(total);
+      draw();
+    };
+    draw();
+  });
+}
+
+function editSet(id) {
+  const s = S.sets.find(x => x.id === id); if (!s) return;
+  const names = allEx().map(x => x.name); if (!names.includes(s.ex)) names.unshift(s.ex);
+  return dialog(`<h3>記録を修正</h3>
+    <label class="field">種目<select id="ed-e">${names.map(n => `<option ${n === s.ex ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>
+    <div class="row2"><label class="field">重量(kg)<input id="ed-w" type="number" inputmode="decimal" step="any" value="${num(s.w)}"></label>
+    <label class="field">回数<input id="ed-r" type="number" inputmode="numeric" value="${s.r}"></label></div>
+    <button class="plate-btn" data-c="plates">🏋️ プレート・増減で重量を入れる</button>
+    <label class="field">日付<input id="ed-d" type="date" value="${s.date}"></label>
+    <div class="row2"><button class="ghost danger-t" data-c="del">削除</button><button class="primary" data-c="save">保存</button></div>
+    <button class="ghost" data-c="cancel">キャンセル</button>`,
+  (m, close) => {
+    m.querySelector('.sheet').onclick = async e => {
+      const b = e.target.closest('[data-c]'); if (!b) return;
+      const c = b.dataset.c;
+      if (c === 'cancel') return close(null);
+      if (c === 'del') { s.del = true; s.u = Date.now(); touch(); toast(`${s.ex} ${fmtW(s.w)}×${s.r} を削除しました`); return close(null); }
+      if (c === 'plates') {
+        const keep = { e: m.querySelector('#ed-e').value, w: m.querySelector('#ed-w').value, r: m.querySelector('#ed-r').value, d: m.querySelector('#ed-d').value };
+        close(null);
+        const w = await plateDialog(+keep.w, exInfo(keep.e).equip);
+        const tmp = { ...s, ex: keep.e, w: w == null ? +keep.w : w, r: +keep.r, date: keep.d };
+        return editDraft(s, tmp);
+      }
+      if (c === 'save') {
+        const w = +m.querySelector('#ed-w').value, r = +m.querySelector('#ed-r').value, d = m.querySelector('#ed-d').value, ex = m.querySelector('#ed-e').value;
+        if (!(w >= 0) || m.querySelector('#ed-w').value === '') return toast('重量を入力してください');
+        if (!(r >= 1)) return toast('回数を入力してください');
+        if (d && d !== s.date) { const t = new Date(s.ts); const nd = new Date(d + 'T00:00:00'); nd.setHours(t.getHours(), t.getMinutes(), t.getSeconds()); s.ts = nd.getTime(); s.date = d; }
+        s.w = num(w); s.r = Math.round(r); s.ex = ex; s.u = Date.now();
+        touch(); toast('修正しました'); return close(true);
+      }
+    };
+  });
+}
+// プレート選択から戻ったとき、入力途中の内容を保ったまま修正画面を開き直す
+function editDraft(orig, draft) {
+  const backup = { ex: orig.ex, w: orig.w, r: orig.r, date: orig.date };
+  Object.assign(orig, { ex: draft.ex, w: draft.w, r: draft.r, date: draft.date });
+  const p = editSet(orig.id);
+  Object.assign(orig, backup); // 保存されるまで元の値のまま
+  return p;
+}
+
+function editPattern(id, preset) {
+  const src = id ? S.patterns.find(p => p.id === id) : null;
+  const p = src ? { ...src, items: [...src.items] } : { id: uid(), name: preset?.name || '', items: preset?.items ? [...preset.items] : [] };
+  let delArm = false, adding = !p.items.length;
+  const ap = { tab: recentExNames(1).length ? 'recent' : 'ex', parts: [], equip: null };
+  // 通常の種目選択と同じ見た目の追加パネル（最近／種目、部位・器具で絞り込み）
+  const addPanel = () => {
+    const seg = `<div class="seg">${[['recent', '最近'], ['ex', '種目']].map(([k, l]) => `<button class="${ap.tab === k ? 'on' : ''}" data-pt="${k}">${l}</button>`).join('')}</div>`;
+    const row = x => { const on = p.items.includes(x.name), l = lastOf(x.name);
+      return `<li><button data-pa="${esc(x.name)}" class="${on ? 'added' : ''}"><span class="nm">${esc(x.name)}<em>${on ? '✓ 追加済み' : '＋'}</em></span><span class="meta">${esc(x.part)}・${esc(x.equip)}${l ? `｜前回 ${fmtDate(l.date)} ${esc(setsLine(l.sets.slice(0, 1)))}` : ''}</span></button></li>`; };
+    let body;
+    if (ap.tab === 'recent') {
+      const rec = recentExNames(12);
+      body = rec.length ? `<ul class="exlist">${rec.map(n => row(exInfo(n))).join('')}</ul>` : '<p class="muted pad">まだ記録がありません。「種目」タブから選んでください。</p>';
+    } else {
+      const list = allEx().filter(x => (!ap.parts.length || ap.parts.includes(x.part)) && (!ap.equip || x.equip === ap.equip));
+      const pb = ['すべて', ...PARTS.filter(q => q !== 'その他' || allEx().some(x => x.part === 'その他'))].map(q => `<button class="chip ${q === 'すべて' ? (!ap.parts.length ? 'on' : '') : ap.parts[0] === q ? 'on' : ''}" data-pp="${q}">${q}</button>`).join('');
+      const eb = ['すべて', ...EQUIPS.filter(q => q !== 'その他' || allEx().some(x => x.equip === 'その他'))].map(q => `<button class="chip ${q === 'すべて' ? (!ap.equip ? 'on' : '') : ap.equip === q ? 'on' : ''}" data-pq="${q}">${q}</button>`).join('');
+      body = `<div class="lbl">部位</div><div class="chips">${pb}</div><div class="lbl">器具</div><div class="chips">${eb}</div>
+        <h3 class="sec">${list.length}件</h3><ul class="exlist">${list.map(row).join('') || '<li class="muted pad">該当する種目がありません</li>'}</ul>`;
+    }
+    return `<div class="pe-add"><div class="ex-head"><b>種目を追加</b><button class="chip" data-pdone="1">完了</button></div><p class="muted small">タップで追加、もう一度タップで外します。</p>${seg}${body}</div>`;
+  };
+  return dialog('<div id="pe"></div>', (m, close) => {
+    const box = m.querySelector('#pe'), sheet = m.querySelector('.sheet');
+    const draw = () => {
+      const top = sheet.scrollTop;
+      box.innerHTML = `<h3>${src ? 'パターンを編集' : '新しいパターン'}</h3>
+        <label class="field">名前（声で呼ぶ名前）<input id="pe-n" value="${esc(p.name)}" placeholder="例: 脚の日"></label>
+        <div class="lbl">種目（上から順に行います）</div>
+        <ol class="pe-list">${p.items.map((n, i) => `<li><span>${esc(n)}</span><button class="x" data-up="${i}" ${i ? '' : 'disabled'} aria-label="上へ">↑</button><button class="x" data-dn="${i}" ${i < p.items.length - 1 ? '' : 'disabled'} aria-label="下へ">↓</button><button class="x" data-rmi="${i}" aria-label="外す">✕</button></li>`).join('') || '<li class="muted small">まだ種目がありません</li>'}</ol>
+        ${adding ? addPanel() : '<button class="ghost" data-padd="1">＋ 種目を追加</button>'}
+        <div class="row2">${src ? `<button class="ghost danger-t" data-c="del">${delArm ? '本当に削除' : '削除'}</button>` : '<button class="ghost" data-c="cancel">キャンセル</button>'}<button class="primary" data-c="save">保存</button></div>
+        ${src ? '<button class="ghost" data-c="cancel">キャンセル</button>' : ''}`;
+      box.querySelector('#pe-n').oninput = e => (p.name = e.target.value);
+      sheet.scrollTop = top;
+    };
+    box.onclick = e => {
+      const b = e.target.closest('button'); if (!b) return; const d = b.dataset;
+      if (d.padd) adding = true;
+      else if (d.pdone) adding = false;
+      else if (d.pt) ap.tab = d.pt;
+      else if (d.pp) ap.parts = d.pp === 'すべて' ? [] : [d.pp];
+      else if (d.pq) ap.equip = d.pq === 'すべて' ? null : d.pq;
+      else if (d.pa) { const i = p.items.indexOf(d.pa); if (i >= 0) p.items.splice(i, 1); else p.items.push(d.pa); }
+      else if (d.up) { const i = +d.up; [p.items[i - 1], p.items[i]] = [p.items[i], p.items[i - 1]]; }
+      else if (d.dn) { const i = +d.dn; [p.items[i + 1], p.items[i]] = [p.items[i], p.items[i + 1]]; }
+      else if (d.rmi) p.items.splice(+d.rmi, 1);
+      else if (d.c === 'cancel') return close(null);
+      else if (d.c === 'del') {
+        if (!delArm) { delArm = true; }
+        else { src.del = true; src.u = Date.now(); if (S.session && S.session.pid === src.id) S.session = null; touch(); toast(`「${src.name}」を削除しました`); return close(null); }
+      } else if (d.c === 'save') {
+        p.name = p.name.trim();
+        if (!p.name) return toast('名前を入れてください');
+        if (!p.items.length) return toast('種目を1つ以上追加してください');
+        if (livePatterns().some(x => x.id !== p.id && x.name === p.name)) return toast('同じ名前のパターンがあります');
+        p.u = Date.now(); delete p.del;
+        S.patterns = S.patterns.filter(x => x.id !== p.id); S.patterns.push(p); touch();
+        toast(`「${p.name}」を保存しました`); return close(p);
+      }
+      draw();
+    };
+    draw();
+  });
+}
+
+// ---------- 書き出し ----------
+function download(name, text, type) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+function exportCsv() {
+  const rows = [['日付', '時刻', '種目', '部位', '器具', '重量kg', '回数']];
+  S.sets.filter(s => !s.del).sort((a, b) => a.ts - b.ts).forEach(s => {
+    const x = exInfo(s.ex); rows.push([s.date, new Date(s.ts).toTimeString().slice(0, 5), s.ex, x.part, x.equip, s.w, s.r]);
+  });
+  download(`training-log-${today()}.csv`, '﻿' + rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\r\n'), 'text/csv');
+}
+
+// ---------- イベント ----------
+function updTrend() { const b = document.querySelector('.trendbox'); if (b && cur.ex) b.innerHTML = trendHtml(cur.ex); }
+function updOrm() { const o = $('#orm'); if (o && cur.ex) o.innerHTML = ormHtml(cur.ex); }
+
+function bind() {
+  document.addEventListener('click', async e => {
+    const hb = e.target.closest('[data-hb]'); if (hb) { hist.anchor = hb.dataset.hb; return render(); }
+    const t = e.target.closest('button, [data-ex]'); if (!t) return;
+    const d = t.dataset;
+    if (d.go) return go(d.go);
+    if (d.ex) return selectEx(d.ex, false);
+    if (d.del) { const s = S.sets.find(x => x.id === d.del); deleteSet(d.del); if (s) toast(`${s.ex} ${fmtW(s.w)}×${s.r} を削除しました`); return; }
+    if (d.edit) return editSet(d.edit);
+    if (d.pat) return startPattern(d.pat, false);
+    if (d.pedit) return editPattern(d.pedit);
+    if (d.tunit) { trend.unit = d.tunit; return updTrend(); }
+    if (d.tmetric) { trend.metric = d.tmetric; return updTrend(); }
+    if (d.pick) { pick.tab = d.pick; return render(); }
+    if (d.unit) { hist.unit = d.unit; hist.anchor = hist.anchor || today(); return render(); }
+    if (d.hnav) { hist.anchor = addUnit(hist.anchor, hist.unit, +d.hnav); return render(); }
+    if (d.hex) { hist.ex = d.hex; render(); const c = $('#hex-sel'); if (c) c.closest('.card').scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+    if (d.askdel) { const s = S.sets.find(x => x.id === d.askdel); if (s && await confirmDialog(`${s.date} ${s.ex} ${fmtW(s.w)} × ${s.r}回 を削除しますか？`)) deleteSet(s.id); return; }
+    if (d.part) { browse.parts = d.part === 'すべて' ? [] : [d.part]; return render(); }
+    if (d.equip) { browse.equip = d.equip === 'すべて' ? null : d.equip; return render(); }
+    switch (d.act) {
+      case 'clear': cur.ex = null; return render();
+      case 'w-': case 'w+': {
+        const inc = +d.inc || 1; const v = +($('#in-w').value || 0) + (d.act === 'w+' ? inc : -inc);
+        cur.w = Math.max(0, num(v)); $('#in-w').value = cur.w; updOrm(); return;
+      }
+      case 'r-': case 'r+': {
+        const v = +($('#in-r').value || 0) + (d.act === 'r+' ? 1 : -1);
+        cur.r = Math.max(0, v); $('#in-r').value = cur.r; updOrm(); return;
+      }
+      case 'rec': {
+        const w = $('#in-w').value === '' ? NaN : +$('#in-w').value, r = +$('#in-r').value;
+        if (isNaN(w) || w < 0) return toast('重量を入力してください');
+        if (!r || r < 1) return toast('回数を入力してください');
+        return addSets(cur.ex, w, r, 1);
+      }
+      case 'plates': {
+        const w = await plateDialog($('#in-w').value, exInfo(cur.ex).equip);
+        if (w != null) { cur.w = w; render(); }
+        return;
+      }
+      case 'trend-tg': trend.open = !trend.open; return updTrend();
+      case 'hj-now': hist.anchor = today(); return render();
+      case 'end-sess': return endSession();
+      case 'next': { const nx = nextItem(cur.ex); if (nx) selectEx(nx, false); return; }
+      case 'pat-new': return editPattern(null);
+      case 'pat-today': { const order = []; todaySets().forEach(s => { if (!order.includes(s.ex)) order.push(s.ex); }); return editPattern(null, { name: '', items: order }); }
+      case 'add-ex': { const x = await openAddDialog(''); if (x) selectEx(x.name); return; }
+      case 'copy-out': return copyOut();
+      case 'paste-in': return pasteIn();
+      case 'claim-past': return claimPast();
+      case 'to-boss': gtab = 'boss'; return go('game');
+      case 'rest+': if (rest) { rest.end = Math.max(rest.end, Date.now()) + 30000; rest.total += 30; rest.done = false; renderRest(); } return;
+      case 'rest-x': return stopRest();
+      case 'sync': return syncNow(true);
+      case 'seed': return seedSample();
+      case 'wipe': if (await confirmDialog('すべての記録を消しますか？')) { S.sets = []; S.customEx = []; cur.ex = null; touch(); toast('消しました'); } return;
+      case 'csv': return exportCsv();
+      case 'json': return download(`training-log-${today()}.json`, JSON.stringify({ app: 'training-log', version: 1, sets: S.sets, customEx: S.customEx, patterns: S.patterns, game: S.game }, null, 1), 'application/json');
+    }
+  });
+  document.addEventListener('input', e => {
+    const id = e.target.id;
+    if (id === 'in-w') cur.w = e.target.value;
+    if (id === 'in-r') cur.r = e.target.value;
+    if (id === 'in-w' || id === 'in-r') updOrm();
+  });
+  document.addEventListener('change', async e => {
+    const id = e.target.id;
+    if (id === 'cid') { S.settings.clientId = e.target.value.trim(); S.sync.connected = false; S.sync.token = null; save(); if (S.settings.clientId) loadGis().catch(() => {}); renderBadge(); }
+    if (id === 'rmin' || id === 'rmax') { const v = parseInt(e.target.value, 10); if (v > 0) { S.settings[id === 'rmin' ? 'repMin' : 'repMax'] = v; save(); } }
+    if (id && id.startsWith('hj-')) {
+      const u = hist.unit, v = e.target.value;
+      if (id === 'hj-dm') hist.dayMonth = v;
+      else if (id === 'hj-w') { if (v) hist.anchor = startOf(v, 'week'); }
+      else {
+        const y = +($('#hj-y') || {}).value || +today().slice(0, 4);
+        let mo = 1;
+        if (u === 'quarter') mo = (+$('#hj-q').value - 1) * 3 + 1;
+        if (u === 'month') mo = +$('#hj-m').value;
+        hist.anchor = `${y}-${String(mo).padStart(2, '0')}-01`;
+        if (hist.anchor > today()) hist.anchor = startOf(today(), u);
+      }
+      render(); return;
+    }
+    if (id === 'hex-sel') { hist.ex = e.target.value; render(); }
+    if (id === 'speak') { S.settings.speak = e.target.checked; save(); }
+    if (id === 'rest-sec') { S.settings.rest = +e.target.value; save(); }
+    if (id === 'wgoal') { S.settings.weekGoal = +e.target.value || 3; save(); render(); }
+    if (id === 'imp' && e.target.files[0]) {
+      try {
+        const j = JSON.parse(await e.target.files[0].text());
+        const m = mergeData({ sets: S.sets, customEx: S.customEx, patterns: S.patterns, game: S.game }, j);
+        const before = S.sets.length; S.sets = m.sets; S.customEx = m.customEx; S.patterns = m.patterns; if (m.game) S.game = m.game; touch();
+        toast(`読み込みました（${S.sets.length - before}件追加）`);
+      } catch (err) { toast('JSONを読み込めませんでした'); }
+    }
+  });
+  $('#badge').onclick = () => syncNow(true);
+  $('#mic').onclick = toggleMic;
+  $('#toast').onclick = () => $('#toast').classList.remove('show');
+  $('#cmdform').onsubmit = e => { e.preventDefault(); const v = $('#cmd').value; $('#cmd').value = ''; $('#cmd').blur(); handleCommand(v); };
+
+  window.addEventListener('online', () => { if (S.settings.clientId) loadGis().catch(() => {}); syncNow(false); });
+  window.addEventListener('offline', renderBadge);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { syncNow(false); render(); renderRest(); } });
+  setInterval(() => { if (S.sync.dirty) syncNow(false); }, 5 * 60 * 1000);
+}
+
+function seedSample() {
+  // 約1年分：週3回（胸・背中・脚をローテーション）で少しずつ重量が伸びる記録
+  const plan = {
+    A: [['ベンチプレス', 50, 0.12], ['インクラインダンベルプレス', 16, 0.025], ['サイドレイズ', 6, 0.01], ['プレスダウン', 20, 0.03]],
+    B: [['ラットプルダウン', 40, 0.08], ['ベントオーバーロウ', 40, 0.08], ['ダンベルカール', 8, 0.015], ['懸垂', 0, 0]],
+    C: [['スクワット', 60, 0.15], ['ルーマニアンデッドリフト', 50, 0.12], ['レッグカール', 30, 0.05], ['クランチ', 0, 0]],
+  };
+  const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  let n = 0, cyc = 0;
+  for (let ago = 365; ago >= 1; ago--) {
+    const d = new Date(); d.setDate(d.getDate() - ago);
+    const wd = d.getDay(); if (![1, 3, 5].includes(wd) || Math.random() < 0.12) continue;
+    const day = ymd(d), t0 = d.setHours(19, 0, 0, 0), elapsed = 365 - ago;
+    const menu = plan['ABC'[cyc++ % 3]];
+    menu.forEach(([ex, base, rate], ei) => {
+      const inc = INC[exInfo(ex).equip] || 1;
+      const w = base ? roundTo(base + rate * elapsed, inc) : 0;
+      for (let k = 0; k < 3; k++) {
+        const r = base ? rnd(8, 12) - k : rnd(8, 15) + Math.floor(elapsed / 60) - k;
+        S.sets.push({ id: uid(), date: day, ts: t0 + (n++) * 90000, ex, w, r: Math.max(1, r), u: Date.now() });
+      }
+    });
+  }
+  touch(); toast('サンプル記録（約1年分）を入れました'); go('today');
+}
+
+function init() {
+  $('#cmd').placeholder = PH;
+  if (LOCAL_ONLY) document.body.classList.add('local');
+  bind(); render();
+  if (LOCAL_ONLY) { S.settings.speak = false; render(); return; }
+  if (S.settings.clientId && navigator.onLine) loadGis().catch(() => {});
+  syncNow(false);
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+}
+if (typeof module !== 'undefined') module.exports = { parseCommand, suggest, matchEx, matchPartEquip, mergeData, convertKanjiNums, _S: () => S, _setS: v => { S = v; } };
+
+</script>
+<script>
+'use strict';
+/* =========================================================
+   冒険モード（RPG要素）
+   - 記録から経験値・部位ごとの筋肉レベル・コインを計算（記録を直せば自動で再計算）
+   - 経験値・筋肉：自己ベストにどれだけ近いセットかで決まる（重さの絶対値では決まらない）
+   - コイン：1セットごと・トレーニングした日・自己ベスト更新・週の目標達成・ボス撃破
+   - ボス戦はターンごとに「こうげき／ぼうぎょ／必殺技」を選ぶ
+   ========================================================= */
+
+const G_PARTS = [['胸', '胸'], ['背中', '背中'], ['肩', '肩'], ['二頭', '力こぶ'], ['三頭', '二の腕'], ['前腕', '前腕'], ['腹', '腹筋'], ['臀部', 'お尻'], ['脚', '脚']];
+const SLOTS = [['head', '頭'], ['top', '上半身'], ['bottom', 'パンツ'], ['hand', '武器'], ['back', '背中'], ['acc', 'アクセ']];
+
+// look: 見た目の種類 / c: 色
+const ITEMS = [
+  { id: 'h_band', slot: 'head', name: '赤いハチマキ', icon: '🎌', price: 60, atk: 1, look: 'band', c: '#d23a3a' },
+  { id: 'h_cap', slot: 'head', name: 'スポーツキャップ', icon: '🧢', price: 120, def: 1, look: 'cap', c: '#2f6fd6' },
+  { id: 'h_helm', slot: 'head', name: '鉄のかぶと', icon: '⛑️', price: 500, def: 4, hp: 20, look: 'helm', c: '#9aa3ad' },
+  { id: 'h_viking', slot: 'head', name: 'バイキングかぶと', icon: '🪖', price: 1200, atk: 3, def: 5, hp: 30, look: 'viking', c: '#8f98a3' },
+  { id: 't_tank', slot: 'top', name: 'タンクトップ', icon: '🎽', price: 80, hp: 10, look: 'tank', c: '#2f9e55' },
+  { id: 't_jersey', slot: 'top', name: 'ジャージ', icon: '🧥', price: 250, def: 2, hp: 20, look: 'jersey', c: '#2f6fd6' },
+  { id: 't_leather', slot: 'top', name: '革のよろい', icon: '🛡️', price: 600, def: 6, hp: 30, look: 'armor', c: '#8a5a32' },
+  { id: 't_steel', slot: 'top', name: '鋼のよろい', icon: '🛡️', price: 1800, def: 12, hp: 60, look: 'armor', c: '#a9b3be' },
+  { id: 'b_red', slot: 'bottom', name: '赤いトランクス', icon: '🩳', price: 50, atk: 1, look: 'trunks', c: '#d23a3a' },
+  { id: 'b_blue', slot: 'bottom', name: '青いショーツ', icon: '🩳', price: 50, def: 1, look: 'trunks', c: '#2f6fd6' },
+  { id: 'b_gold', slot: 'bottom', name: '金のトランクス', icon: '🩳', price: 900, atk: 4, def: 2, look: 'trunks', c: '#e2b100' },
+  { id: 'w_db', slot: 'hand', name: 'ダンベル', icon: '🏋️', price: 100, atk: 3, look: 'dumbbell', c: '#555' },
+  { id: 'w_bokken', slot: 'hand', name: '木刀', icon: '🪵', price: 300, atk: 6, look: 'bokken', c: '#a0703c' },
+  { id: 'w_hammer', slot: 'hand', name: 'バーベルハンマー', icon: '🔨', price: 900, atk: 12, look: 'hammer', c: '#666' },
+  { id: 'w_sword', slot: 'hand', name: '鋼の剣', icon: '🗡️', price: 2000, atk: 20, look: 'sword', c: '#cfd6de' },
+  { id: 'c_white', slot: 'back', name: '白いマント', icon: '🧣', price: 400, def: 3, hp: 20, look: 'cape', c: '#e8e8e8' },
+  { id: 'c_red', slot: 'back', name: '赤いマント', icon: '🧣', price: 1000, atk: 3, def: 5, hp: 30, look: 'cape', c: '#c22d2d' },
+  { id: 'a_glove', slot: 'acc', name: 'パワーグローブ', icon: '🧤', price: 250, atk: 4, look: 'glove', c: '#d23a3a' },
+  { id: 'a_belt', slot: 'acc', name: 'リフティングベルト', icon: '🥋', price: 300, def: 4, hp: 15, look: 'belt', c: '#6b4524' },
+  { id: 'a_champ', slot: 'acc', name: 'チャンピオンベルト', icon: '🏆', price: 2500, atk: 8, def: 8, hp: 50, look: 'champ', c: '#e2b100' },
+  // ---- ボスの非売品 ----
+  { id: 'x_crown', slot: 'head', name: 'スライムの王冠', icon: '👑', special: 1, atk: 3, def: 3, hp: 20, look: 'crown', c: '#f2c230' },
+  { id: 'x_cape', slot: 'back', name: '番長の黒マント', icon: '🦇', special: 1, atk: 5, def: 3, hp: 20, look: 'cape', c: '#1d1d24' },
+  { id: 'x_axe', slot: 'hand', name: 'オークの大斧', icon: '🪓', special: 1, atk: 15, look: 'axe', c: '#8d949c' },
+  { id: 'x_rock', slot: 'top', name: '岩鉄のよろい', icon: '🪨', special: 1, def: 15, hp: 50, look: 'armor', c: '#6e6a63' },
+  { id: 'x_horns', slot: 'head', name: '牛魔のツノかぶと', icon: '🐂', special: 1, atk: 6, def: 6, hp: 40, look: 'horns', c: '#5a3b22' },
+  { id: 'x_bangle', slot: 'acc', name: '巨人の腕輪', icon: '💪', special: 1, atk: 12, hp: 40, look: 'bangle', c: '#c9a227' },
+  { id: 'x_scale', slot: 'top', name: '竜鱗のよろい', icon: '🐉', special: 1, atk: 6, def: 22, hp: 80, look: 'scale', c: '#2e8b57' },
+  { id: 'x_great', slot: 'hand', name: '魔王の大剣', icon: '⚔️', special: 1, atk: 35, look: 'great', c: '#7b2fd0' },
+];
+const itemById = id => ITEMS.find(i => i.id === id);
+
+const BOSSES = [
+  { name: 'スライムキング', art: 'slime', hp: 80, atk: 14, def: 8, reward: 'x_crown', coins: 50 },
+  { name: 'ゴブリン番長', art: 'goblin', hp: 130, atk: 22, def: 14, reward: 'x_cape', coins: 80 },
+  { name: 'オーク闘士', art: 'orc', hp: 200, atk: 32, def: 22, reward: 'x_axe', coins: 120 },
+  { name: 'アイアンゴーレム', art: 'golem', hp: 300, atk: 42, def: 36, reward: 'x_rock', coins: 180 },
+  { name: 'ミノタウロス', art: 'mino', hp: 420, atk: 58, def: 44, reward: 'x_horns', coins: 250 },
+  { name: 'サイクロプス', art: 'cyclops', hp: 560, atk: 72, def: 56, reward: 'x_bangle', coins: 350 },
+  { name: 'ドラゴン', art: 'dragon', hp: 750, atk: 90, def: 70, reward: 'x_scale', coins: 500 },
+  { name: 'マッスル魔王', art: 'maou', hp: 1000, atk: 115, def: 90, reward: 'x_great', coins: 800 },
+];
+function bossAt(n) {
+  if (n < BOSSES.length) return { ...BOSSES[n], n };
+  const k = n - BOSSES.length + 1, b = BOSSES[BOSSES.length - 1], f = Math.pow(1.15, k);
+  return { name: `闘技場の覇者 Lv${k}`, art: 'champ', hp: Math.round(b.hp * f), atk: Math.round(b.atk * f), def: Math.round(b.def * f), coins: 600 + 200 * k, n, arena: k };
+}
+
+// ---------- 状態 ----------
+const liveSets = () => { const t = (S.game && S.game.since) || 0; return S.sets.filter(s => !s.del && s.ts >= t); };
+
+// 旧ルール（総負荷ベース）での獲得量。ルール変更で手持ちが減らないよう、差分の引き継ぎにだけ使う
+function oldCalc() {
+  let xp = 0, vol = 0, reps = 0, coins = 0;
+  const live = liveSets().sort((a, b) => a.ts - b.ts), byEx = {};
+  live.forEach(s => {
+    xp += s.w > 0 ? 10 + Math.min(40, (s.w * s.r) / 50) : 10 + Math.min(20, s.r);
+    if (s.w > 0) { const b0 = Math.floor(vol / 1000); vol += s.w * s.r; coins += 10 * (Math.floor(vol / 1000) - b0); }
+    else { const b0 = Math.floor(reps / 100); reps += s.r; coins += 5 * (Math.floor(reps / 100) - b0); }
+    const e = byEx[s.ex] = byEx[s.ex] || {}; (e[s.date] = e[s.date] || []).push(s);
+  });
+  for (const ex in byEx) {
+    let best = 0;
+    Object.keys(byEx[ex]).sort().forEach(d => { const o = dayOrm(byEx[ex][d]); if (!o) return; if (best > 0 && o > best + 0.05) coins += 20; best = Math.max(best, o); });
+  }
+  return { xp, coins };
+}
+
+function gstate() {
+  // 同じオブジェクトを使い続ける（作り直すと戦闘中の変更が失われるため）
+  if (!S.game) S.game = {};
+  const d = { owned: [], equip: {}, spent: 0, bonus: 0, beaten: 0, bossDmg: 0, lastFight: '', since: 0, u: 0, xpAdj: 0 };
+  for (const k in d) if (S.game[k] == null) S.game[k] = d[k];
+  if (S.game.cv !== 2) {
+    S.game.cv = 2;
+    const o = oldCalc(), n = scoreAll();
+    S.game.bonus += Math.max(0, o.coins - n.earned);
+    S.game.xpAdj = Math.max(0, Math.round(o.xp - n.xp));
+  }
+  return S.game;
+}
+function gtouch() { S.game.u = Date.now(); touch(); }
+
+// ---------- 記録からの計算 ----------
+// セットの「効きポイント」：その種目の自己ベスト（推定1RM／自重は回数）に対する割合で 0.5〜1.5
+// 重さの絶対値ではなく「自分の限界にどれだけ近いか」で決まるので、自重でもバーベルでも公平
+const COIN = { set: 3, day: 10, pr: 20, week: 50 };
+let _sc = null;
+function scoreAll(sinceArg) {
+  const since = sinceArg != null ? sinceArg : (S.game && S.game.since) || 0, goal = Math.max(1, +S.settings.weekGoal || 3);
+  const key = [S.sync.seq, since, S.sets.length, goal].join('|');
+  if (_sc && _sc.key === key) return _sc;
+  const all = S.sets.filter(s => !s.del).sort((a, b) => a.ts - b.ts);
+  const byEx = {}, q = new Map(), prs = [];
+  all.forEach(s => { const e = byEx[s.ex] = byEx[s.ex] || {}; (e[s.date] = e[s.date] || []).push(s); });
+  for (const ex in byEx) {
+    let bestW = 0, bestR = 0;
+    for (const d of Object.keys(byEx[ex]).sort()) {
+      let topW = 0, topR = 0;
+      byEx[ex][d].forEach(s => {
+        const wt = s.w > 0, v = wt ? e1rm(s.w, s.r) : s.r, best = wt ? bestW : bestR;
+        if (wt) topW = Math.max(topW, v); else topR = Math.max(topR, v);
+        const ratio = best > 0 ? v / best : 1;
+        q.set(s.id, 0.5 + Math.min(1, Math.max(0, (ratio - 0.6) / 0.4)));
+      });
+      const ts = byEx[ex][d][0].ts;
+      if (bestW > 0 && topW > bestW + 0.05) prs.push({ ex, date: d, ts, txt: `推定1RM ${r1(topW)}kg` });
+      else if (bestR > 0 && topR > bestR) prs.push({ ex, date: d, ts, txt: `${topR}回` });
+      bestW = Math.max(bestW, topW); bestR = Math.max(bestR, topR);
+    }
+  }
+  const partOf = {}; allEx().forEach(x => (partOf[x.name] = x.part));
+  const live = all.filter(s => s.ts >= since);
+  let xp = 0; const pp = {}, pc = {}; G_PARTS.forEach(([p]) => { pp[p] = 0; pc[p] = 0; });
+  const ev = new Map();
+  const add = (date, type, c, why) => { const k = date + type; const e = ev.get(k) || { date, type, c: 0, why, n: 0 }; e.c += c; e.n++; ev.set(k, e); };
+  const days = [];
+  live.forEach(s => {
+    const v = q.get(s.id) || 1; xp += 20 * v;
+    const p = partOf[s.ex]; if (p in pp) { pp[p] += v; pc[p]++; }
+    add(s.date, 's', COIN.set, '');
+    if (!days.includes(s.date)) { days.push(s.date); add(s.date, 'd', COIN.day, 'トレーニングした日'); }
+  });
+  const wk = {}; days.forEach(d => { const k = startOf(d, 'week'); (wk[k] = wk[k] || []).push(d); });
+  for (const k in wk) if (wk[k].length >= goal) add(wk[k].sort()[goal - 1], 'w', COIN.week, `週の目標（${goal}日）達成`);
+  let prCount = 0;
+  prs.filter(p => p.ts >= since).forEach(p => { prCount++; add(p.date, 'p' + p.ex, COIN.pr, `${p.ex} 自己ベスト ${p.txt}`); });
+  const order = { w: 0, p: 1, d: 2, s: 3 };
+  const events = [...ev.values()].map(e => (e.type === 's' ? { ...e, why: `セット記録 ${e.n}セット` } : e))
+    .sort((a, b) => (a.date === b.date ? order[a.type[0]] - order[b.type[0]] : a.date < b.date ? 1 : -1));
+  _sc = { key, xp, pp, pc, events, earned: events.reduce((a, e) => a + e.c, 0), prCount };
+  return _sc;
+}
+function levelOf(xp) { const L = 1 + Math.floor(Math.sqrt(xp / 40)); return { L, cur: xp - 40 * (L - 1) ** 2, need: 40 * L ** 2 - 40 * (L - 1) ** 2 }; }
+const plv = n => Math.min(10, Math.sqrt(n / 6)); // 600ポイントでLv10
+
+// 週の目標と連続達成（筋トレは休む日も大事なので、日ではなく週で数える）
+function weekInfo() {
+  const goal = Math.max(1, +S.settings.weekGoal || 3);
+  const days = [...new Set(S.sets.filter(s => !s.del).map(s => s.date))];
+  const wk = {}; days.forEach(d => { const k = startOf(d, 'week'); wk[k] = (wk[k] || 0) + 1; });
+  const cw = startOf(today(), 'week'), n = wk[cw] || 0;
+  let streak = 0, k = n >= goal ? cw : addUnit(cw, 'week', -1);
+  while ((wk[k] || 0) >= goal && streak < 520) { streak++; k = addUnit(k, 'week', -1); }
+  return { goal, n, streak, done: n >= goal };
+}
+function weekDots(wi) { return `<span class="wdots" aria-label="今週 ${wi.n}/${wi.goal}日">${Array.from({ length: Math.max(wi.goal, wi.n) }, (_, i) => `<i class="${i < wi.n ? 'on' : ''}"></i>`).join('')}</span>`; }
+
+function hero() {
+  const g = gstate(), sc = scoreAll(), wi = weekInfo();
+  const xp = sc.xp + (g.xpAdj || 0), lv = levelOf(xp), pl = {};
+  for (const p in sc.pp) pl[p] = plv(sc.pp[p]);
+  const coins = sc.earned + g.bonus - g.spent;
+  let atk = 5 + lv.L + 2 * (pl['胸'] + pl['肩'] + pl['二頭'] + pl['三頭'] + pl['前腕']);
+  let def = 5 + lv.L * 0.8 + 2 * (pl['背中'] + pl['腹'] + pl['臀部']);
+  let hp = 50 + lv.L * 5 + 8 * (pl['脚'] + pl['臀部'] + pl['背中']);
+  for (const id of Object.values(g.equip)) { const it = itemById(id); if (it) { atk += it.atk || 0; def += it.def || 0; hp += it.hp || 0; } }
+  const sb = Math.min(wi.streak, 10) * 2; // 連続達成1週ごとに攻撃+2%（最大+20%）
+  atk *= 1 + sb / 100;
+  return { xp, lv, pc: sc.pc, pp: sc.pp, pl, earned: sc.earned, coins, atk: Math.round(atk), def: Math.round(def), hp: Math.round(hp), wi, sb, prCount: sc.prCount };
+}
+function gameSnap() { const h = hero(); const pf = {}; for (const p in h.pl) pf[p] = Math.floor(h.pl[p]); return { L: h.lv.L, earned: h.earned, pf, pr: h.prCount, wk: h.wi.done, streak: h.wi.streak }; }
+function gameDiff(a) {
+  const b = gameSnap(), big = [];
+  if (b.L > a.L) big.push(['LEVEL UP!', `Lv${b.L}・${titleOf(b.L)}`]);
+  for (const p in b.pf) if (b.pf[p] > a.pf[p]) big.push(['筋肉が成長！', `${G_PARTS.find(x => x[0] === p)[1]} Lv${b.pf[p]}`]);
+  if (b.pr > a.pr) big.push(['自己ベスト更新！', `🪙+${COIN.pr}`]);
+  if (b.wk && !a.wk) big.push(['今週の目標達成！', `🪙+${COIN.week}${b.streak > 1 ? `・連続${b.streak}週` : ''}`]);
+  return { gain: b.earned - a.earned, big };
+}
+function gameDiffText(a) { const d = gameDiff(a); return [d.gain > 0 ? `コイン${d.gain}枚` : '', ...d.big.map(([t, s]) => `${t.replace('!', '')} ${s.replace(/🪙\+\d+・?/, '')}`.trim())].filter(Boolean).join('。'); }
+const TITLES = [[45, '伝説のマッスル'], [30, '筋肉の勇者'], [20, '鋼の戦士'], [10, '鍛錬の戦士'], [5, '見習い戦士'], [1, 'ひよっこ']];
+const titleOf = L => TITLES.find(([n]) => L >= n)[1];
+
+// ---------- キャラクター描画 ----------
+const OL = '#4a3226';
+const ST = `stroke="${OL}" stroke-width="1.6" stroke-linejoin="round"`;
+// mood: normal / happy / fight / hurt　　pose: stand / flex（ダブルバイセップス）
+function charSvg(pl, equip, cls = '', mood = 'normal', pose = 'stand') {
+  const s = k => (pl[k] || 0) / 10;
+  const c = s('胸'), b = s('背中'), sh = s('肩'), bi = s('二頭'), tr = s('三頭'), fa = s('前腕'), ab = s('腹'), gl = s('臀部'), lg = s('脚');
+  const SK = '#f2c29b', SH = '#d99e76', st = ST;
+  const E = {}; for (const [k, id] of Object.entries(equip || {})) { const it = itemById(id); if (it) E[k] = it; }
+  const X = 100, shH = 28 + 9 * b + 5 * c, wH = 19 + 2 * ab + 3 * gl;
+  const ax = shH + 5 + 4 * sh, armR = 8 + 6 * Math.max(bi, tr), faR = 6 + 4 * fa;
+  const hipH = wH + 4 + 4 * gl, legX = 11 + 3 * lg + 2 * gl, thR = 11 + 8 * lg, caR = 7 + 5 * lg;
+  const torso = `M${X - shH + 5},66 Q${X},59 ${X + shH - 5},66 L${X + shH},84 Q${X + shH - 2},112 ${X + wH},140 L${X - wH},140 Q${X - shH + 2},112 ${X - shH},84 Z`;
+  const flex = pose === 'flex';
+  // 筋肉の線（服の上からも同じ線を重ねて、着ていても体つきが分かるようにする）
+  const musc = (col, k = 1) => {
+    let m = '';
+    for (const sg of [-1, 1]) m += `<path d="M${X},${78} Q${X + sg * (14 + 6 * c)},${96 + 4 * c} ${X + sg * (shH - 4)},${84}" fill="none" stroke="${col}" stroke-width="${1.2 + 2 * c}" opacity="${(0.35 + 0.6 * c) * k}"/>`;
+    for (let r = 0; r < 3; r++) for (const sg of [-1, 1]) m += `<rect x="${X + (sg < 0 ? -10.5 : 1.5)}" y="${106 + r * 11}" width="9" height="8.5" rx="3" fill="none" stroke="${col}" stroke-width="1.4" opacity="${(0.08 + 0.75 * ab) * k}"/>`;
+    return m + `<line x1="${X}" y1="80" x2="${X}" y2="136" stroke="${col}" stroke-width="1.2" opacity="${(0.2 + 0.5 * ab) * k}"/>`;
+  };
+  let g = '';
+  // マント（体の後ろ。脚の形が見えるよう、すそは控えめに）
+  if (E.back) g += `<path d="M${X - shH + 6},64 L${X + shH - 6},64 L${X + shH + 9},188 Q${X},200 ${X - shH - 9},188 Z" fill="${E.back.c}" ${st}/>`;
+  // 脚
+  for (const sg of [-1, 1]) {
+    const lx = X + sg * legX;
+    g += `<ellipse cx="${lx}" cy="${192}" rx="${thR}" ry="31" fill="${SK}" ${st}/>`;
+    g += `<path d="M${lx - sg * 2},${174} Q${lx + sg * thR * 0.5},${192} ${lx},${214}" fill="none" stroke="${SH}" stroke-width="${1 + 1.5 * lg}" opacity="${0.3 + 0.6 * lg}"/>`;
+    g += `<ellipse cx="${lx}" cy="${233}" rx="${caR}" ry="15" fill="${SK}" ${st}/>`;
+    g += `<ellipse cx="${lx + sg * 2}" cy="${251}" rx="11" ry="5.5" fill="#2b2f36" ${st}/>`;
+  }
+  // パンツ
+  const tc = E.bottom ? E.bottom.c : '#1d1f24';
+  g += `<path d="M${X - hipH},136 L${X + hipH},136 L${X + hipH + 2},168 L${X + 3},170 L${X},160 L${X - 3},170 L${X - hipH - 2},168 Z" fill="${tc}" ${st}/>`;
+  // 胴体
+  g += `<rect x="${X - 7 - 4 * b}" y="52" width="${14 + 8 * b}" height="16" rx="5" fill="${SK}" ${st}/>`;
+  g += `<path d="${torso}" fill="${SK}" ${st}/>` + musc(SH);
+  // 上半身の服
+  if (E.top) {
+    const t = E.top, DK = 'rgba(0,0,0,.42)';
+    if (t.look === 'tank' || t.look === 'jersey') {
+      // 体にぴったりの服：胸・腹筋の線をそのまま浮き出させる
+      g += `<path d="${torso}" fill="${t.c}" ${st}/>` + musc(DK, 0.9);
+      if (t.look === 'tank') g += `<ellipse cx="${X}" cy="66" rx="12" ry="9" fill="${SK}"/><path d="M${X - 12},66 Q${X},78 ${X + 12},66" fill="none" stroke="${OL}" stroke-width="1.4"/>`;
+      else g += `<path d="M${X - 8},64 L${X},76 L${X + 8},64" fill="${SK}" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><line x1="${X}" y1="76" x2="${X}" y2="140" stroke="#fff" stroke-width="1.6" opacity=".8"/>`;
+    } else {
+      // よろいは胸当てだけ。腹筋・腕・脚は出したまま
+      const plate = `M${X - shH + 5},66 Q${X},59 ${X + shH - 5},66 L${X + shH},84 Q${X + shH - 0.5},94 ${X + shH - 3},103 Q${X},113 ${X - shH + 3},103 Q${X - shH + 0.5},94 ${X - shH},84 Z`;
+      g += `<path d="${plate}" fill="${t.c}" ${st}/>`;
+      if (t.look === 'scale') for (let y = 72; y < 100; y += 8) for (let x = -shH + 10; x < shH - 8; x += 10) g += `<path d="M${X + x - 5},${y} Q${X + x},${y + 6} ${X + x + 5},${y}" fill="none" stroke="rgba(0,0,0,.3)" stroke-width="1.3"/>`;
+      for (const sg of [-1, 1]) g += `<path d="M${X},${78} Q${X + sg * (14 + 6 * c)},${96 + 4 * c} ${X + sg * (shH - 4)},${84}" fill="none" stroke="${DK}" stroke-width="${1.4 + 2 * c}"/>`;
+      g += `<line x1="${X}" y1="70" x2="${X}" y2="106" stroke="${DK}" stroke-width="1.2"/><circle cx="${X}" cy="70" r="3.5" fill="rgba(255,255,255,.4)"/>`;
+    }
+  }
+  // ベルト系アクセ
+  if (E.acc && (E.acc.look === 'belt' || E.acc.look === 'champ')) {
+    const big = E.acc.look === 'champ';
+    g += `<rect x="${X - wH - 3}" y="${big ? 130 : 132}" width="${2 * wH + 6}" height="${big ? 11 : 8}" rx="3" fill="${E.acc.c}" ${st}/>`;
+    g += big ? `<ellipse cx="${X}" cy="135.5" rx="10" ry="8" fill="#f6dc6b" ${st}/><text x="${X}" y="139" font-size="9" text-anchor="middle">★</text>` : `<rect x="${X - 5}" y="132" width="10" height="8" fill="#c9a227" ${st}/>`;
+  }
+  // 腕
+  const fistC = E.acc && E.acc.look === 'glove' ? E.acc.c : SK, fr = 7 + 1.5 * fa;
+  const plateTop = E.top && (E.top.look === 'armor' || E.top.look === 'scale');
+  let hx = X + ax + 2, hy = 150;
+  for (const sg of [-1, 1]) {
+    const sx = X + sg * (shH - 3);
+    if (flex) {
+      const ux = X + sg * (shH + 11 + armR * 0.3), ex = X + sg * (shH + 25 + armR * 0.3), ur = armR + 2 + 2 * bi;
+      g += `<ellipse cx="${ex}" cy="52" rx="${faR}" ry="17" fill="${SK}" ${st}/>`;
+      if (E.acc && E.acc.look === 'bangle') g += `<rect x="${ex - faR - 1}" y="40" width="${2 * faR + 2}" height="7" rx="2" fill="${E.acc.c}" ${st}/>`;
+      g += `<ellipse cx="${ux}" cy="${73 - bi * 2}" rx="18" ry="${ur}" fill="${SK}" ${st}/>`;
+      g += `<path d="M${ux - 10},${70 - bi * 2} Q${ux},${70 - ur - 2} ${ux + 10},${70 - bi * 2}" fill="none" stroke="${SH}" stroke-width="${1.2 + 1.8 * bi}" opacity="${0.4 + 0.6 * bi}"/>`;
+      g += `<circle cx="${ex - sg}" cy="33" r="${fr}" fill="${fistC}" ${st}/>`;
+    } else {
+      const x = X + sg * ax;
+      g += `<ellipse cx="${x}" cy="102" rx="${armR}" ry="21" fill="${SK}" ${st}/>`;
+      g += `<path d="M${x - sg * armR * 0.6},${94} Q${x},${86 - 4 * bi} ${x + sg * armR * 0.7},${96}" fill="none" stroke="${SH}" stroke-width="${1 + 1.6 * bi}" opacity="${0.3 + 0.6 * bi}"/>`;
+      g += `<ellipse cx="${x + sg * 2}" cy="131" rx="${faR}" ry="16" fill="${SK}" ${st}/>`;
+      if (E.acc && E.acc.look === 'bangle') g += `<rect x="${x + sg * 2 - faR - 1}" y="136" width="${2 * faR + 2}" height="7" rx="2" fill="${E.acc.c}" ${st}/>`;
+    }
+    g += `<circle cx="${sx}" cy="74" r="${10 + 7 * sh}" fill="${SK}" ${st}/>`;
+    // 肩当ては肩の上だけ（三角筋の丸みは見せる）
+    if (plateTop) g += `<path d="M${sx - 11 - 6 * sh},${70} Q${sx},${54 - 6 * sh} ${sx + 11 + 6 * sh},${70} Q${sx},${64} ${sx - 11 - 6 * sh},${70} Z" fill="${E.top.c}" ${st}/>`;
+    if (E.top && E.top.look === 'jersey') g += `<path d="M${sx - 10 - 6 * sh},${72} Q${sx},${56 - 6 * sh} ${sx + 10 + 6 * sh},${72} Q${sx},${68} ${sx - 10 - 6 * sh},${72} Z" fill="${E.top.c}" ${st}/>`;
+  }
+  // 武器（右手・立ちポーズのときだけ）
+  const W = E.hand;
+  if (W && !flex) {
+    if (W.look === 'dumbbell') g += `<rect x="${hx - 18}" y="${hy - 2}" width="36" height="4" fill="#888" ${st}/><rect x="${hx - 22}" y="${hy - 9}" width="7" height="18" rx="2" fill="${W.c}" ${st}/><rect x="${hx + 15}" y="${hy - 9}" width="7" height="18" rx="2" fill="${W.c}" ${st}/>`;
+    if (W.look === 'bokken') g += `<line x1="${hx}" y1="${hy + 6}" x2="${hx + 26}" y2="${hy - 70}" stroke="${W.c}" stroke-width="6" stroke-linecap="round"/>`;
+    if (W.look === 'sword') g += `<path d="M${hx + 2},${hy - 6} L${hx + 24},${hy - 82} L${hx + 30},${hy - 80} L${hx + 8},${hy - 4} Z" fill="${W.c}" ${st}/><rect x="${hx - 6}" y="${hy - 9}" width="20" height="5" rx="2" fill="#c9a227" ${st} transform="rotate(-16 ${hx + 4} ${hy - 6})"/>`;
+    if (W.look === 'hammer') g += `<line x1="${hx}" y1="${hy + 8}" x2="${hx + 18}" y2="${hy - 58}" stroke="#7a5230" stroke-width="5" stroke-linecap="round"/><rect x="${hx + 4}" y="${hy - 78}" width="30" height="20" rx="3" fill="${W.c}" ${st} transform="rotate(-15 ${hx + 19} ${hy - 68})"/>`;
+    if (W.look === 'axe') g += `<line x1="${hx}" y1="${hy + 8}" x2="${hx + 18}" y2="${hy - 64}" stroke="#7a5230" stroke-width="5" stroke-linecap="round"/><path d="M${hx + 14},${hy - 60} Q${hx + 42},${hy - 72} ${hx + 36},${hy - 40} Q${hx + 26},${hy - 44} ${hx + 10},${hy - 40} Z" fill="${W.c}" ${st}/>`;
+    if (W.look === 'great') g += `<path d="M${hx},${hy - 8} L${hx + 22},${hy - 96} L${hx + 34},${hy - 92} L${hx + 12},${hy - 4} Z" fill="${W.c}" ${st}/><path d="M${hx + 8},${hy - 30} L${hx + 22},${hy - 84}" stroke="#d6b5ff" stroke-width="2"/><rect x="${hx - 8}" y="${hy - 12}" width="26" height="6" rx="2" fill="#2a2a2a" ${st} transform="rotate(-14 ${hx + 5} ${hy - 9})"/>`;
+  }
+  // こぶし（立ちポーズ）
+  if (!flex) for (const sg of [-1, 1]) g += `<circle cx="${X + sg * (ax + 2)}" cy="${hy}" r="${fr}" fill="${fistC}" ${st}/>`;
+  // 頭
+  g += `<circle cx="${X - 20}" cy="38" r="4.5" fill="${SK}" ${st}/><circle cx="${X + 20}" cy="38" r="4.5" fill="${SK}" ${st}/>`;
+  g += `<circle cx="${X}" cy="35" r="20" fill="${SK}" ${st}/><ellipse cx="${X - 7}" cy="23" rx="6" ry="3" fill="#fff" opacity=".45"/>`;
+  const ln = `stroke="${OL}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"`;
+  if (mood === 'happy') {
+    g += `<path d="M${X - 11},30 L${X - 4},29 M${X + 11},30 L${X + 4},29" ${ln}/>`;
+    g += `<path d="M${X - 10},39 Q${X - 7},34 ${X - 4},39 M${X + 10},39 Q${X + 7},34 ${X + 4},39" ${ln}/>`;
+    g += `<path d="M${X - 8},44 Q${X},55 ${X + 8},44 Z" fill="#8a2f2f" stroke="${OL}" stroke-width="1.6" stroke-linejoin="round"/>`;
+  } else if (mood === 'hurt') {
+    g += `<path d="M${X - 10},35 L${X - 5},38 L${X - 10},41 M${X + 10},35 L${X + 5},38 L${X + 10},41" ${ln}/>`;
+    g += `<path d="M${X - 6},49 Q${X - 3},45 ${X},48 Q${X + 3},51 ${X + 6},47" ${ln}/>`;
+  } else {
+    const fb = mood === 'fight' ? 2 : 0;
+    g += `<path d="M${X - 11},${31 - fb} L${X - 4},${33 + fb * 0.5} M${X + 11},${31 - fb} L${X + 4},${33 + fb * 0.5}" ${ln}/>`;
+    g += `<circle cx="${X - 7}" cy="38" r="2.3" fill="${OL}"/><circle cx="${X + 7}" cy="38" r="2.3" fill="${OL}"/>`;
+    g += mood === 'fight' ? `<path d="M${X - 6},47 L${X + 6},47" ${ln}/>` : `<path d="M${X - 7},45 Q${X},51 ${X + 7},45" ${ln}/>`;
+  }
+  // 頭の装備（まゆ・目・口は隠さない高さに）
+  if (E.head) {
+    const h = E.head;
+    if (h.look === 'band') g += `<rect x="${X - 20}" y="20" width="40" height="7" rx="3" fill="${h.c}" ${st}/><path d="M${X + 19},23 L${X + 32},18 M${X + 19},25 L${X + 30},30" stroke="${h.c}" stroke-width="4" stroke-linecap="round"/>`;
+    if (h.look === 'cap') g += `<path d="M${X - 20},27 Q${X - 20},10 ${X},10 Q${X + 20},10 ${X + 20},27 Z" fill="${h.c}" ${st}/><path d="M${X - 4},24 L${X + 30},24 Q${X + 30},29 ${X + 12},28 L${X - 4},28 Z" fill="${h.c}" ${st}/>`;
+    if (h.look === 'helm' || h.look === 'viking') g += `<path d="M${X - 21},27 Q${X - 22},9 ${X},9 Q${X + 22},9 ${X + 21},27 Z" fill="${h.c}" ${st}/><path d="M${X - 21},23 L${X + 21},23" stroke="rgba(0,0,0,.3)" stroke-width="2"/><circle cx="${X}" cy="15" r="2.5" fill="rgba(255,255,255,.45)"/>`;
+    if (h.look === 'viking') g += `<path d="M${X - 19},20 Q${X - 35},15 ${X - 33},0 Q${X - 27},11 ${X - 17},14 Z M${X + 19},20 Q${X + 35},15 ${X + 33},0 Q${X + 27},11 ${X + 17},14 Z" fill="#efe6cf" ${st}/>`;
+    if (h.look === 'horns') g += `<path d="M${X - 16},18 Q${X - 34},14 ${X - 36},-4 Q${X - 26},8 ${X - 12},12 Z M${X + 16},18 Q${X + 34},14 ${X + 36},-4 Q${X + 26},8 ${X + 12},12 Z" fill="#efe6cf" ${st}/><path d="M${X - 18},23 Q${X},13 ${X + 18},23" fill="none" stroke="${h.c}" stroke-width="6" stroke-linecap="round"/>`;
+    if (h.look === 'crown') g += `<path d="M${X - 14},20 L${X - 16},4 L${X - 7},12 L${X},1 L${X + 7},12 L${X + 16},4 L${X + 14},20 Z" fill="${h.c}" ${st}/><circle cx="${X}" cy="14" r="2.5" fill="#d23a3a"/>`;
+  }
+  return `<svg viewBox="0 -8 200 270" class="hero-svg ${cls}" role="img" aria-label="キャラクター">${g}</svg>`;
+}
+
+// ---------- ボスの絵（自キャラと同じ線・塗りの手描き風SVG） ----------
+function bossSvg(art, mood = 'normal', cls = '') {
+  const st = ST, hurt = mood === 'hurt';
+  const eye = (x, y, r = 5, pupil = OL, white = '#fff') => hurt
+    ? `<path d="M${x - r},${y - r} L${x + r},${y + r} M${x + r},${y - r} L${x - r},${y + r}" stroke="${OL}" stroke-width="2.4" stroke-linecap="round"/>`
+    : `<circle cx="${x}" cy="${y}" r="${r}" fill="${white}" ${st}/><circle cx="${x}" cy="${y + 0.5}" r="${r * 0.45}" fill="${pupil}"/>`;
+  const brow = (x, y, sg) => `<path d="M${x - sg * 7},${y - 3} L${x + sg * 6},${y + 2}" stroke="${OL}" stroke-width="2.6" stroke-linecap="round"/>`;
+  // 人型モンスターの共通部分
+  const hum = o => {
+    const k = o.bulk, W = 38 + 22 * k, wa = 24 + 10 * k, ar = 11 + 8 * k, sk = o.skin, sh = o.shade;
+    let g = o.back || '';
+    for (const sg of [-1, 1]) g += `<ellipse cx="${100 + sg * (17 + 4 * k)}" cy="184" rx="${14 + 5 * k}" ry="24" fill="${sk}" ${st}/>`;
+    const torso = `M${100 - W + 6},90 Q100,82 ${100 + W - 6},90 L${100 + W},106 Q${100 + W - 2},136 ${100 + wa},164 L${100 - wa},164 Q${100 - W + 2},136 ${100 - W},106 Z`;
+    g += `<path d="M${100 - wa - 3},158 L${100 + wa + 3},158 L${100 + wa + 5},180 L100,172 L${100 - wa - 5},180 Z" fill="${o.pants || '#2b2f36'}" ${st}/>`;
+    g += `<path d="${torso}" fill="${o.cloth || sk}" ${st}/>`;
+    if (!o.cloth) {
+      for (const sg of [-1, 1]) g += `<path d="M100,100 Q${100 + sg * (16 + 8 * k)},${120 + 4 * k} ${100 + sg * (W - 5)},106" fill="none" stroke="${sh}" stroke-width="${1.6 + 2 * k}"/>`;
+      for (let r = 0; r < 2; r++) for (const sg of [-1, 1]) g += `<rect x="${100 + (sg < 0 ? -11 : 2)}" y="${130 + r * 12}" width="9" height="9" rx="3" fill="none" stroke="${sh}" stroke-width="1.4" opacity="${0.4 + 0.5 * k}"/>`;
+    }
+    g += o.front || '';
+    for (const sg of [-1, 1]) {
+      const x = 100 + sg * (W + 7);
+      g += `<ellipse cx="${x}" cy="126" rx="${ar}" ry="30" fill="${sk}" ${st}/><circle cx="${100 + sg * (W - 3)}" cy="98" r="${11 + 7 * k}" fill="${sk}" ${st}/>`;
+      g += `<path d="M${x - sg * ar * 0.6},112 Q${x},${102 - 4 * k} ${x + sg * ar * 0.7},114" fill="none" stroke="${sh}" stroke-width="${1.4 + 1.4 * k}"/>`;
+      g += `<circle cx="${x + sg * 2}" cy="158" r="${9 + 3 * k}" fill="${sk}" ${st}/>`;
+    }
+    g += (o.hand || '') + (o.behindHead || '');
+    g += `<ellipse cx="100" cy="56" rx="${o.hw || 27}" ry="${o.hh || 27}" fill="${sk}" ${st}/>`;
+    return g + (o.face || '');
+  };
+  const mouth = (y, w = 9) => hurt ? `<path d="M${100 - w},${y + 3} Q100,${y - 4} ${100 + w},${y + 3}" fill="none" stroke="${OL}" stroke-width="2.2" stroke-linecap="round"/>` : `<path d="M${100 - w},${y} Q100,${y + 7} ${100 + w},${y}" fill="none" stroke="${OL}" stroke-width="2.2" stroke-linecap="round"/>`;
+  let g = '';
+  if (art === 'slime') {
+    g += `<ellipse cx="100" cy="184" rx="72" ry="8" fill="rgba(0,0,0,.25)"/>`;
+    g += `<path d="M28,172 Q16,112 58,82 Q100,56 142,82 Q184,112 172,172 Q100,194 28,172 Z" fill="#5fcf6a" ${st}/>`;
+    g += `<path d="M50,104 Q66,84 88,80" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".55"/><circle cx="46" cy="118" r="3.5" fill="#fff" opacity=".55"/>`;
+    g += `<path d="M70,74 L64,40 L84,56 L100,32 L116,56 L136,40 L130,74 Q100,64 70,74 Z" fill="#f2c230" ${st}/><circle cx="100" cy="54" r="4" fill="#d23a3a" ${st}/>`;
+    g += eye(78, 124, 9) + eye(122, 124, 9) + (hurt ? '' : brow(78, 110, 1) + brow(122, 110, -1));
+    g += hurt ? `<ellipse cx="100" cy="152" rx="9" ry="6" fill="#2d6b33" ${st}/>` : `<path d="M82,146 Q100,164 118,146 Z" fill="#2d6b33" ${st}/>`;
+  } else if (art === 'golem') {
+    const c1 = '#8f98a3', c2 = '#6f7882';
+    g += `<rect x="62" y="150" width="30" height="44" rx="4" fill="${c2}" ${st}/><rect x="108" y="150" width="30" height="44" rx="4" fill="${c2}" ${st}/>`;
+    g += `<rect x="50" y="76" width="100" height="82" rx="8" fill="${c1}" ${st}/>`;
+    g += `<path d="M100,76 L96,98 L106,112 L98,134" fill="none" stroke="${OL}" stroke-width="1.6"/><rect x="62" y="88" width="30" height="24" rx="4" fill="none" stroke="${c2}" stroke-width="3"/><rect x="108" y="88" width="30" height="24" rx="4" fill="none" stroke="${c2}" stroke-width="3"/>`;
+    for (const sg of [-1, 1]) g += `<rect x="${sg < 0 ? 16 : 154}" y="80" width="30" height="62" rx="8" fill="${c1}" ${st}/><rect x="${sg < 0 ? 12 : 150}" y="136" width="38" height="34" rx="8" fill="${c2}" ${st}/><circle cx="${100 + sg * 54}" cy="84" r="5" fill="${c2}" ${st}/>`;
+    g += `<rect x="70" y="26" width="60" height="52" rx="8" fill="${c1}" ${st}/><rect x="78" y="42" width="44" height="14" rx="4" fill="#2b2f36" ${st}/>`;
+    g += hurt ? `<path d="M84,45 L92,53 M92,45 L84,53 M108,45 L116,53 M116,45 L108,53" stroke="#ffd34d" stroke-width="2.4" stroke-linecap="round"/>` : `<rect x="84" y="46" width="10" height="6" rx="2" fill="#ffd34d"/><rect x="106" y="46" width="10" height="6" rx="2" fill="#ffd34d"/>`;
+    g += `<path d="M86,66 L114,66 M92,62 L92,70 M100,62 L100,70 M108,62 L108,70" stroke="${OL}" stroke-width="1.6"/><circle cx="76" cy="32" r="2.5" fill="${c2}"/><circle cx="124" cy="32" r="2.5" fill="${c2}"/>`;
+  } else if (art === 'dragon') {
+    const c1 = '#3f9e62', c2 = '#2f7d4c', bl = '#ecd98f';
+    for (const sg of [-1, 1]) g += `<path d="M${100 + sg * 30},104 L${100 + sg * 92},40 L${100 + sg * 88},84 L${100 + sg * 96},100 L${100 + sg * 78},112 L${100 + sg * 84},134 L${100 + sg * 44},138 Z" fill="${c2}" ${st}/>`;
+    g += `<path d="M138,170 Q182,176 186,146 Q176,160 150,150 Z" fill="${c1}" ${st}/>`;
+    for (const sg of [-1, 1]) g += `<ellipse cx="${100 + sg * 30}" cy="184" rx="20" ry="12" fill="${c1}" ${st}/>`;
+    g += `<ellipse cx="100" cy="142" rx="52" ry="46" fill="${c1}" ${st}/><ellipse cx="100" cy="150" rx="32" ry="34" fill="${bl}" ${st}/>`;
+    for (let y = 128; y < 180; y += 12) g += `<path d="M${74 + (y - 128) * 0.12},${y} Q100,${y + 7} ${126 - (y - 128) * 0.12},${y}" fill="none" stroke="#c9b160" stroke-width="1.6"/>`;
+    for (const sg of [-1, 1]) g += `<ellipse cx="${100 + sg * 50}" cy="136" rx="11" ry="20" fill="${c1}" ${st} transform="rotate(${sg * 18} ${100 + sg * 50} 136)"/>`;
+    g += `<path d="M78,34 Q62,18 64,4 Q76,16 90,26 Z M122,34 Q138,18 136,4 Q124,16 110,26 Z" fill="#efe6cf" ${st}/>`;
+    g += `<ellipse cx="100" cy="62" rx="36" ry="32" fill="${c1}" ${st}/><ellipse cx="100" cy="78" rx="26" ry="17" fill="#55b878" ${st}/>`;
+    g += `<circle cx="91" cy="74" r="2.5" fill="${OL}"/><circle cx="109" cy="74" r="2.5" fill="${OL}"/>`;
+    g += eye(82, 54, 7, '#7a1d1d', '#ffe27a') + eye(118, 54, 7, '#7a1d1d', '#ffe27a') + (hurt ? '' : brow(82, 43, 1) + brow(118, 43, -1));
+    g += `<path d="M82,86 Q100,${hurt ? 80 : 96} 118,86" fill="none" stroke="${OL}" stroke-width="2.2" stroke-linecap="round"/>` + (hurt ? '' : `<path d="M88,89 L91,95 L94,91 M106,91 L109,95 L112,89" fill="#fff" stroke="${OL}" stroke-width="1.2" stroke-linejoin="round"/>`);
+  } else if (art === 'goblin') {
+    g = hum({ bulk: 0.25, skin: '#86c063', shade: '#5c9442', cloth: '#22252b', pants: '#22252b',
+      front: `<line x1="100" y1="86" x2="100" y2="164" stroke="#4a4f59" stroke-width="2"/>${[100, 116, 132, 148].map(y => `<circle cx="100" cy="${y}" r="3" fill="#e2b100" ${st}/>`).join('')}<path d="M88,86 L100,96 L112,86" fill="none" stroke="#e9eef3" stroke-width="3"/>`,
+      behindHead: `<path d="M74,52 L50,38 L72,64 Z M126,52 L150,38 L128,64 Z" fill="#86c063" ${st}/>`,
+      face: `<path d="M72,44 Q78,16 108,20 Q142,22 138,40 Q120,30 100,38 Q84,42 72,44 Z" fill="#2a2320" ${st}/>` + eye(88, 56, 6, OL, '#ffe27a') + eye(112, 56, 6, OL, '#ffe27a') + (hurt ? '' : brow(88, 46, 1) + brow(112, 46, -1)) +
+        `<path d="M88,70 Q100,${hurt ? 64 : 78} 114,68" fill="none" stroke="${OL}" stroke-width="2.2" stroke-linecap="round"/><path d="M108,71 L110,66 L113,70 Z" fill="#fff" stroke="${OL}" stroke-width="1"/>` });
+  } else if (art === 'orc') {
+    g = hum({ bulk: 0.7, skin: '#7f9c6c', shade: '#587348', pants: '#6b4524',
+      front: `<path d="M56,96 L138,160 L128,166 L50,104 Z" fill="#6b4524" ${st}/><circle cx="96" cy="131" r="5" fill="#c9a227" ${st}/>`,
+      behindHead: `<path d="M74,50 L62,40 L76,60 Z M126,50 L138,40 L124,60 Z" fill="#7f9c6c" ${st}/><path d="M94,34 Q100,10 106,34 Z" fill="#2a2320" ${st}/>`,
+      hh: 26, hw: 28,
+      face: eye(88, 52, 5) + eye(112, 52, 5) + (hurt ? '' : brow(88, 43, 1) + brow(112, 43, -1)) + `<ellipse cx="100" cy="62" rx="6" ry="4" fill="#587348"/>` +
+        `<path d="M84,72 Q100,${hurt ? 68 : 78} 116,72" fill="none" stroke="${OL}" stroke-width="2.4" stroke-linecap="round"/><path d="M86,73 L88,60 L92,73 Z M108,73 L112,60 L114,73 Z" fill="#fffbe8" stroke="${OL}" stroke-width="1.2" stroke-linejoin="round"/>` });
+  } else if (art === 'mino') {
+    g = hum({ bulk: 0.85, skin: '#a06f45', shade: '#73492a', pants: '#7a1d1d',
+      behindHead: `<path d="M76,44 Q44,40 40,10 Q56,30 82,32 Z M124,44 Q156,40 160,10 Q144,30 118,32 Z" fill="#efe6cf" ${st}/><ellipse cx="68" cy="52" rx="9" ry="5" fill="#a06f45" ${st}/><ellipse cx="132" cy="52" rx="9" ry="5" fill="#a06f45" ${st}/>`,
+      hw: 25, hh: 28,
+      face: eye(88, 48, 5) + eye(112, 48, 5) + (hurt ? '' : brow(88, 39, 1) + brow(112, 39, -1)) + `<ellipse cx="100" cy="68" rx="18" ry="13" fill="#d9b48a" ${st}/><circle cx="93" cy="66" r="2.6" fill="${OL}"/><circle cx="107" cy="66" r="2.6" fill="${OL}"/>` +
+        `<path d="M93,74 Q100,84 107,74" fill="none" stroke="#e2b100" stroke-width="3" stroke-linecap="round"/>` });
+  } else if (art === 'cyclops') {
+    g = hum({ bulk: 0.8, skin: '#7fb0c9', shade: '#527f97', pants: '#6b4524',
+      hand: `<path d="M158,160 L176,74 Q190,66 194,84 L170,164 Z" fill="#8a5a32" ${st}/><circle cx="182" cy="92" r="2.4" fill="#5e3c1f"/><circle cx="176" cy="116" r="2.4" fill="#5e3c1f"/>`,
+      behindHead: `<path d="M94,32 Q100,8 106,32 Z" fill="#efe6cf" ${st}/>`,
+      face: (hurt ? eye(100, 52, 11) : `<circle cx="100" cy="52" r="13" fill="#fff" ${st}/><circle cx="100" cy="53" r="6.5" fill="#2f6fd6"/><circle cx="100" cy="53" r="3" fill="${OL}"/><path d="M84,38 L116,38" stroke="${OL}" stroke-width="3" stroke-linecap="round"/>`) + mouth(72, 10) });
+  } else if (art === 'maou') {
+    g = hum({ bulk: 1, skin: '#8e5bc9', shade: '#5f3594', pants: '#1d1d24',
+      back: `<path d="M48,92 L152,92 L186,196 L14,196 Z" fill="#7a1d1d" ${st}/>`,
+      front: `<rect x="62" y="156" width="76" height="11" rx="3" fill="#e2b100" ${st}/><ellipse cx="100" cy="161" rx="10" ry="8" fill="#f6dc6b" ${st}/>`,
+      behindHead: `<path d="M78,40 Q52,34 54,6 Q66,26 88,30 Z M122,40 Q148,34 146,6 Q134,26 112,30 Z" fill="#2a2320" ${st}/>`,
+      face: eye(88, 54, 6, '#7a1d1d', '#ffe27a') + eye(112, 54, 6, '#7a1d1d', '#ffe27a') + (hurt ? '' : brow(88, 44, 1) + brow(112, 44, -1)) +
+        (hurt ? mouth(72) : `<path d="M86,68 Q100,82 114,68 Z" fill="#3a1220" ${st}/><path d="M90,69 L92,75 L95,70 M105,70 L108,75 L110,69" fill="#fff" stroke="${OL}" stroke-width="1"/>`) });
+  } else {
+    g = hum({ bulk: 0.9, skin: '#d9a070', shade: '#a8713f', pants: '#2f6fd6',
+      front: `<rect x="62" y="154" width="76" height="12" rx="3" fill="#e2b100" ${st}/><ellipse cx="100" cy="160" rx="11" ry="9" fill="#f6dc6b" ${st}/><text x="100" y="164" font-size="10" text-anchor="middle">★</text>`,
+      face: `<path d="M73,56 Q73,29 100,29 Q127,29 127,56 Q127,70 114,78 L86,78 Q73,70 73,56 Z" fill="#e2b100" ${st}/><path d="M100,30 L100,46" stroke="#d23a3a" stroke-width="5"/>` + eye(88, 54, 6) + eye(112, 54, 6) + `<rect x="90" y="66" width="20" height="8" rx="4" fill="#d9a070" ${st}/>` });
+  }
+  return `<svg viewBox="0 0 200 200" class="boss-svg ${cls}" role="img" aria-label="ボス">${g}</svg>`;
+}
+
+// ---------- バトル（ターンごとに行動を選ぶ） ----------
+const MAXT = 15, KI_MAX = 3;
+function hit(a, d) { const crit = Math.random() < 0.1; return { v: Math.max(1, Math.round(a * (0.85 + Math.random() * 0.3) * (crit ? 1.5 : 1) - d * 0.5)), crit }; }
+const bNew = (p, bh, ki) => ({ ph: p.hp, bh, ki, charged: false, t: 0, over: null });
+function bTurn(st, p, b, act) {
+  const ev = []; let guard = false;
+  if (act === 'sp' && st.ki < KI_MAX) act = 'atk';
+  if (act === 'atk') { const h = hit(p.atk, b.def); st.bh = Math.max(0, st.bh - h.v); st.ki = Math.min(KI_MAX, st.ki + 1); ev.push({ k: 'atk', ...h }); }
+  else if (act === 'sp') { const v = Math.max(2, Math.round(p.atk * 2.4 * (0.9 + Math.random() * 0.2) - b.def * 0.3)); st.bh = Math.max(0, st.bh - v); st.ki = 0; ev.push({ k: 'sp', v }); }
+  else { guard = true; st.ki = Math.min(KI_MAX, st.ki + 2); ev.push({ k: 'grd' }); }
+  if (!st.bh) st.over = 'win';
+  else {
+    if (st.charged) { const h = hit(b.atk * 2, p.def); const v = guard ? Math.ceil(h.v * 0.35) : h.v; st.charged = false; st.ph = Math.max(0, st.ph - v); ev.push({ k: 'heavy', v, guard }); }
+    else if (st.t % 3 === 2) { st.charged = true; ev.push({ k: 'charge' }); }
+    else { const h = hit(b.atk, p.def); const v = guard ? Math.ceil(h.v / 2) : h.v; st.ph = Math.max(0, st.ph - v); ev.push({ k: 'batk', v, crit: h.crit, guard }); }
+    st.t++;
+    if (!st.ph) st.over = 'lose'; else if (st.t >= MAXT) st.over = 'timeout';
+  }
+  ev.forEach(e => { e.ki = st.ki; }); // 表示用
+  return ev;
+}
+const autoAct = st => (st.charged ? 'grd' : st.ki >= KI_MAX ? 'sp' : 'atk');
+function winRate(p, b, bh, ki) { let w = 0; const N = 200; for (let i = 0; i < N; i++) { const st = bNew(p, bh, ki); while (!st.over) bTurn(st, p, b, autoAct(st)); if (st.over === 'win') w++; } return Math.round((w / N) * 100); }
+// 勝率は数字で見せず、手ごたえの言葉でぼかす
+function feel(wr) { return wr >= 90 ? ['勝てそうだ', 'upc'] : wr >= 55 ? ['いい勝負になりそう', 'upc'] : wr >= 20 ? ['手ごわい相手だ', ''] : wr >= 3 ? ['かなり厳しい戦いになる', 'dnc'] : ['まだ歯が立たないかも…', 'dnc']; }
+// 前回までに与えたダメージは引き継ぐ（ボスのHPは回復しない）
+function bossHpLeft(g, boss) { return Math.max(1, boss.hp - Math.min(g.bossDmg || 0, boss.hp - 1)); }
+// 今日のセット数で、開始時の気合が増える（4セットごとに1）
+const startKi = () => Math.min(KI_MAX, Math.floor(S.sets.filter(s => !s.del && s.date === today()).length / 4));
+const kiDots = n => Array.from({ length: KI_MAX }, (_, i) => `<i class="${i < n ? 'on' : ''}"></i>`).join('');
+const SP_NAMES = { 胸: '大胸筋プレス', 背中: 'ラットスラム', 肩: 'ショルダータックル', 二頭: '力こぶアッパー', 三頭: 'トライセプスハンマー', 前腕: 'アイアングリップ', 腹: '腹筋ロケット', 臀部: 'ヒップアタック', 脚: 'スクワットキック' };
+function spName(h) { let best = null; for (const p in h.pp) if (h.pp[p] > 0 && (!best || h.pp[p] > h.pp[best])) best = p; return best ? SP_NAMES[best] : 'マッスルスマッシュ'; }
+
+// ボスに挑めるのは「今日トレーニングした日」に1回だけ
+function fightStatus() {
+  const g = gstate();
+  if (g.lastFight === today()) return { ok: false, msg: '今日はもう戦いました。次にトレーニングした日にまた挑戦できます' };
+  if (!S.sets.some(s => !s.del && s.date === today())) return { ok: false, msg: '今日トレーニングを記録すると、1回だけ挑戦できます' };
+  return { ok: true, msg: '今日の挑戦権：残り1回' };
+}
+function fight() {
+  const fs = fightStatus(); if (!fs.ok) { toast(fs.msg); return; }
+  const h = hero(), g = gstate(), boss = bossAt(g.beaten);
+  g.lastFight = today(); gtouch();
+  const startBh = bossHpLeft(g, boss), st = bNew(h, startBh, startKi()), sp = spName(h);
+  return dialog(`<div class="battle">
+      <div class="bt-top"><span id="bt-turn"></span><span class="ki">気合 <span id="bt-ki" class="kidots">${kiDots(st.ki)}</span></span></div>
+      <div class="bt-row"><div class="bt-side"><div id="bt-me">${charSvg(h.pl, g.equip, 'mini', 'fight')}</div><b>あなた</b><div class="hpbar"><i id="bt-ph" style="width:100%"></i></div><small id="bt-phn">${h.hp}/${h.hp}</small></div>
+      <div class="bt-vs">VS</div>
+      <div class="bt-side"><div class="bt-boss" id="bt-boss">${bossSvg(boss.art)}</div><b>${esc(boss.name)}</b><div class="hpbar boss"><i id="bt-bh" style="width:${(startBh / boss.hp) * 100}%"></i></div><small id="bt-bhn">${startBh}/${boss.hp}</small></div></div>
+      <div class="bt-log" id="bt-log" aria-live="polite"><div class="muted">行動を選ぼう。ボスが力をためたら「ぼうぎょ」が有効</div></div>
+      <div id="bt-end"></div>
+      <div class="bt-acts" id="bt-acts">
+        <button class="bt-a" data-b="atk"><b>こうげき</b><small>気合+1</small></button>
+        <button class="bt-a" data-b="grd"><b>ぼうぎょ</b><small>半減・気合+2</small></button>
+        <button class="bt-a sp" data-b="sp"><b>${esc(sp)}</b><small>必殺技（気合3）</small></button>
+      </div>
+      <div class="row2" id="bt-sub"><button class="ghost" data-b="auto">おまかせで戦う</button><button class="ghost" data-b="run">にげる</button></div></div>`,
+  (m, close) => {
+    const q = s => m.querySelector(s), logEl = q('#bt-log');
+    let busy = false, auto = false, done = false, timer = null;
+    const bars = () => {
+      q('#bt-ph').style.width = (st.ph / h.hp) * 100 + '%'; q('#bt-phn').textContent = `${st.ph}/${h.hp}`;
+      q('#bt-bh').style.width = (st.bh / boss.hp) * 100 + '%'; q('#bt-bhn').textContent = `${st.bh}/${boss.hp}`;
+    };
+    const me = (mood, pose) => { q('#bt-me').innerHTML = charSvg(h.pl, g.equip, 'mini', mood, pose); };
+    const bs = mood => { q('#bt-boss').innerHTML = bossSvg(boss.art, mood); };
+    const shake = sel => { const el = q(sel); el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); };
+    const say1 = (txt, cls) => { const line = document.createElement('div'); line.className = cls; line.textContent = txt; logEl.prepend(line); };
+    const ui = () => {
+      q('#bt-turn').textContent = `ターン ${Math.min(st.t + 1, MAXT)} / ${MAXT}`;
+      q('#bt-ki').innerHTML = kiDots(st.ki);
+      m.querySelectorAll('.bt-a').forEach(b => { b.disabled = busy || auto || (b.dataset.b === 'sp' && st.ki < KI_MAX); });
+      q('[data-b="sp"]').classList.toggle('ready', st.ki >= KI_MAX);
+      q('[data-b="grd"]').classList.toggle('warn', st.charged);
+    };
+    // 1ターン分の出来事を、自分→ボスの順に少し間をあけて見せる
+    const show = (ev, snap, i = 0) => {
+      if (done) return;
+      if (i >= ev.length) { busy = false; if (st.over) return finish(st.over); ui(); if (auto) timer = setTimeout(() => take(autoAct(st)), 450); return; }
+      const e = ev[i], s = snap[i];
+      q('#bt-ph').style.width = (s.ph / h.hp) * 100 + '%'; q('#bt-phn').textContent = `${s.ph}/${h.hp}`;
+      q('#bt-bh').style.width = (s.bh / boss.hp) * 100 + '%'; q('#bt-bhn').textContent = `${s.bh}/${boss.hp}`;
+      if (e.k === 'atk') { say1(`💪 あなたの攻撃！${e.crit ? '会心の一撃！' : ''} ${e.v}ダメージ`, 'me'); bs('hurt'); shake('#bt-boss'); me('fight'); }
+      if (e.k === 'sp') { say1(`🔥 ${sp}！！ ${e.v}ダメージ`, 'me spx'); bs('hurt'); shake('#bt-boss'); me('happy', 'flex'); }
+      if (e.k === 'grd') { say1('🛡️ 身を固めて気合をためた', 'me'); me('fight'); bs('normal'); }
+      if (e.k === 'charge') { say1(`⚠️ ${boss.name}が力をためている…！`, 'warnl'); bs('normal'); }
+      if (e.k === 'batk') { say1(`${boss.name}の攻撃！${e.crit ? '痛恨の一撃！' : ''} ${e.v}ダメージ${e.guard ? '（半減）' : ''}`, 'en'); bs('normal'); me(e.guard ? 'fight' : 'hurt'); shake('#bt-me'); }
+      if (e.k === 'heavy') { say1(`💥 ${boss.name}の渾身の一撃！ ${e.v}ダメージ${e.guard ? '（ぼうぎょ成功）' : ''}`, 'en'); bs('normal'); me(e.guard ? 'fight' : 'hurt'); shake('#bt-me'); }
+      q('#bt-ki').innerHTML = kiDots(e.ki);
+      timer = setTimeout(() => show(ev, snap, i + 1), 520);
+    };
+    const take = act => {
+      if (busy || done || st.over) return;
+      busy = true; ui();
+      // 途中経過のHPを表示するため、出来事ごとのHPを控えておく
+      const b0 = { ph: st.ph };
+      const ev = bTurn(st, h, boss, act);
+      const snap = ev.map((e, i) => ({ ph: i === 0 ? b0.ph : st.ph, bh: st.bh }));
+      show(ev, snap);
+    };
+    const finish = why => {
+      if (done) return; done = true; clearTimeout(timer); bars();
+      let html;
+      if (why === 'win') {
+        g.beaten++; g.bonus += boss.coins; g.bossDmg = 0;
+        const it = boss.reward && itemById(boss.reward);
+        if (it && !g.owned.includes(it.id)) g.owned.push(it.id);
+        gtouch(); me('happy', 'flex'); bs('hurt'); q('#bt-boss').classList.add('down');
+        html = `<div class="bt-res win">🎉 勝利！</div><p>🪙 ${boss.coins}コイン獲得${it ? `<br>非売品「${it.icon} ${esc(it.name)}」を手に入れた！（装備から付けられます）` : ''}</p>`;
+      } else {
+        const dealt = startBh - st.bh;
+        g.bossDmg = boss.hp - st.bh; gtouch(); me('hurt');
+        html = `<div class="bt-res lose">${why === 'timeout' ? `⌛ 時間切れ…（${MAXT}ターン）` : why === 'run' ? '🏃 にげた' : '💥 敗北…'}</div><p>今回 <b>${dealt}</b> ダメージを与えた！<br>${esc(boss.name)}の残りHP <b>${Math.max(1, st.bh)}/${boss.hp}</b> は次回に引き継がれます</p><p class="muted small">トレーニングした日にまた挑戦しよう</p>`;
+      }
+      q('#bt-end').innerHTML = html;
+      q('#bt-acts').hidden = true;
+      q('#bt-sub').innerHTML = '<button class="primary" data-b="close" style="grid-column:1/3">閉じる</button>';
+    };
+    m.querySelector('.sheet').onclick = e => {
+      const b = e.target.closest('[data-b]'); if (!b || b.disabled) return;
+      const a = b.dataset.b;
+      if (a === 'close') { clearTimeout(timer); close(true); return; }
+      if (a === 'run') { if (!done) finish('run'); return; }
+      if (a === 'auto') { auto = !auto; b.textContent = auto ? '自分で選ぶ' : 'おまかせで戦う'; ui(); if (auto && !busy) take(autoAct(st)); return; }
+      take(a);
+    };
+    m.onclick = null; // バトル中は背景タップで閉じない
+    ui();
+  });
+}
+
+// ---------- 記録とのつながり：上部のステータス帯と、記録した瞬間の演出 ----------
+function renderHud() {
+  const el = document.querySelector('#hud-main'); if (!el) return;
+  const h = hero();
+  el.innerHTML = `<span class="hud-lv">Lv<b>${h.lv.L}</b></span><span class="hud-xp"><i style="width:${(h.lv.cur / h.lv.need) * 100}%"></i></span>
+    <span class="hud-coin">🪙<b id="hud-coin">${Math.max(0, h.coins).toLocaleString()}</b></span>
+    <span class="hud-wk">今週${weekDots(h.wi)}</span>${h.wi.streak ? `<span class="hud-st">🔥${h.wi.streak}週</span>` : ''}`;
+}
+const reduceMotion = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+let fxTimer = null;
+function celebrate(a, msg = '') {
+  const d = gameDiff(a); if (d.gain <= 0 && !d.big.length && !msg) return;
+  const fx = document.querySelector('#fx'); if (!fx) return;
+  const h = hero(), g = gstate(), big = d.big.length > 0;
+  fx.innerHTML = `<div class="fx-pop ${big ? 'big' : ''}"><div class="fx-char">${charSvg(h.pl, g.equip, '', 'happy', 'flex')}</div>
+    <div class="fx-txt">${msg ? `<div class="fx-msg">${esc(msg).replace(/[　・]/g, '<br>')}</div>` : ''}${d.big.map(([t, s]) => `<div class="fx-big"><b>${t}</b><span>${esc(s)}</span></div>`).join('')}${d.gain > 0 ? `<div class="fx-gain">🪙 +${d.gain}</div>` : ''}</div></div>`;
+  const pop = fx.firstElementChild;
+  clearTimeout(fxTimer);
+  fxTimer = setTimeout(() => { if (pop.parentNode) pop.remove(); }, big ? 3400 : 2000);
+  if (big) pop.onclick = () => pop.remove();
+  const to = document.querySelector('#hud-coin');
+  if (d.gain > 0 && to && !reduceMotion() && pop.animate) {
+    const f = pop.querySelector('.fx-char').getBoundingClientRect(), t = to.getBoundingClientRect();
+    const n = Math.min(7, Math.max(2, Math.ceil(d.gain / 6)));
+    for (let i = 0; i < n; i++) {
+      const c = document.createElement('span'); c.className = 'fx-c'; c.textContent = '🪙';
+      const x0 = f.left + f.width / 2 + (Math.random() * 40 - 20), y0 = f.top + 10 + Math.random() * 20;
+      c.style.left = x0 + 'px'; c.style.top = y0 + 'px'; fx.appendChild(c);
+      const an = c.animate([{ transform: 'translate(0,0) scale(1.1)', opacity: 0 }, { transform: 'translate(0,-26px) scale(1.2)', opacity: 1, offset: 0.25 }, { transform: `translate(${t.left - x0}px,${t.top - y0}px) scale(.6)`, opacity: 1 }], { duration: 850, delay: 120 + i * 80, easing: 'ease-in', fill: 'both' });
+      an.onfinish = () => { c.remove(); const hc = document.querySelector('.hud-coin'); if (hc) { hc.classList.remove('bump'); void hc.offsetWidth; hc.classList.add('bump'); } };
+    }
+  }
+}
+// 今日タブに出す「挑戦権あり」の案内
+function gameTodayHtml() {
+  if (!fightStatus().ok) return '';
+  const boss = bossAt(gstate().beaten);
+  return `<button class="chal" data-act="to-boss"><span class="chal-b">${bossSvg(boss.art)}</span><span><b>今日の挑戦権があります</b><small>${esc(boss.name)}に挑む（1日1回）</small></span><span class="chal-go">▶</span></button>`;
+}
+
+
+// ---------- リセット前の記録からコインを受け取る ----------
+function pastInfo() {
+  const g = gstate(); if (!g.since || g.pastClaimed === g.since) return null;
+  const now = scoreAll().earned, all = scoreAll(0).earned, coins = Math.max(0, all - now);
+  const old = S.sets.filter(s => !s.del && s.ts < g.since);
+  if (!coins || !old.length) return null;
+  return { coins, sets: old.length, days: new Set(old.map(s => s.date)).size };
+}
+function claimPast() {
+  const p = pastInfo(); if (!p) return;
+  const g = gstate(), a = gameSnap();
+  g.bonus += p.coins; g.pastClaimed = g.since; gtouch();
+  if (typeof celebrate === 'function') celebrate(a, `リセット前の${p.days}日分の記録から`); else toast(`🪙${p.coins.toLocaleString()} を受け取りました`);
+}
+// ---------- 画面 ----------
+let gtab = 'muscle';
+const statLine = it => [it.atk && `攻+${it.atk}`, it.def && `守+${it.def}`, it.hp && `HP+${it.hp}`].filter(Boolean).join(' ');
+
+function renderGame() {
+  const el = document.querySelector('#view-game'); if (!el) return;
+  const g = gstate(), h = hero(), wi = h.wi;
+  let x = `<section class="card hero">
+    <div class="hero-wrap">${charSvg(h.pl, g.equip, 'idle')}</div>
+    <div class="hero-info">
+      <div class="ttl">${titleOf(h.lv.L)}</div>
+      <div class="lvl">Lv <b>${h.lv.L}</b></div>
+      <div class="xpbar"><i style="width:${(h.lv.cur / h.lv.need) * 100}%"></i></div>
+      <small class="muted">次のレベルまで ${Math.ceil(h.lv.need - h.lv.cur)} EXP</small>
+      <div class="coin">🪙 <b>${Math.max(0, h.coins).toLocaleString()}</b></div>
+      <div class="stats"><span>⚔️ 攻撃 <b>${h.atk}</b>${h.sb ? ` <small class="upc">連続ボーナス+${h.sb}%</small>` : ''}</span><span>🛡️ 防御 <b>${h.def}</b></span><span>❤️ HP <b>${h.hp}</b></span></div>
+    </div>
+    <div class="weekrow"><span>今週 ${weekDots(wi)} <b>${wi.n}/${wi.goal}日</b></span><span>${wi.done ? `目標達成！${wi.streak ? ` 🔥連続${wi.streak}週` : ''}` : `あと${wi.goal - wi.n}日で 🪙${COIN.week}${wi.streak ? `・🔥${wi.streak}週を継続` : ''}`}</span></div>
+  </section>`;
+  const past = pastInfo();
+  if (past) x += `<section class="card claim"><p><b>リセット前のトレーニングからコインを受け取れます</b><br><span class="muted small">${past.days}日・${past.sets.toLocaleString()}セット分（今のルールで計算）</span></p><button class="primary" data-act="claim-past">🪙 ${past.coins.toLocaleString()} を受け取る</button><p class="muted small">レベル・筋肉はリセット後の記録で育てます。受け取りは1回だけです。</p></section>`;
+  x += `<div class="seg">${[['muscle', '筋肉'], ['equip', '装備'], ['shop', 'ショップ'], ['boss', 'ボス']].map(([k, l]) => `<button class="${gtab === k ? 'on' : ''}" data-gtab="${k}">${l}</button>`).join('')}</div>`;
+
+  if (gtab === 'muscle') {
+    x += `<section class="card"><h3>部位ごとの筋肉</h3><p class="muted small">セットごとに「効きポイント」が入ります。自己ベスト（推定1RM、自重は回数）に近いセットほど大きく、軽いセットは0.5、ベスト級は1.5ポイント。重さの絶対値ではなく自分の限界との近さで決まります。</p>${G_PARTS.map(([p, l]) => {
+      const n = h.pp[p], v = h.pl[p], L = Math.floor(v), nx = L < 10 ? Math.ceil(6 * (L + 1) ** 2 - n) : 0;
+      return `<div class="mrow"><span>${l}</span><div class="mbar"><i style="width:${v * 10}%"></i></div><b>Lv${L}</b><small>${L < 10 ? `あと${nx}pt` : 'MAX'}</small></div>`;
+    }).join('')}</section>`;
+    const ev = scoreAll().events.slice(0, 12);
+    x += `<section class="card"><h3>コインの獲得</h3><p class="muted small">1セットごと 🪙${COIN.set}（種目・器具を問わず同じ）／ トレーニングした日 🪙${COIN.day} ／ 自己ベスト更新 🪙${COIN.pr} ／ 週の目標達成 🪙${COIN.week} ／ ボス撃破ボーナス</p>
+      ${ev.length ? `<ul class="coinlog">${ev.map(e => `<li><span>${fmtDate(e.date)}</span><span>${esc(e.why)}</span><b>+${e.c}</b></li>`).join('')}</ul>` : '<p class="muted small">まだありません</p>'}
+      <p class="muted small">記録から 🪙${h.earned.toLocaleString()} ／ ボーナス・引き継ぎ 🪙${g.bonus.toLocaleString()} ／ 使用 🪙${g.spent.toLocaleString()}</p></section>`;
+  }
+
+  if (gtab === 'equip') {
+    x += `<section class="card"><h3>装備</h3>${SLOTS.map(([slot, l]) => {
+      const owned = g.owned.map(itemById).filter(it => it && it.slot === slot);
+      const cur = g.equip[slot];
+      return `<div class="eqrow"><div class="eqh"><span>${l}</span><b>${cur ? `${itemById(cur).icon} ${esc(itemById(cur).name)}` : '<span class="muted">なし</span>'}</b></div>
+        <div class="chips">${owned.length ? owned.map(it => `<button class="chip ${cur === it.id ? 'on' : ''} ${it.special ? 'sp' : ''}" data-geq="${it.id}">${it.icon} ${esc(it.name)}<small> ${statLine(it)}</small></button>`).join('') : '<span class="muted small">持っていません</span>'}</div></div>`;
+    }).join('')}<p class="muted small">付けている装備をもう一度タップすると外せます。</p></section>`;
+  }
+
+  if (gtab === 'shop') {
+    x += `<section class="card"><h3>ショップ <small class="muted">所持 🪙${Math.max(0, h.coins).toLocaleString()}</small></h3>${SLOTS.map(([slot, l]) => `<div class="lbl">${l}</div>${ITEMS.filter(it => it.slot === slot && !it.special).map(it => {
+      const own = g.owned.includes(it.id);
+      return `<button class="shoprow" data-gitem="${it.id}"><span class="ic">${it.icon}</span><span class="nm">${esc(it.name)}<small>${statLine(it)}</small></span><span class="pr ${own ? 'own' : h.coins >= it.price ? '' : 'ng'}">${own ? '所持' : '🪙' + it.price.toLocaleString()}</span></button>`;
+    }).join('')}`).join('')}</section>`;
+  }
+
+  if (gtab === 'boss') {
+    const boss = bossAt(g.beaten), left = bossHpLeft(g, boss), ki = startKi(), fl = feel(winRate(h, boss, left, ki)), rew = boss.reward && itemById(boss.reward);
+    const fs = fightStatus();
+    x += `<section class="card bosscard"><div class="bicon">${bossSvg(boss.art)}</div><h3>${boss.arena ? '' : `第${boss.n + 1}のボス：`}${esc(boss.name)}</h3>
+      <div class="bstats"><span>⚔️ ${boss.atk}</span><span>🛡️ ${boss.def}</span><span>❤️ ${boss.hp}</span></div>
+      <div class="bosshp"><div class="hpbar boss"><i style="width:${(left / boss.hp) * 100}%"></i></div><small>残りHP ${left} / ${boss.hp}${left < boss.hp ? '（前回までのダメージを引き継ぎ）' : ''}</small></div>
+      <p>報酬：🪙${boss.coins}${rew ? `＋非売品「${rew.icon} ${esc(rew.name)}」<small class="muted">（${statLine(rew)}）</small>` : ''}</p>
+      <div class="wr"><span>手ごたえ</span><b class="${fl[1]}">${fl[0]}</b></div>
+      <p class="small">開始時の気合 <span class="kidots">${kiDots(ki)}</span> <span class="muted">今日4セットごとに+1</span></p>
+      <button class="primary" data-gfight="1" ${fs.ok ? '' : 'disabled'}>⚔️ 戦う</button><p class="small ${fs.ok ? 'upc' : 'muted'}">${fs.msg}</p>
+      <p class="muted small">あなた：⚔️${h.atk} 🛡️${h.def} ❤️${h.hp}<br>こうげき・ぼうぎょ・必殺技を選んで戦います（${MAXT}ターン以内）</p></section>`;
+    x += `<section class="card"><h3>ボス一覧</h3><ul class="blist">${BOSSES.map((b, i) => `<li class="${i < g.beaten ? 'done' : i === g.beaten ? 'cur' : 'lock'}"><span>${i <= g.beaten ? bossSvg(b.art) : '❓'}</span><span>${i <= g.beaten ? esc(b.name) : '？？？'}</span><small>${i < g.beaten ? `✓ ${itemById(b.reward).icon} ${esc(itemById(b.reward).name)}` : i === g.beaten ? '挑戦中' : ''}</small></li>`).join('')}
+      <li class="${g.beaten >= BOSSES.length ? 'cur' : 'lock'}"><span>${g.beaten >= BOSSES.length ? bossSvg('champ') : '❓'}</span><span>${g.beaten >= BOSSES.length ? `闘技場（Lv${g.beaten - BOSSES.length + 1}挑戦中）` : '？？？'}</span><small>全ボス撃破後</small></li></ul></section>`;
+  }
+  x += `<button class="ghost danger-t" data-greset="1">冒険をリセット</button>${g.since ? `<p class="muted small pad">${new Date(g.since).toLocaleString('ja-JP', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })} にリセット。これ以降の記録で育成中</p>` : ''}`;
+  el.innerHTML = x;
+}
+
+function resetDialog() {
+  return dialog(`<h3>冒険をリセットしますか？</h3>
+    <p class="small">レベル・筋肉・コイン・装備・アイテム・ボスの進み具合がすべて最初に戻ります。<br>リセット後は、これから記録するトレーニングでキャラクターが育ちます。</p>
+    <p class="small muted">トレーニングの記録そのものは消えません。リセットは元に戻せません。</p>
+    <div class="row2"><button class="ghost" data-c="0">キャンセル</button><button class="primary danger" data-c="1">リセット</button></div>`,
+  (m, close) => {
+    m.querySelector('.sheet').onclick = e => {
+      const b = e.target.closest('[data-c]'); if (!b) return;
+      if (b.dataset.c === '1') {
+        for (const k of Object.keys(S.game || {})) delete S.game[k];
+        S.game.cv = 2; S.game.since = Date.now(); gstate(); gtab = 'muscle'; gtouch(); window.scrollTo(0, 0); toast('冒険をリセットしました');
+      }
+      close(null);
+    };
+  });
+}
+
+function shopDialog(id) {
+  const it = itemById(id), g = gstate(), h = hero();
+  const own = g.owned.includes(id), can = h.coins >= it.price;
+  const preview = { ...g.equip, [it.slot]: it.id };
+  return dialog(`<div class="shopdlg"><div class="pv">${charSvg(h.pl, preview)}</div>
+    <h3>${it.icon} ${esc(it.name)}</h3><p>${statLine(it)}</p>
+    <p>${own ? '所持しています' : `価格 🪙${it.price.toLocaleString()}（所持 🪙${Math.max(0, h.coins).toLocaleString()}）`}</p>
+    <div class="row2"><button class="ghost" data-c="0">閉じる</button>${own ? `<button class="primary" data-c="eq">装備する</button>` : `<button class="primary" data-c="buy" ${can ? '' : 'disabled'}>${can ? '購入して装備' : 'コイン不足'}</button>`}</div></div>`,
+  (m, close) => {
+    m.querySelector('.sheet').onclick = e => {
+      const b = e.target.closest('[data-c]'); if (!b || b.disabled) return;
+      if (b.dataset.c === 'buy') {
+        if (hero().coins < it.price) return toast('コインが足りません');
+        g.spent += it.price; g.owned.push(it.id); g.equip[it.slot] = it.id; gtouch(); toast(`${it.name}を購入しました`);
+      }
+      if (b.dataset.c === 'eq') { g.equip[it.slot] = it.id; gtouch(); }
+      close(null);
+    };
+  });
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-gtab],[data-geq],[data-gitem],[data-gfight],[data-greset]'); if (!b) return;
+  if (b.dataset.greset) { resetDialog(); return; }
+  const d = b.dataset, g = gstate();
+  if (d.gtab) { gtab = d.gtab; renderGame(); return; }
+  if (d.geq) { const it = itemById(d.geq); if (g.equip[it.slot] === it.id) delete g.equip[it.slot]; else g.equip[it.slot] = it.id; gtouch(); return; }
+  if (d.gitem) { shopDialog(d.gitem); return; }
+  if (d.gfight) { fight(); }
+});
+
+</script>
+</body>
+</html>
