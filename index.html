@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#101317">
-<title>筋トレ記録</title>
+<title>筋トレ記録（お試し版）</title>
 <style>
 :root{--bg:#101317;--card:#1a1f26;--card2:#222933;--line:#2c343f;--text:#e9eef3;--muted:#8d98a6;--acc:#ff7a1a;--acc2:#ffb066;--ok:#3ecf8e;--warn:#f5b84b;--bad:#ff5d5d;--r:14px}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -259,6 +259,15 @@ nav button.on{color:var(--text);box-shadow:inset 0 2px 0 var(--text)}
 .shoprow .pr.ng{color:var(--muted)}
 .shoprow .pr.own{color:var(--ok);font-weight:400;font-size:13px}
 .shopdlg .pv{width:150px;margin:0 auto}
+/* ---- 装備の並び（体には重ねず、キャラクターの下に置く） ---- */
+.gear{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;width:100%;max-width:150px;margin:8px auto 0;padding:0}
+.gi{height:28px;display:grid;place-items:center;border-radius:7px;background:var(--card2);border:1px solid var(--line);border-bottom:3px solid var(--c,var(--line));font-size:16px;line-height:1}
+.gi.none{border:1px dashed var(--line);background:none;opacity:.55}
+.gi.sp{border-color:#b38cff;border-bottom-color:var(--c)}
+.gi.new{outline:2px solid var(--acc);outline-offset:1px}
+.gear.sm{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;max-width:none;margin-top:4px}
+.gear.sm .gi{width:22px;height:22px;font-size:12px;border-bottom-width:2px}
+.gear.sm .none{display:none}
 .shopdlg h3,.shopdlg p{text-align:center;margin:4px 0}
 .primary:disabled{background:#4a3a2c;color:#9c8b7a}
 .bosscard{text-align:center}
@@ -334,6 +343,13 @@ body.local #badge{display:none}
 @keyframes breathe{50%{transform:scaleY(1.018)}}
 /* ---- 冒険 ---- */
 .boss-svg{display:block;width:100%;height:auto}
+.pix{image-rendering:pixelated;image-rendering:crisp-edges;-webkit-user-drag:none;user-select:none}
+.hero-wrap .chg{display:block;margin:6px auto 0;padding:5px 12px;border-radius:999px;background:var(--card2);border:1px solid var(--line);color:var(--text);font-size:12px}
+.chargrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.charopt{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 8px;border-radius:12px;background:var(--card2);border:2px solid var(--line);color:var(--text)}
+.charopt.on{border-color:var(--acc)}
+.charopt .pv{width:100%;max-width:120px}
+.charopt small{color:var(--acc2);font-size:11px}
 .hero .weekrow{grid-column:1/3;display:flex;justify-content:space-between;gap:4px 10px;flex-wrap:wrap;font-size:13px;border-top:1px solid var(--line);padding-top:8px;color:#c9d2dc}
 .chal{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;width:100%;text-align:left;padding:8px 14px 8px 10px;margin:14px 0 0;border-radius:var(--r);background:linear-gradient(135deg,#2b2440,#1a1f26);border:1px solid #5b4a8a}
 .claim{border-color:#f2c230}
@@ -396,7 +412,6 @@ body.local #badge{display:none}
 <div id="fx" aria-hidden="true"></div>
 <div id="toast" role="status" aria-live="polite"></div>
 <div id="modal" hidden></div>
-<script>window.LOCAL_ONLY=true;</script>
 <script>
 'use strict';
 /* =========================================================
@@ -672,7 +687,7 @@ function loadState() {
     game: d.game || null,
     patterns: d.patterns || PRESET_PATTERNS.map(p => ({ ...p, items: [...p.items], u: 1 })),
     session: d.session || null,
-    settings: Object.assign({ clientId: '', repMin: 8, repMax: 12, speak: true, rest: 90, weekGoal: 3 }, d.settings),
+    settings: Object.assign({ clientId: '', repMin: 8, repMax: 12, speak: false, rest: 90, weekGoal: 3 }, d.settings),
     sync: Object.assign({ fileId: null, dirty: false, lastSync: null, connected: false, seq: 0, token: null, tokenExp: 0 }, d.sync),
   };
 }
@@ -1009,13 +1024,16 @@ function loadGis() {
   return gisPromise;
 }
 const LOCAL_ONLY = typeof window !== 'undefined' && !!window.LOCAL_ONLY;
+// アプリに組み込んだ OAuth クライアントID（公開して問題ない値）。使う人は自分のGoogleアカウントでログインするだけでよい
+const CLIENT_ID = '115508503135-npijq188304brq54tht3hjpf2h9nbe2g.apps.googleusercontent.com';
+const clientId = () => CLIENT_ID || (S.settings.clientId || '').trim();
 const tokenValid = () => S.sync.token && Date.now() < S.sync.tokenExp - 60000;
 
 function requestToken() {
   return new Promise((res, rej) => {
     if (typeof google === 'undefined' || !google.accounts) { rej(new Error('Googleのログイン部品を読み込み中です。もう一度タップしてください')); loadGis().catch(() => {}); return; }
     const tc = google.accounts.oauth2.initTokenClient({
-      client_id: S.settings.clientId.trim(), scope: SCOPE,
+      client_id: clientId(), scope: SCOPE,
       callback: r => {
         if (r.error) { rej(new Error(r.error)); return; }
         S.sync.token = r.access_token; S.sync.tokenExp = Date.now() + (r.expires_in || 3600) * 1000;
@@ -1048,7 +1066,7 @@ function scheduleSync() { clearTimeout(syncTimer); syncTimer = setTimeout(() => 
 
 async function syncNow(interactive) {
   if (LOCAL_ONLY || syncing) return;
-  if (!S.settings.clientId.trim()) { if (interactive) { toast('設定でGoogleのクライアントIDを入力してください'); go('settings'); } return; }
+  if (!clientId()) { if (interactive) { toast('設定でGoogleのクライアントIDを入力してください'); go('settings'); } return; }
   if (!navigator.onLine) { if (interactive) toast('オフラインです。端末に保存し、通信が戻ったら同期します'); renderBadge(); return; }
   if (!tokenValid()) {
     if (!interactive) { renderBadge(); return; }
@@ -1226,7 +1244,7 @@ function renderBadge() {
   const b = $('#badge'); if (!b) return;
   let cls = 'ok', txt = '同期済み';
   if (LOCAL_ONLY) { b.className = 'badge ok'; b.textContent = '端末に保存'; return; }
-  if (!S.settings.clientId.trim()) { cls = 'muted'; txt = 'Drive未設定'; }
+  if (!clientId()) { cls = 'muted'; txt = 'Drive未設定'; }
   else if (syncing) { cls = 'busy'; txt = '同期中…'; }
   else if (!navigator.onLine) { cls = 'warn'; txt = S.sync.dirty ? 'オフライン・端末に保存中' : 'オフライン'; }
   else if (lastError) { cls = 'bad'; txt = '同期エラー'; }
@@ -1594,7 +1612,7 @@ function renderSettings() {
   const st = S.settings;
   el.innerHTML = (LOCAL_ONLY ? '' : `
   <section class="card"><h3>Google Drive 同期</h3>
-    <label class="field">OAuth クライアントID<input id="cid" type="text" autocomplete="off" spellcheck="false" placeholder="xxxx.apps.googleusercontent.com" value="${esc(st.clientId)}"></label>
+    ${CLIENT_ID ? '' : `<label class="field">OAuth クライアントID<input id="cid" type="text" autocomplete="off" spellcheck="false" placeholder="xxxx.apps.googleusercontent.com" value="${esc(st.clientId)}"></label>`}
     <button class="primary" data-act="sync">${S.sync.connected ? '今すぐ同期' : 'Googleに接続して同期'}</button>
     <p class="muted small">保存先：マイドライブの <b>${FILE_NAME}</b><br>最終同期：${S.sync.lastSync ? new Date(S.sync.lastSync).toLocaleString('ja-JP') : 'なし'}${lastError ? `<br><span class="err">エラー：${esc(lastError)}</span>` : ''}<br>記録はまず端末に保存され、通信できるときに自動で同期されます。ログインは約1時間で切れるので、その後は上の「未同期」バッジをタップしてください。</p>
   </section>`) + `
@@ -1608,6 +1626,7 @@ function renderSettings() {
     <p class="muted small">記録すると休憩タイマーが自動で始まり、終わると音と振動でお知らせします（+30秒・✕で調整）。週の目標を達成するとコインがもらえ、連続で達成すると冒険の攻撃力が上がります。</p>
   </section>
   ${LOCAL_ONLY ? '<section class="card"><h3>データ</h3><p class="muted small">記録はこの端末（ブラウザ）に保存されます。別のページや端末へ移すときは「書き出し」でコピーし、移した先で「読み込み」に貼り付けます。</p><div class="row2"><button class="ghost" data-act="copy-out">記録を書き出し（コピー）</button><button class="ghost" data-act="paste-in">記録を読み込み（貼り付け）</button></div><button class="ghost" data-act="seed">サンプル記録を入れる</button><button class="ghost" data-act="wipe">記録をすべて消す</button></section>' : `<section class="card"><h3>データ</h3>
+    <div class="row2"><button class="ghost" data-act="copy-out">記録を書き出し（コピー）</button><button class="ghost" data-act="paste-in">記録を読み込み（貼り付け）</button></div>
     <div class="row2"><button class="ghost" data-act="csv">CSVで書き出し</button><button class="ghost" data-act="json">JSONで書き出し</button></div>
     <label class="ghost filebtn">JSONを読み込む（統合）<input id="imp" type="file" accept=".json,application/json" hidden></label>
   </section>`}
@@ -1917,7 +1936,7 @@ function bind() {
   });
   document.addEventListener('change', async e => {
     const id = e.target.id;
-    if (id === 'cid') { S.settings.clientId = e.target.value.trim(); S.sync.connected = false; S.sync.token = null; save(); if (S.settings.clientId) loadGis().catch(() => {}); renderBadge(); }
+    if (id === 'cid') { S.settings.clientId = e.target.value.trim(); S.sync.connected = false; S.sync.token = null; save(); if (clientId()) loadGis().catch(() => {}); renderBadge(); }
     if (id === 'rmin' || id === 'rmax') { const v = parseInt(e.target.value, 10); if (v > 0) { S.settings[id === 'rmin' ? 'repMin' : 'repMax'] = v; save(); } }
     if (id && id.startsWith('hj-')) {
       const u = hist.unit, v = e.target.value;
@@ -1951,7 +1970,7 @@ function bind() {
   $('#toast').onclick = () => $('#toast').classList.remove('show');
   $('#cmdform').onsubmit = e => { e.preventDefault(); const v = $('#cmd').value; $('#cmd').value = ''; $('#cmd').blur(); handleCommand(v); };
 
-  window.addEventListener('online', () => { if (S.settings.clientId) loadGis().catch(() => {}); syncNow(false); });
+  window.addEventListener('online', () => { if (clientId()) loadGis().catch(() => {}); syncNow(false); });
   window.addEventListener('offline', renderBadge);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { syncNow(false); render(); renderRest(); } });
   setInterval(() => { if (S.sync.dirty) syncNow(false); }, 5 * 60 * 1000);
@@ -1988,7 +2007,7 @@ function init() {
   if (LOCAL_ONLY) document.body.classList.add('local');
   bind(); render();
   if (LOCAL_ONLY) { S.settings.speak = false; render(); return; }
-  if (S.settings.clientId && navigator.onLine) loadGis().catch(() => {});
+  if (clientId() && navigator.onLine) loadGis().catch(() => {});
   syncNow(false);
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
 }
@@ -2033,6 +2052,7 @@ const ITEMS = [
   { id: 'c_red', slot: 'back', name: '赤いマント', icon: '🧣', price: 1000, atk: 3, def: 5, hp: 30, look: 'cape', c: '#c22d2d' },
   { id: 'a_glove', slot: 'acc', name: 'パワーグローブ', icon: '🧤', price: 250, atk: 4, look: 'glove', c: '#d23a3a' },
   { id: 'a_belt', slot: 'acc', name: 'リフティングベルト', icon: '🥋', price: 300, def: 4, hp: 15, look: 'belt', c: '#6b4524' },
+  { id: 'a_tie', slot: 'acc', name: 'ネクタイ', icon: '👔', price: 150, def: 1, hp: 10, look: 'tie', c: '#4a4f5a' },
   { id: 'a_champ', slot: 'acc', name: 'チャンピオンベルト', icon: '🏆', price: 2500, atk: 8, def: 8, hp: 50, look: 'champ', c: '#e2b100' },
   // ---- ボスの非売品 ----
   { id: 'x_crown', slot: 'head', name: 'スライムの王冠', icon: '👑', special: 1, atk: 3, def: 3, hp: 20, look: 'crown', c: '#f2c230' },
@@ -2191,130 +2211,539 @@ const titleOf = L => TITLES.find(([n]) => L >= n)[1];
 // ---------- キャラクター描画 ----------
 const OL = '#4a3226';
 const ST = `stroke="${OL}" stroke-width="1.6" stroke-linejoin="round"`;
-// mood: normal / happy / fight / hurt　　pose: stand / flex（ダブルバイセップス）
-function charSvg(pl, equip, cls = '', mood = 'normal', pose = 'stand') {
-  const s = k => (pl[k] || 0) / 10;
-  const c = s('胸'), b = s('背中'), sh = s('肩'), bi = s('二頭'), tr = s('三頭'), fa = s('前腕'), ab = s('腹'), gl = s('臀部'), lg = s('脚');
-  const SK = '#f2c29b', SH = '#d99e76', st = ST;
-  const E = {}; for (const [k, id] of Object.entries(equip || {})) { const it = itemById(id); if (it) E[k] = it; }
-  const X = 100, shH = 28 + 9 * b + 5 * c, wH = 19 + 2 * ab + 3 * gl;
-  const ax = shH + 5 + 4 * sh, armR = 8 + 6 * Math.max(bi, tr), faR = 6 + 4 * fa;
-  const hipH = wH + 4 + 4 * gl, legX = 11 + 3 * lg + 2 * gl, thR = 11 + 8 * lg, caR = 7 + 5 * lg;
-  const torso = `M${X - shH + 5},66 Q${X},59 ${X + shH - 5},66 L${X + shH},84 Q${X + shH - 2},112 ${X + wH},140 L${X - wH},140 Q${X - shH + 2},112 ${X - shH},84 Z`;
-  const flex = pose === 'flex';
-  // 筋肉の線（服の上からも同じ線を重ねて、着ていても体つきが分かるようにする）
-  const musc = (col, k = 1) => {
-    let m = '';
-    for (const sg of [-1, 1]) m += `<path d="M${X},${78} Q${X + sg * (14 + 6 * c)},${96 + 4 * c} ${X + sg * (shH - 4)},${84}" fill="none" stroke="${col}" stroke-width="${1.2 + 2 * c}" opacity="${(0.35 + 0.6 * c) * k}"/>`;
-    for (let r = 0; r < 3; r++) for (const sg of [-1, 1]) m += `<rect x="${X + (sg < 0 ? -10.5 : 1.5)}" y="${106 + r * 11}" width="9" height="8.5" rx="3" fill="none" stroke="${col}" stroke-width="1.4" opacity="${(0.08 + 0.75 * ab) * k}"/>`;
-    return m + `<line x1="${X}" y1="80" x2="${X}" y2="136" stroke="${col}" stroke-width="1.2" opacity="${(0.2 + 0.5 * ab) * k}"/>`;
+// ---------- 主人公（ドット絵） ----------
+// 体型：首が埋まるほどの僧帽筋・丸く大きな肩・厚い胸板と割れた腹筋・体の横に下ろした太い腕・黒の短髪・日焼け肌・グレーの短パン
+// 筋肉レベルで各部位の大きさが変わる。mood: normal / happy / fight / hurt　pose: stand / flex / cross
+const P_W = 80, P_H = 102, P_OY = 4, P_X = 40, P_OL = '#3a2418';
+const pHex = h => (h.length === 4 ? '#' + h.slice(1).split('').map(x => x + x).join('') : h);
+const pRgb = h => { h = pHex(h); return [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)); };
+const pMix = (a, b, k) => { const x = pRgb(a), y = pRgb(b); return '#' + x.map((v, i) => Math.round(v + (y[i] - v) * k).toString(16).padStart(2, '0')).join(''); };
+const pTone = c => ({ b: pHex(c), s: pMix(c, '#000000', 0.3), h: pMix(c, '#ffffff', 0.25), d: pMix(c, '#000000', 0.5) });
+const SKN = { b: '#d69c6c', s: '#ad744a', h: '#eebf92', d: '#8a5a37' };
+const HAIRP = { b: '#1d1917', s: '#120f0e', h: '#3b3431', d: '#000000' };
+const SHOES = pTone('#2b2f36');
+
+function pixBuf() {
+  const C = new Array(P_W * P_H).fill(null), T = new Array(P_W * P_H).fill(null);
+  const ix = (x, y) => (y + P_OY) * P_W + x;
+  const inb = (x, y) => x >= 0 && x < P_W && y + P_OY >= 0 && y + P_OY < P_H;
+  const N4 = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+  const B = {
+    C, T, tag: (x, y) => (inb(x, y) ? T[ix(x, y)] : null),
+    set(x, y, c, t) { x = Math.round(x); y = Math.round(y); if (!inb(x, y)) return; C[ix(x, y)] = c; if (t) T[ix(x, y)] = t; },
+    // test(px,py) で中身を判定する図形。out: all=周りを縁取り / bg=何もない所だけ縁取り / none
+    shape(test, bb, pal, o = {}) {
+      const m = [], S = new Set();
+      for (let y = Math.floor(bb[1]); y <= Math.ceil(bb[3]); y++) for (let x = Math.floor(bb[0]); x <= Math.ceil(bb[2]); x++) {
+        if (inb(x, y) && (!o.clip || o.clip(x, y)) && test(x + 0.5, y + 0.5)) { m.push([x, y]); S.add(ix(x, y)); }
+      }
+      const out = o.out || 'all';
+      if (out !== 'none') for (const [x, y] of m) for (const [dx, dy] of N4) {
+        const nx = x + dx, ny = y + dy; if (!inb(nx, ny)) continue; const k = ix(nx, ny);
+        if (S.has(k) || (out === 'bg' && C[k])) continue; C[k] = P_OL; T[k] = 'ol';
+      }
+      for (const [x, y] of m) { let c = pal.b; if (o.shade) { const d = o.shade(x + 0.5, y + 0.5); c = d > 0.5 ? pal.s : d < -0.6 ? pal.h : pal.b; } C[ix(x, y)] = c; T[ix(x, y)] = o.tag || 'x'; }
+      return m;
+    },
+    ell(cx, cy, rx, ry, pal, o = {}) {
+      return B.shape((x, y) => ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1, [cx - rx - 1, cy - ry - 1, cx + rx + 1, cy + ry + 1], pal,
+        { shade: o.flat ? null : (x, y) => 0.55 * (x - cx) / rx + 0.8 * (y - cy) / ry, ...o });
+    },
+    cap(x1, y1, x2, y2, r, pal, o = {}) {
+      const dx = x2 - x1, dy = y2 - y1, L2 = dx * dx + dy * dy || 1, len = Math.sqrt(L2);
+      let nx = -dy / len, ny = dx / len; if (0.55 * nx + 0.8 * ny < 0) { nx = -nx; ny = -ny; }
+      const near = (x, y) => { const t = Math.max(0, Math.min(1, ((x - x1) * dx + (y - y1) * dy) / L2)); return [x1 + t * dx, y1 + t * dy]; };
+      return B.shape((x, y) => { const [px, py] = near(x, y); return (x - px) ** 2 + (y - py) ** 2 <= r * r; },
+        [Math.min(x1, x2) - r - 1, Math.min(y1, y2) - r - 1, Math.max(x1, x2) + r + 1, Math.max(y1, y2) + r + 1], pal,
+        { shade: o.flat ? null : (x, y) => { const [px, py] = near(x, y); return ((x - px) * nx + (y - py) * ny) / r; }, ...o });
+    },
+    poly(pts, pal, o = {}) {
+      const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+      const test = (x, y) => { let c = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c; } return c; };
+      return B.shape(test, [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)], pal, o);
+    },
   };
-  let g = '';
-  // マント（体の後ろ。脚の形が見えるよう、すそは控えめに）
-  if (E.back) g += `<path d="M${X - shH + 6},64 L${X + shH - 6},64 L${X + shH + 9},188 Q${X},200 ${X - shH - 9},188 Z" fill="${E.back.c}" ${st}/>`;
-  // 脚
+  return B;
+}
+
+// pose: relax=通常（リラックスポーズ） biceps=勝ったとき（ダブルバイセップス） sit=負けたとき（体育座り）
+// mood（表情）を省くと、ポーズに合った表情になる
+const POSE_MOOD = { relax: 'normal', biceps: 'happy', sit: 'hurt' };
+const POSE_ALT = { relax: 'リラックスポーズ', biceps: 'ダブルバイセップスのポーズ', sit: '体育座り' };
+const _pixCache = new Map();
+function charSvg(pl, cls = '', pose = 'relax', mood) {
+  const set = heroSet(); mood = mood || POSE_MOOD[pose];
+  const key = JSON.stringify([set.id, Object.keys(pl || {}).sort().map(k => Math.round((pl[k] || 0) * 2)), mood, pose]);
+  let url = _pixCache.get(key);
+  if (!url) {
+    url = drawHero(pl || {}, mood, pose, set);
+    if (_pixCache.size > 80) _pixCache.delete(_pixCache.keys().next().value);
+    _pixCache.set(key, url);
+  }
+  return `<img class="hero-svg pix ${cls}" src="${url}" alt="キャラクター（${POSE_ALT[pose]}）" draggable="false">`;
+}
+// 装備は体に重ねず、キャラクターの下に並べて見せる。hl: 目立たせる装備のid / btn: タップで装備タブへ
+function gearHtml(equip, o = {}) {
+  const names = [];
+  const tiles = SLOTS.map(([slot, l]) => {
+    const it = itemById((equip || {})[slot]);
+    if (!it) return `<span class="gi none"></span>`;
+    names.push(`${l} ${it.name}`);
+    return `<span class="gi ${it.special ? 'sp' : ''} ${o.hl === it.id ? 'new' : ''}" style="--c:${it.c}">${it.icon}</span>`;
+  }).join('');
+  const label = `装備：${names.join('、') || 'なし'}`;
+  return o.btn ? `<button class="gear" data-gtab="equip" aria-label="${esc(label)}（タップで装備を変える）">${tiles}</button>`
+    : `<div class="gear ${o.cls || ''}" role="img" aria-label="${esc(label)}">${tiles}</div>`;
+}
+
+function drawHeroOld(pl, equip, mood, pose) {
+  const G = k => 0.2 + 0.8 * Math.min(1, (pl[k] || 0) / 10); // Lv0でもある程度がっしり、Lv10で参考体型
+  const c = G('胸'), b = G('背中'), sh = G('肩'), bi = G('二頭'), tr = G('三頭'), fa = G('前腕'), ab = Math.min(1, (pl['腹'] || 0) / 10), gl = G('臀部'), lg = G('脚');
+  const E = {}; for (const [k, id] of Object.entries(equip)) { const it = itemById(id); if (it) E[k] = it; }
+  const B = pixBuf(), flex = pose === 'flex', cross = pose === 'cross';
+  const sw = (12 + 6 * b + 3.5 * c) * 0.9, w = 10 + 2 * ab + 2.5 * gl;           // 胸まわりの半幅・ウエストの半幅
+  const dr = (3.6 + 4 * sh) * 0.9, aR = (3.4 + 3.6 * Math.max(bi, tr)) * 0.9, fR = (2.8 + 2.4 * fa) * 0.9;
+  const ax = sw + aR - 2.2, fistR = 2.6 + 1.2 * fa;
+  const TOP = E.top ? pTone(E.top.c) : null;
+  const palOf = t => (t === 'skin' ? SKN : t === 'top' && TOP ? TOP : null);
+  const det = (x, y, k = 's') => { const p = palOf(B.tag(Math.round(x), Math.round(y))); if (p) B.set(x, y, p[k]); };
+
+  // マント（体の後ろ）
+  if (E.back) B.poly([[P_X - sw + 3, 22], [P_X + sw - 3, 22], [P_X + sw + 6, 82], [P_X, 85], [P_X - sw - 6, 82]], pTone(E.back.c), { shade: (x) => (x - P_X) / (sw + 6) * 1.2 });
+  // 脚（上半身に負けない長さと太さ）
+  const lx = (5 + 2.4 * lg + 1.2 * gl) * 1.1, tR = (5.4 + 4 * lg) * 1.2, cR = (3.4 + 2.8 * lg) * 1.2;
   for (const sg of [-1, 1]) {
-    const lx = X + sg * legX;
-    g += `<ellipse cx="${lx}" cy="${192}" rx="${thR}" ry="31" fill="${SK}" ${st}/>`;
-    g += `<path d="M${lx - sg * 2},${174} Q${lx + sg * thR * 0.5},${192} ${lx},${214}" fill="none" stroke="${SH}" stroke-width="${1 + 1.5 * lg}" opacity="${0.3 + 0.6 * lg}"/>`;
-    g += `<ellipse cx="${lx}" cy="${233}" rx="${caR}" ry="15" fill="${SK}" ${st}/>`;
-    g += `<ellipse cx="${lx + sg * 2}" cy="${251}" rx="11" ry="5.5" fill="#2b2f36" ${st}/>`;
+    // 太もも（腰から膝へ細くなる）・ふくらはぎ・靴
+    B.shape((x, y) => { const t = (y - 58) / 22; if (t < 0 || t > 1) return false; const r = tR * (0.86 + 0.5 * Math.sin(Math.PI * Math.min(1, t * 1.6)) * 0.3 - 0.42 * t * t); return Math.abs(x - (P_X + sg * (lx + 0.6 * t))) <= r; },
+      [P_X + sg * lx - tR - 2, 57, P_X + sg * lx + tR + 2, 81], SKN, { tag: 'skin', shade: (x, y) => 0.9 * (x - P_X - sg * lx) / tR + 0.25 });
+    B.ell(P_X + sg * (lx + 1), 86, cR, 6.8, SKN, { tag: 'skin' });
+    B.ell(P_X + sg * (lx + 1.6), 93.5, 4.6 + 0.8 * lg, 2.3, SHOES);
+    for (let y = 66; y <= 74; y++) det(P_X + sg * (lx + tR * 0.15 + (y - 66) * 0.2), y, 's');
+    det(P_X + sg * (lx + 1) - sg * cR * 0.4, 83, 'h');
   }
-  // パンツ
-  const tc = E.bottom ? E.bottom.c : '#1d1f24';
-  g += `<path d="M${X - hipH},136 L${X + hipH},136 L${X + hipH + 2},168 L${X + 3},170 L${X},160 L${X - 3},170 L${X - hipH - 2},168 Z" fill="${tc}" ${st}/>`;
-  // 胴体
-  g += `<rect x="${X - 7 - 4 * b}" y="52" width="${14 + 8 * b}" height="16" rx="5" fill="${SK}" ${st}/>`;
-  g += `<path d="${torso}" fill="${SK}" ${st}/>` + musc(SH);
-  // 上半身の服
-  if (E.top) {
-    const t = E.top, DK = 'rgba(0,0,0,.42)';
-    if (t.look === 'tank' || t.look === 'jersey') {
-      // 体にぴったりの服：胸・腹筋の線をそのまま浮き出させる
-      g += `<path d="${torso}" fill="${t.c}" ${st}/>` + musc(DK, 0.9);
-      if (t.look === 'tank') g += `<ellipse cx="${X}" cy="66" rx="12" ry="9" fill="${SK}"/><path d="M${X - 12},66 Q${X},78 ${X + 12},66" fill="none" stroke="${OL}" stroke-width="1.4"/>`;
-      else g += `<path d="M${X - 8},64 L${X},76 L${X + 8},64" fill="${SK}" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><line x1="${X}" y1="76" x2="${X}" y2="140" stroke="#fff" stroke-width="1.6" opacity=".8"/>`;
-    } else {
-      // よろいは胸当てだけ。腹筋・腕・脚は出したまま
-      const plate = `M${X - shH + 5},66 Q${X},59 ${X + shH - 5},66 L${X + shH},84 Q${X + shH - 0.5},94 ${X + shH - 3},103 Q${X},113 ${X - shH + 3},103 Q${X - shH + 0.5},94 ${X - shH},84 Z`;
-      g += `<path d="${plate}" fill="${t.c}" ${st}/>`;
-      if (t.look === 'scale') for (let y = 72; y < 100; y += 8) for (let x = -shH + 10; x < shH - 8; x += 10) g += `<path d="M${X + x - 5},${y} Q${X + x},${y + 6} ${X + x + 5},${y}" fill="none" stroke="rgba(0,0,0,.3)" stroke-width="1.3"/>`;
-      for (const sg of [-1, 1]) g += `<path d="M${X},${78} Q${X + sg * (14 + 6 * c)},${96 + 4 * c} ${X + sg * (shH - 4)},${84}" fill="none" stroke="${DK}" stroke-width="${1.4 + 2 * c}"/>`;
-      g += `<line x1="${X}" y1="70" x2="${X}" y2="106" stroke="${DK}" stroke-width="1.2"/><circle cx="${X}" cy="70" r="3.5" fill="rgba(255,255,255,.4)"/>`;
-    }
+  // 短パン
+  const SP = pTone(E.bottom ? E.bottom.c : '#4b525e');
+  const sb = lx + tR + 0.8;
+  B.poly([[P_X - w - 2, 52], [P_X + w + 2, 52], [P_X + sb, 64.5], [P_X + 1, 64.5], [P_X, 60], [P_X - 1, 64.5], [P_X - sb, 64.5]], SP, { tag: 'sp', shade: (x, y) => (x - P_X) / (w + 4) * 0.9 + (y > 63 ? 0.6 : 0) });
+  for (let x = Math.round(P_X - w - 1); x <= P_X + w + 1; x++) B.set(x, 53, SP.s);
+  // 胴体（胸から腰へ、なだらかに細くなる）
+  const hw = y => (y < 31 ? sw : sw + (w - sw) * ((y - 31) / 23) ** 1.15);
+  B.shape((x, y) => y >= 21 && y <= 54 && Math.abs(x - P_X) <= hw(y), [P_X - sw - 1, 20, P_X + sw + 1, 55], SKN, { tag: 'skin', shade: (x, y) => (x - P_X) / hw(y) * 0.9 - 0.15 });
+  // 服（体にぴったり）
+  if (E.top && (E.top.look === 'tank' || E.top.look === 'jersey'))
+    B.shape((x, y) => y >= 22 && y <= 54 && Math.abs(x - P_X) <= hw(y) - (y < 30 ? 2 : 0), [P_X - sw, 21, P_X + sw, 55], TOP, { tag: 'top', out: 'none', shade: (x, y) => (x - P_X) / hw(y) * 0.9 - 0.15 });
+  // 僧帽筋（首が埋まるくらいの盛り上がり）
+  B.ell(P_X, 21.5, 6.5 + 6 * b, 5 + 2.5 * b, SKN, { tag: 'skin', out: 'bg' });
+  // 胸筋
+  const pr = 5.6 + 3.4 * c, pry = 3.8 + 2.4 * c, pcy = 29.5 + c;
+  for (const sg of [-1, 1]) {
+    const pcx = P_X + sg * (pr - 0.3);
+    for (let x = Math.round(pcx - pr); x <= pcx + pr; x++) { const u = (x + 0.5 - pcx) / pr; if (Math.abs(u) > 1) continue; const y = Math.round(pcy + pry * Math.sqrt(1 - u * u)); det(x, y, 'd'); det(x, y - 1, 's'); }
+    det(pcx - sg * pr * 0.3, pcy - pry * 0.4, 'h'); det(pcx - sg * pr * 0.3 + 1, pcy - pry * 0.4, 'h');
   }
-  // ベルト系アクセ
+  for (let y = Math.round(pcy - pry + 1); y <= pcy + pry; y++) det(P_X, y, 'd');
+  // 腹筋
+  const aTop = Math.round(pcy + pry + 2);
+  for (let y = aTop; y <= 51; y++) det(P_X, y, ab > 0.25 ? 'd' : 's');
+  const rows = ab > 0.15 ? [aTop + 3.5, aTop + 8, aTop + 12.5] : [];
+  rows.forEach((ry, i) => { if (ry > 51) return; for (let dx = 1; dx <= 3 + 2 * ab - i * 0.4; dx++) { det(P_X - dx, ry, 's'); det(P_X + dx, ry, 's'); } });
+  if (ab > 0.4) [aTop + 1, aTop + 5.5, aTop + 10].forEach(ry => { det(P_X - 2, ry, 'h'); det(P_X + 2, ry, 'h'); });
+  // 脇腹の影
+  for (const sg of [-1, 1]) for (let y = 34; y <= 44; y += 3) det(P_X + sg * (hw(y) - 2), y, 's');
+  // よろい（胸当て）
+  if (E.top && (E.top.look === 'armor' || E.top.look === 'scale')) {
+    B.shape((x, y) => y >= 22 && Math.abs(x - P_X) <= hw(y) && y <= 36 + 3 * Math.cos(((x - P_X) / sw) * 1.5), [P_X - sw, 21, P_X + sw, 40], TOP, { tag: 'top', shade: (x, y) => (x - P_X) / sw * 0.9 - 0.1 });
+    for (let y = 24; y <= 38; y++) det(P_X, y, 'd');
+    if (E.top.look === 'scale') for (let y = 25; y <= 36; y += 3) for (let x = P_X - sw + 3 + (y % 2); x < P_X + sw - 2; x += 3) det(x, y, 's');
+    else { det(P_X - 3, 26, 'h'); det(P_X + 3, 26, 'h'); }
+  }
+  // ネクタイ
+  if (E.acc && E.acc.look === 'tie') {
+    const tc = pTone(E.acc.c);
+    B.poly([[P_X - 1.5, 21], [P_X + 1.5, 21], [P_X + 1, 23.5], [P_X - 1, 23.5]], tc);
+    B.poly([[P_X - 1, 23.5], [P_X + 1, 23.5], [P_X + 2.4, 38], [P_X, 41], [P_X - 2.4, 38]], tc, { shade: x => (x - P_X) / 2 });
+  }
+  // ベルト
   if (E.acc && (E.acc.look === 'belt' || E.acc.look === 'champ')) {
-    const big = E.acc.look === 'champ';
-    g += `<rect x="${X - wH - 3}" y="${big ? 130 : 132}" width="${2 * wH + 6}" height="${big ? 11 : 8}" rx="3" fill="${E.acc.c}" ${st}/>`;
-    g += big ? `<ellipse cx="${X}" cy="135.5" rx="10" ry="8" fill="#f6dc6b" ${st}/><text x="${X}" y="139" font-size="9" text-anchor="middle">★</text>` : `<rect x="${X - 5}" y="132" width="10" height="8" fill="#c9a227" ${st}/>`;
+    const big = E.acc.look === 'champ', bp = pTone(E.acc.c);
+    B.poly([[P_X - w - 2, big ? 49 : 50], [P_X + w + 2, big ? 49 : 50], [P_X + w + 2, 53], [P_X - w - 2, 53]], bp, { shade: x => (x - P_X) / w });
+    if (big) B.ell(P_X, 51, 3.5, 2.6, pTone('#f6dc6b')); else B.poly([[P_X - 1.5, 50], [P_X + 1.5, 50], [P_X + 1.5, 53], [P_X - 1.5, 53]], pTone('#c9a227'));
   }
   // 腕
-  const fistC = E.acc && E.acc.look === 'glove' ? E.acc.c : SK, fr = 7 + 1.5 * fa;
-  const plateTop = E.top && (E.top.look === 'armor' || E.top.look === 'scale');
-  let hx = X + ax + 2, hy = 150;
+  const glove = E.acc && E.acc.look === 'glove' ? pTone(E.acc.c) : SKN;
+  const bangle = E.acc && E.acc.look === 'bangle' ? pTone(E.acc.c) : null;
   for (const sg of [-1, 1]) {
-    const sx = X + sg * (shH - 3);
+    const sx = P_X + sg * (sw - 1);
     if (flex) {
-      const ux = X + sg * (shH + 11 + armR * 0.3), ex = X + sg * (shH + 25 + armR * 0.3), ur = armR + 2 + 2 * bi;
-      g += `<ellipse cx="${ex}" cy="52" rx="${faR}" ry="17" fill="${SK}" ${st}/>`;
-      if (E.acc && E.acc.look === 'bangle') g += `<rect x="${ex - faR - 1}" y="40" width="${2 * faR + 2}" height="7" rx="2" fill="${E.acc.c}" ${st}/>`;
-      g += `<ellipse cx="${ux}" cy="${73 - bi * 2}" rx="18" ry="${ur}" fill="${SK}" ${st}/>`;
-      g += `<path d="M${ux - 10},${70 - bi * 2} Q${ux},${70 - ur - 2} ${ux + 10},${70 - bi * 2}" fill="none" stroke="${SH}" stroke-width="${1.2 + 1.8 * bi}" opacity="${0.4 + 0.6 * bi}"/>`;
-      g += `<circle cx="${ex - sg}" cy="33" r="${fr}" fill="${fistC}" ${st}/>`;
+      const ex = P_X + sg * (sw + 9);
+      B.cap(ex, 27, ex, 14, fR, SKN, { tag: 'skin' });
+      if (bangle) B.cap(ex, 17, ex, 18, fR + 0.6, bangle);
+      B.ell(ex, 10.5, fistR + 0.4, fistR, glove, { tag: 'skin' });
+      B.cap(sx, 27, ex, 27, 3 + 1.5 * bi, SKN, { tag: 'skin' });
+      B.ell(P_X + sg * (sw + 4), 25 - bi, 3.2 + 2.6 * bi, 2.6 + 2.6 * bi, SKN, { tag: 'skin' });
+      det(P_X + sg * (sw + 4) - 1, 23 - 2 * bi, 'h');
     } else {
-      const x = X + sg * ax;
-      g += `<ellipse cx="${x}" cy="102" rx="${armR}" ry="21" fill="${SK}" ${st}/>`;
-      g += `<path d="M${x - sg * armR * 0.6},${94} Q${x},${86 - 4 * bi} ${x + sg * armR * 0.7},${96}" fill="none" stroke="${SH}" stroke-width="${1 + 1.6 * bi}" opacity="${0.3 + 0.6 * bi}"/>`;
-      g += `<ellipse cx="${x + sg * 2}" cy="131" rx="${faR}" ry="16" fill="${SK}" ${st}/>`;
-      if (E.acc && E.acc.look === 'bangle') g += `<rect x="${x + sg * 2 - faR - 1}" y="136" width="${2 * faR + 2}" height="7" rx="2" fill="${E.acc.c}" ${st}/>`;
+      const ux = P_X + sg * ax;
+      B.ell(ux, cross ? 34.5 : 36, aR, cross ? 9.5 : 10.5, SKN, { tag: 'skin' });
+      for (let y = 31; y <= 40; y += 3) det(ux - sg * aR * 0.35, y, 's'); // 上腕のくびれ
+      det(ux + sg * aR * 0.25 - 1, 31, 'h');
+      if (!cross) {
+        B.ell(ux + sg, 49, fR, 7.5, SKN, { tag: 'skin' });
+        if (bangle) B.poly([[ux + sg - fR - 0.5, 52], [ux + sg + fR + 0.5, 52], [ux + sg + fR + 0.5, 54], [ux + sg - fR - 0.5, 54]], bangle);
+        B.ell(ux + sg, 57.5, fistR, fistR, glove, { tag: 'skin' });
+        det(ux + sg - 1, 58, 's'); det(ux + sg + 1, 58, 's');
+      }
     }
-    g += `<circle cx="${sx}" cy="74" r="${10 + 7 * sh}" fill="${SK}" ${st}/>`;
-    // 肩当ては肩の上だけ（三角筋の丸みは見せる）
-    if (plateTop) g += `<path d="M${sx - 11 - 6 * sh},${70} Q${sx},${54 - 6 * sh} ${sx + 11 + 6 * sh},${70} Q${sx},${64} ${sx - 11 - 6 * sh},${70} Z" fill="${E.top.c}" ${st}/>`;
-    if (E.top && E.top.look === 'jersey') g += `<path d="M${sx - 10 - 6 * sh},${72} Q${sx},${56 - 6 * sh} ${sx + 10 + 6 * sh},${72} Q${sx},${68} ${sx - 10 - 6 * sh},${72} Z" fill="${E.top.c}" ${st}/>`;
+    // 三角筋（丸く大きな肩）
+    B.ell(sx, 25.5, dr, dr * 0.95, SKN, { tag: 'skin' });
+    det(sx - 1.5, 24 - dr * 0.4, 'h');
+    if (E.top && (E.top.look === 'armor' || E.top.look === 'scale')) B.ell(sx, 24, dr + 1.4, dr * 0.75, TOP, { tag: 'top', clip: (x, y) => y <= 25 });
+    if (E.top && E.top.look === 'jersey') B.ell(sx, 25.5, dr + 0.8, dr + 0.6, TOP, { tag: 'top' });
   }
-  // 武器（右手・立ちポーズのときだけ）
-  const W = E.hand;
-  if (W && !flex) {
-    if (W.look === 'dumbbell') g += `<rect x="${hx - 18}" y="${hy - 2}" width="36" height="4" fill="#888" ${st}/><rect x="${hx - 22}" y="${hy - 9}" width="7" height="18" rx="2" fill="${W.c}" ${st}/><rect x="${hx + 15}" y="${hy - 9}" width="7" height="18" rx="2" fill="${W.c}" ${st}/>`;
-    if (W.look === 'bokken') g += `<line x1="${hx}" y1="${hy + 6}" x2="${hx + 26}" y2="${hy - 70}" stroke="${W.c}" stroke-width="6" stroke-linecap="round"/>`;
-    if (W.look === 'sword') g += `<path d="M${hx + 2},${hy - 6} L${hx + 24},${hy - 82} L${hx + 30},${hy - 80} L${hx + 8},${hy - 4} Z" fill="${W.c}" ${st}/><rect x="${hx - 6}" y="${hy - 9}" width="20" height="5" rx="2" fill="#c9a227" ${st} transform="rotate(-16 ${hx + 4} ${hy - 6})"/>`;
-    if (W.look === 'hammer') g += `<line x1="${hx}" y1="${hy + 8}" x2="${hx + 18}" y2="${hy - 58}" stroke="#7a5230" stroke-width="5" stroke-linecap="round"/><rect x="${hx + 4}" y="${hy - 78}" width="30" height="20" rx="3" fill="${W.c}" ${st} transform="rotate(-15 ${hx + 19} ${hy - 68})"/>`;
-    if (W.look === 'axe') g += `<line x1="${hx}" y1="${hy + 8}" x2="${hx + 18}" y2="${hy - 64}" stroke="#7a5230" stroke-width="5" stroke-linecap="round"/><path d="M${hx + 14},${hy - 60} Q${hx + 42},${hy - 72} ${hx + 36},${hy - 40} Q${hx + 26},${hy - 44} ${hx + 10},${hy - 40} Z" fill="${W.c}" ${st}/>`;
-    if (W.look === 'great') g += `<path d="M${hx},${hy - 8} L${hx + 22},${hy - 96} L${hx + 34},${hy - 92} L${hx + 12},${hy - 4} Z" fill="${W.c}" ${st}/><path d="M${hx + 8},${hy - 30} L${hx + 22},${hy - 84}" stroke="#d6b5ff" stroke-width="2"/><rect x="${hx - 8}" y="${hy - 12}" width="26" height="6" rx="2" fill="#2a2a2a" ${st} transform="rotate(-14 ${hx + 5} ${hy - 9})"/>`;
+  if (cross) {
+    const e = ax + 1, fr2 = fR * 0.85;
+    B.cap(P_X + e, 43, P_X - e + 5, 37.5, fr2, SKN, { tag: 'skin' });
+    B.ell(P_X - e + 3, 37, fistR * 0.9, fistR * 0.9, glove, { tag: 'skin' });
+    B.cap(P_X - e, 46, P_X + e - 5, 40.5, fr2, SKN, { tag: 'skin' });
+    if (bangle) B.cap(P_X + e - 10, 41.8, P_X + e - 9, 41.6, fr2 + 0.8, bangle);
+    B.ell(P_X + e - 3, 40, fistR * 0.9, fistR * 0.9, glove, { tag: 'skin' });
   }
-  // こぶし（立ちポーズ）
-  if (!flex) for (const sg of [-1, 1]) g += `<circle cx="${X + sg * (ax + 2)}" cy="${hy}" r="${fr}" fill="${fistC}" ${st}/>`;
+  // 武器（右手・立ちポーズ）
+  const W = E.hand, fx = P_X + ax + 1, fy = 57.5;
+  if (W && !flex && !cross) {
+    const wc = pTone(W.c), wood = pTone('#8a5a32'), gold = pTone('#c9a227');
+    if (W.look === 'dumbbell') { B.cap(fx - 7, fy, fx + 7, fy, 0.8, pTone('#9aa3ad')); B.poly([[fx - 9, fy - 4], [fx - 6, fy - 4], [fx - 6, fy + 4], [fx - 9, fy + 4]], wc); B.poly([[fx + 6, fy - 4], [fx + 9, fy - 4], [fx + 9, fy + 4], [fx + 6, fy + 4]], wc); }
+    if (W.look === 'bokken') B.cap(fx, fy + 3, fx + 9, fy - 30, 1.3, pTone('#b07a42'));
+    if (W.look === 'sword') { B.cap(fx + 1, fy - 3, fx + 10, fy - 34, 1.4, wc); B.cap(fx - 3, fy - 2, fx + 4, fy - 4, 1, gold); }
+    if (W.look === 'hammer') { B.cap(fx, fy + 3, fx + 6, fy - 24, 1, wood); B.poly([[fx + 1, fy - 32], [fx + 12, fy - 29], [fx + 10, fy - 21], [fx - 1, fy - 24]], wc); }
+    if (W.look === 'axe') { B.cap(fx, fy + 3, fx + 6, fy - 26, 1, wood); B.poly([[fx + 5, fy - 26], [fx + 14, fy - 31], [fx + 13, fy - 17], [fx + 4, fy - 19]], wc); }
+    if (W.look === 'great') { B.cap(fx + 1, fy - 4, fx + 11, fy - 40, 2.4, wc); B.cap(fx - 3, fy - 3, fx + 5, fy - 5, 1.2, pTone('#2a2a2a')); for (let i = 0; i < 6; i++) B.set(fx + 3 + i * 1.4, fy - 12 - i * 5, '#d6b5ff'); }
+    B.ell(fx, fy, fistR, fistR, glove, { tag: 'skin' });
+  }
   // 頭
-  g += `<circle cx="${X - 20}" cy="38" r="4.5" fill="${SK}" ${st}/><circle cx="${X + 20}" cy="38" r="4.5" fill="${SK}" ${st}/>`;
-  g += `<circle cx="${X}" cy="35" r="20" fill="${SK}" ${st}/><ellipse cx="${X - 7}" cy="23" rx="6" ry="3" fill="#fff" opacity=".45"/>`;
-  const ln = `stroke="${OL}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"`;
+  for (const sg of [-1, 1]) B.ell(P_X + sg * 7.4, 13, 1.6, 2.4, SKN, { tag: 'skin' });
+  B.ell(P_X, 12, 7, 8, SKN, { tag: 'skin' });
+  // 黒の短髪（上が平らで、横は短く）
+  B.shape((x, y) => ((x - P_X) / 7.4) ** 2 + ((y - 10.5) / 7.6) ** 2 <= 1 && (y <= 7.2 || (Math.abs(x - P_X) >= 5.6 && y <= 10)), [P_X - 8, 2, P_X + 8, 11], HAIRP, { tag: 'hair', shade: (x, y) => (x - P_X) / 8 + (y - 5) / 6 - 0.2 });
+  for (let x = P_X - 5; x <= P_X + 5; x += 2) B.set(x, 3, HAIRP.h);
+  // 顔
+  const D = P_OL, br = HAIRP.b, red = '#8a2f2f', set = B.set;
+  const brows = (lo, li, ro, ri) => { for (let i = 0; i < 4; i++) { set(P_X - 5 + i, Math.round(lo + (li - lo) * i / 3), br); set(P_X + 5 - i, Math.round(ro + (ri - ro) * i / 3), br); } };
+  set(P_X, 15, SKN.s); set(P_X + 1, 15, SKN.s); // 鼻
   if (mood === 'happy') {
-    g += `<path d="M${X - 11},30 L${X - 4},29 M${X + 11},30 L${X + 4},29" ${ln}/>`;
-    g += `<path d="M${X - 10},39 Q${X - 7},34 ${X - 4},39 M${X + 10},39 Q${X + 7},34 ${X + 4},39" ${ln}/>`;
-    g += `<path d="M${X - 8},44 Q${X},55 ${X + 8},44 Z" fill="#8a2f2f" stroke="${OL}" stroke-width="1.6" stroke-linejoin="round"/>`;
+    brows(9, 9, 9, 9);
+    for (const sg of [-1, 1]) { set(P_X + sg * 4, 13, D); set(P_X + sg * 3, 12, D); set(P_X + sg * 2, 13, D); }
+    for (let x = -2; x <= 2; x++) set(P_X + x, 17, D); for (let x = -1; x <= 1; x++) set(P_X + x, 18, red);
   } else if (mood === 'hurt') {
-    g += `<path d="M${X - 10},35 L${X - 5},38 L${X - 10},41 M${X + 10},35 L${X + 5},38 L${X + 10},41" ${ln}/>`;
-    g += `<path d="M${X - 6},49 Q${X - 3},45 ${X},48 Q${X + 3},51 ${X + 6},47" ${ln}/>`;
+    brows(11, 9, 11, 9);
+    set(P_X - 4, 12, D); set(P_X - 3, 13, D); set(P_X - 4, 14, D); set(P_X + 4, 12, D); set(P_X + 3, 13, D); set(P_X + 4, 14, D);
+    [[-2, 18], [-1, 17], [0, 18], [1, 17], [2, 18]].forEach(([x, y]) => set(P_X + x, y, D));
   } else {
-    const fb = mood === 'fight' ? 2 : 0;
-    g += `<path d="M${X - 11},${31 - fb} L${X - 4},${33 + fb * 0.5} M${X + 11},${31 - fb} L${X + 4},${33 + fb * 0.5}" ${ln}/>`;
-    g += `<circle cx="${X - 7}" cy="38" r="2.3" fill="${OL}"/><circle cx="${X + 7}" cy="38" r="2.3" fill="${OL}"/>`;
-    g += mood === 'fight' ? `<path d="M${X - 6},47 L${X + 6},47" ${ln}/>` : `<path d="M${X - 7},45 Q${X},51 ${X + 7},45" ${ln}/>`;
+    if (mood === 'fight') brows(9, 11, 9, 11); else brows(10, 10, 10, 10);
+    for (const sg of [-1, 1]) { set(P_X + sg * 4, 13, D); set(P_X + sg * 3, 13, D); set(P_X + sg * 3, 12, mood === 'fight' ? br : SKN.b); }
+    if (mood === 'fight') for (let x = -2; x <= 2; x++) set(P_X + x, 17, D);
+    else { for (let x = -1; x <= 1; x++) set(P_X + x, 17, SKN.d); set(P_X - 2, 16, SKN.d); set(P_X + 2, 16, SKN.d); }
   }
-  // 頭の装備（まゆ・目・口は隠さない高さに）
+  // 頭の装備（顔は隠さない）
   if (E.head) {
-    const h = E.head;
-    if (h.look === 'band') g += `<rect x="${X - 20}" y="20" width="40" height="7" rx="3" fill="${h.c}" ${st}/><path d="M${X + 19},23 L${X + 32},18 M${X + 19},25 L${X + 30},30" stroke="${h.c}" stroke-width="4" stroke-linecap="round"/>`;
-    if (h.look === 'cap') g += `<path d="M${X - 20},27 Q${X - 20},10 ${X},10 Q${X + 20},10 ${X + 20},27 Z" fill="${h.c}" ${st}/><path d="M${X - 4},24 L${X + 30},24 Q${X + 30},29 ${X + 12},28 L${X - 4},28 Z" fill="${h.c}" ${st}/>`;
-    if (h.look === 'helm' || h.look === 'viking') g += `<path d="M${X - 21},27 Q${X - 22},9 ${X},9 Q${X + 22},9 ${X + 21},27 Z" fill="${h.c}" ${st}/><path d="M${X - 21},23 L${X + 21},23" stroke="rgba(0,0,0,.3)" stroke-width="2"/><circle cx="${X}" cy="15" r="2.5" fill="rgba(255,255,255,.45)"/>`;
-    if (h.look === 'viking') g += `<path d="M${X - 19},20 Q${X - 35},15 ${X - 33},0 Q${X - 27},11 ${X - 17},14 Z M${X + 19},20 Q${X + 35},15 ${X + 33},0 Q${X + 27},11 ${X + 17},14 Z" fill="#efe6cf" ${st}/>`;
-    if (h.look === 'horns') g += `<path d="M${X - 16},18 Q${X - 34},14 ${X - 36},-4 Q${X - 26},8 ${X - 12},12 Z M${X + 16},18 Q${X + 34},14 ${X + 36},-4 Q${X + 26},8 ${X + 12},12 Z" fill="#efe6cf" ${st}/><path d="M${X - 18},23 Q${X},13 ${X + 18},23" fill="none" stroke="${h.c}" stroke-width="6" stroke-linecap="round"/>`;
-    if (h.look === 'crown') g += `<path d="M${X - 14},20 L${X - 16},4 L${X - 7},12 L${X},1 L${X + 7},12 L${X + 16},4 L${X + 14},20 Z" fill="${h.c}" ${st}/><circle cx="${X}" cy="14" r="2.5" fill="#d23a3a"/>`;
+    const h = E.head, hp = pTone(h.c);
+    if (h.look === 'band') { B.poly([[P_X - 7.5, 6.5], [P_X + 7.5, 6.5], [P_X + 7.5, 8.7], [P_X - 7.5, 8.7]], hp, { clip: (x, y) => B.tag(x, y) === 'skin' || B.tag(x, y) === 'hair' || B.tag(x, y) === 'ol', out: 'none' }); B.cap(P_X + 8, 7, P_X + 12, 5, 0.8, hp); B.cap(P_X + 8, 8, P_X + 11, 11, 0.8, hp); }
+    if (h.look === 'cap') { B.ell(P_X, 8, 7.8, 5.4, hp, { clip: (x, y) => y <= 7 }); B.poly([[P_X - 1, 7], [P_X + 11, 7], [P_X + 11, 8.6], [P_X - 1, 8.6]], hp); }
+    if (h.look === 'helm' || h.look === 'viking') { B.ell(P_X, 8, 8.2, 6.6, hp, { clip: (x, y) => y <= 8 }); for (let x = P_X - 7; x <= P_X + 7; x++) B.set(x, 7, hp.s); B.set(P_X - 2, 3, hp.h); B.set(P_X - 1, 3, hp.h); }
+    if (h.look === 'viking') for (const sg of [-1, 1]) { B.cap(P_X + sg * 7, 5, P_X + sg * 11, 1, 1.4, pTone('#efe6cf')); B.cap(P_X + sg * 11, 1, P_X + sg * 11, -3, 1, pTone('#efe6cf')); }
+    if (h.look === 'horns') { for (const sg of [-1, 1]) { B.cap(P_X + sg * 6, 5, P_X + sg * 12, 1, 1.7, pTone('#efe6cf')); B.cap(P_X + sg * 12, 1, P_X + sg * 12, -3, 1.1, pTone('#efe6cf')); } B.cap(P_X - 7, 6.5, P_X + 7, 6.5, 1.2, hp); }
+    if (h.look === 'crown') { B.poly([[P_X - 5, 4.5], [P_X - 6, -1.5], [P_X - 2.5, 1.5], [P_X, -3], [P_X + 2.5, 1.5], [P_X + 6, -1.5], [P_X + 5, 4.5]], hp, { shade: x => (x - P_X) / 6 }); B.set(P_X, 2, '#d23a3a'); }
   }
-  return `<svg viewBox="0 -8 200 270" class="hero-svg ${cls}" role="img" aria-label="キャラクター">${g}</svg>`;
+  B.w = P_W; B.h = P_H; B.ax = ax; B.fR = fR; // ポーズの組み直し用
+  return B;
 }
+
+// ---------- 主人公（ドット絵・新デザイン） ----------
+const HERO_PAL = ['#341c16', '#1c181c', '#3e3840', '#ce8e5c', '#a26440', '#ecb680', '#76442e', '#30323a', '#646670', '#484a52', '#eeeee8', '#c8c8c4', '#222228', '#464650'];
+const HERO_RLE = '29.6A29./27.2A6B2A27./26.A2BC4BC2BA26./25.A2BC6BC2BA25./24.A14BA24./24.A14BA24./24.A3B8D3BA24./24.A2B10D2BA24./24.A2B10D2BA24./24.A2B10D2BA24./23.A3D3B4D3B3DA23./23.A16DA23./23.AE3D2A4D2A3DEA23./24.A14DA24./25.AF3DE2DE3DFA25./25.A12DA25./25.A4D4E4DA25./25.2A10D2A25./12.7A4.2A2F10E2F2A4.7A12./10.2A7D2A.ADF14DFDA.2A7D2A10./9.A2D6F3DADF16DFDA3D6F2DA9./8.AD10F24D10FDA8./7.AD12F22D12FDA7./7.A2D10F24D10F2DA7./6.A5D6F28D6F5DA6./6.A14DE6F3D2E3D6FE14DA6./6.A13DE8F2D2E2D8FE13DA6./6.A13DE9FD2ED9FE13DA6./6.AE11DED8F2D2E2D8FDE11DEA6./6.AE10DG3D6F3D2E3D6F3DG10DEA6./7.AE9DG12D2E12DG9DEA7./7.ADE8DG12D2E12DG8DEDA7./6.AD2F2E6DG12D2E12DG6D2E2FDA6./5.AD4F7EG6DE5D2E5DE6DG7E4FDA5./5.AD6F5E2G10DG2EG10D2G5E6FDA5./4.A3D6F4DA2G8D2G2E2G8D2GA4D6F3DA4./4.A4D4F5DA3G6D2GD2ED2G6D3GA5D4F4DA4./4.A13DAED8G2D2E2D8GDEA13DA4./4.A13DAE3D4G4D2E4D4G3DEA13DA4./4.A2DE10DA3E3DE5F2E5FE3D3EA10DE2DA4./4.A2DE10DA2E4DE5D2E5DE4D2EA10DE2DA4./4.A2DE10DA2EDE2D14E2DED2EA10DE2DA4./4.AEDE9DEA2E4DE5F2E5FE4D2EAE9DEDEA4./5.ADE9D2A3E3DE5D2E5DE3D3E2A9DEDA5./5.A2E8DE2A2E4D14E4D2E2AE8D2EA5./6.AE7DEA.A2EDE2DE5F2E5FE2DED2EA.AE7DEA6./6.AD3F3D2EA.A2E4DE5D2E5DE4D2EA.A2E3D3FDA6./5.A7FDEA2.A2E4D14E4D2EA2.AED7FA5./4.AD7F2DA3.AE10D2E10DEA3.A2D7FDA4./3.A2D7F3DA2.AE10D2G10DEA2.A3D7F2DA3./3.A4D3F5DA2.AE10D2E10DEA2.A5D3F4DA3./3.A12DA2.A24HA2.A12DA3./3.A12DA2.AHIHIHIHIHIH2IHIHIHIHIHIHA2.A12DA3./3.A12DA.AJ24HJA.A12DA3./3.A12DA.A26JA.A12DA3./3.AE10DEA.A26JA.AE10DEA3./4.AE8DEA.A28JA.AE8DEA4./4.A2E6D2EA.A4JI18JI4JA.A2E6D2EA4./5.A2E4D2EA.A5JI8J2H8JI5JA.A2E4D2EA5./5.A8DA.A6JI7J2H7JI6JA.A8DA5./4.A10D2AJI4JI7J2H7JI4JIJ2A10DA4./4.A10D2AJI5JI6J2H6JI5JIJ2A10DA4./4.A10D2AJI5JI6J2H6JI5JIJ2A10DA4./4.A3DEDEDE2DA2JI7JH4J2H4JH7JI2JA2DEDEDE3DA4./4.AE8DEA3JI6JH4J2H4JH6JI3JAE8DEA4./5.AE6GE2A3JI7JH3J2H3JH7JI3J2AE6GEA5./6.A6EA.A3JI7JH3J2H3JH7JI3JA.A6EA6./7.A4EA2.A3JI8JH2J2H2JH8JI3JA2.A4EA7./8.4A3.A12JH2J2H2JH12JA3.4A8./14.A16J2H16JA14./14.A16J2H16JA14./14.A16J2H16JA14./14.AJ32HJA14./15.A3DE7DE3D2G3DE7DE3DA15./15.A3DE7DE3D2G3DE7DE3DA15./15.A3DE7DE3D2G3DE7DE3DA15./15.A2DE8DE3D2G3DE8DE2DA15./15.AEDE9DE2D2G2DE9DEDEA15./16.ADE9DE2D2G2DE9DEDA16./16.ADE7D2FE2D2G2DE2F7DEDA16./16.AE7D4FDE2GED4F7DEA16./17.AE5D6F4A6F5DEA17./17.AE5D6FA2.A6F5DEA17./18.A11DA2.A11DA18./18.A11DA2.A11DA18./18.A11DA2.A11DA18./18.A2DED3FDE2DA2.A2DED3FDE2DA18./18.A11DA2.A11DA18./18.A11DA2.A11DA18./18.A2D5F2DEDA2.ADE2D5F2DA18./18.AD7F2DA4.A2D7FDA18./17.AD9F2DA2.A2D9FDA17./17.A2D7F3DA2.A3D7F2DA17./16.A4D5F5D2A5D5F4DA16./16.A14D2A14DA16./16.A14D2A14DA16./16.A14D2A14DA16./16.A14D2A14DA16./16.AE12DE2AE12DEA16./16.AE12DE2AE12DEA16./17.AE10DEA2.AE10DEA17./17.A3E9DA2.A9D3EA17./18.A2E9DA2.A9D2EA18./19.AE9DA2.A9DEA19./19.AE9DA2.A9DEA19./19.A10KA2.A10KA19./19.A10KA2.A10KA19./16.4A10LA2.A10L4A16./15.AM13NM2AM13NMA15./15.A15M2A15MA15./15.A5M6N4M2A4M6N5MA15./15.A15M2A15MA15./15.A15M2A15MA15./15.A15L2A15LA15./16.15A2.15A16.';
+const HERO_ROWS = HERO_RLE.split('/').map(r => r.replace(/(\d*)([A-N.])/g, (_, n, c) => (c === '.' ? c : (c.charCodeAt(0) - 65).toString(16)).repeat(n ? +n : 1)));
+// 64×115 の元絵（筋肉Lv最大の姿）を、筋肉レベルに応じて「列を抜いて」細くする。
+// 抜くのは腕・胸・脚の内側の列だけなので、輪郭線やドットの形はくずれない。
+// 0=輪郭 1,2=髪 3,4,5,6=肌(基本/影/明るい/濃い影) 7,8,9=短パン a〜d=靴
+// ポーズは3つ：通常＝リラックスポーズ（元絵の立ち姿）／勝ったとき＝ダブルバイセップス／負けたとき＝体育座り。
+// 勝ち・負けのポーズは、立ち姿の部品を組み直して腕やひざを描き足すので、どのセットでも元絵は立ち姿1枚でよい。
+// 装備は体に重ねず、キャラクターの下に並べて見せる（gearHtml）。
+const HERO_W = 88, HERO_H = 118, HERO_OX = 12, HERO_OY = 2, HERO_CX = 32;
+const HERO_SKIN = { '3': 'b', '4': 's', '5': 'h', '6': 'd' };
+
+// ドット絵を描くための板。円・カプセル・多角形を、輪郭線つきで置ける。
+function heroBuf(w = HERO_W, h = HERO_H, OLC = P_OL) {
+  const C = new Array(w * h).fill(null), T = new Array(w * h).fill(null);
+  const inb = (x, y) => x >= 0 && x < w && y >= 0 && y < h, ix = (x, y) => y * w + x;
+  const N4 = [[1, 0], [-1, 0], [0, 1], [0, -1]], isOl = t => t === 'ol' || t === 'fo'; // fo=顔の線（薄くしない）
+  const B = {
+    w, h, C, T, tag: (x, y) => (inb(x, y) ? T[ix(x, y)] : null),
+    set(x, y, c, t) { x = Math.round(x); y = Math.round(y); if (!inb(x, y)) return; C[ix(x, y)] = c; if (t) T[ix(x, y)] = t; },
+    shape(test, bb, pal, o = {}) {
+      const m = [], S = new Set();
+      for (let y = Math.floor(bb[1]); y <= Math.ceil(bb[3]); y++) for (let x = Math.floor(bb[0]); x <= Math.ceil(bb[2]); x++)
+        if (inb(x, y) && (!o.clip || o.clip(x, y)) && test(x + 0.5, y + 0.5)) { m.push([x, y]); S.add(ix(x, y)); }
+      const out = o.out || 'all';
+      // 何もない所は輪郭線。すでに肌がある所（＝手前に重なる所）は、o.inner があればその薄い色の線にする
+      if (out !== 'none') for (const [x, y] of m) for (const [dx, dy] of N4) {
+        const nx = x + dx, ny = y + dy; if (!inb(nx, ny)) continue; const k = ix(nx, ny);
+        if (S.has(k) || (out === 'bg' && C[k])) continue;
+        if (C[k] && o.inner) { if (T[k] === 'skin') C[k] = o.inner; if (T[k] === 'skin' || isOl(T[k])) continue; }
+        C[k] = OLC; T[k] = 'ol';
+      }
+      for (const [x, y] of m) { let c = pal.b; if (o.shade) { const d = o.shade(x + 0.5, y + 0.5); c = d > 0.5 ? pal.s : d < -0.6 ? pal.h : pal.b; } C[ix(x, y)] = c; T[ix(x, y)] = o.tag || 'x'; }
+      return m;
+    },
+    ell(cx, cy, rx, ry, pal, o = {}) {
+      return B.shape((x, y) => ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1, [cx - rx - 1, cy - ry - 1, cx + rx + 1, cy + ry + 1], pal,
+        { shade: o.flat ? null : (x, y) => 0.55 * (x - cx) / rx + 0.8 * (y - cy) / ry, ...o });
+    },
+    cap(x1, y1, x2, y2, r, pal, o = {}) {
+      const dx = x2 - x1, dy = y2 - y1, L2 = dx * dx + dy * dy || 1, len = Math.sqrt(L2);
+      let nx = -dy / len, ny = dx / len; if (0.55 * nx + 0.8 * ny < 0) { nx = -nx; ny = -ny; }
+      const near = (x, y) => { const t = Math.max(0, Math.min(1, ((x - x1) * dx + (y - y1) * dy) / L2)); return [x1 + t * dx, y1 + t * dy]; };
+      return B.shape((x, y) => { const [px, py] = near(x, y); return (x - px) ** 2 + (y - py) ** 2 <= r * r; },
+        [Math.min(x1, x2) - r - 1, Math.min(y1, y2) - r - 1, Math.max(x1, x2) + r + 1, Math.max(y1, y2) + r + 1], pal,
+        { shade: o.flat ? null : (x, y) => { const [px, py] = near(x, y); return ((x - px) * nx + (y - py) * ny) / r; }, ...o });
+    },
+    poly(pts, pal, o = {}) {
+      const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+      const test = (x, y) => { let c = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c; } return c; };
+      return B.shape(test, [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)], pal, o);
+    },
+    // 別の板 A の四角い範囲を、(dx,dy) だけずらして写す
+    copy(A, x0, y0, x1, y1, dx = 0, dy = 0) {
+      for (let y = Math.max(0, y0); y <= Math.min(A.h - 1, y1); y++) for (let x = Math.max(0, x0); x <= Math.min(A.w - 1, x1); x++) {
+        const k = y * A.w + x; if (A.C[k]) B.set(x + dx, y + dy, A.C[k], A.T[k] || 'x');
+      }
+    },
+    // 切り口など、輪郭線のない所を輪郭線で閉じる
+    seal() {
+      const add = [];
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+        if (C[ix(x, y)]) continue;
+        if (N4.some(([dx, dy]) => inb(x + dx, y + dy) && C[ix(x + dx, y + dy)] && !isOl(T[ix(x + dx, y + dy)]))) add.push(ix(x, y));
+      }
+      add.forEach(k => { C[k] = OLC; T[k] = 'ol'; });
+      return B;
+    },
+    // 体の内側に残った輪郭線（肌と肌の重なりの線）を、薄い色 c にする。外まわりの輪郭線はそのまま
+    soften(c, y0 = 0, y1 = h - 1) {
+      const hit = [];
+      for (let y = Math.max(1, y0); y <= Math.min(h - 2, y1); y++) for (let x = 1; x < w - 1; x++) {
+        if (T[ix(x, y)] !== 'ol') continue;
+        let open = false; for (let dy = -1; dy <= 1 && !open; dy++) for (let dx = -1; dx <= 1; dx++) if (!C[ix(x + dx, y + dy)]) { open = true; break; }
+        if (open) continue;
+        const nb = N4.map(([dx, dy]) => T[ix(x + dx, y + dy)]).filter(t => t !== 'ol');
+        if (nb.length && nb.every(t => t === 'skin')) hit.push(ix(x, y));
+      }
+      hit.forEach(k => { C[k] = c; T[k] = 'skin'; });
+      return B;
+    },
+  };
+  return B;
+}
+
+// 通常の立ち姿（リラックスポーズ）。筋肉レベルに合わせて列を抜き、表情を描く。
+function heroStand(pl, mood, set) {
+  const G = k => Math.min(1, (pl[k] || 0) / 10);
+  const arm = (G('肩') + G('二頭') + G('三頭') + G('前腕')) / 4, chest = (G('胸') + G('背中')) / 2, leg = (G('脚') + G('臀部')) / 2, ab = G('腹');
+  // 1) 元絵を色＋種類の表にする
+  const R = set.rows.map(r => r.split('').map(k => (k === '.' ? null : { c: set.pal[parseInt(k, 16)], k })));
+  const at = (x, y) => (R[y] && R[y][x]) || null;
+  // skin2：もう1組の「肌」の色番号（シャチの白いお腹など）
+  const S2 = set.skin2 || {}, role = k => HERO_SKIN[k] || S2[k], key2 = r => Object.keys(S2).find(k => S2[k] === r);
+  const skin = { b: set.pal[3], s: set.pal[4], h: set.pal[5], d: set.pal[6] };
+
+  // 腹筋が弱いうちは割れ目を薄くする
+  if (ab < 0.6) for (let y = 37; y <= 50; y++) for (let x = 19; x <= 44; x++) {
+    const p = at(x, y); if (!p || x === 31 || x === 32) continue;
+    if (p.k === '5') { p.k = '3'; p.c = skin.b; }
+    if (p.k === '6' || (ab < 0.25 && p.k === '4')) { p.k = ab < 0.25 ? '3' : '4'; p.c = ab < 0.25 ? skin.b : skin.s; }
+    const r2 = S2[p.k];
+    if (r2 === 'h') { p.k = key2('b'); p.c = set.pal[parseInt(p.k, 16)]; }
+    else if (r2 === 'd' || (ab < 0.25 && r2 === 's')) { p.k = key2(ab < 0.25 ? 'b' : 's'); p.c = set.pal[parseInt(p.k, 16)]; }
+  }
+  // 顔（目は 12行目の 29,30 / 35,36、口は 16行目）
+  const face = (x, y, k) => { if (k === '3' && set.faceSkin) k = set.faceSkin; R[y][x] = { c: k === 'r' ? '#8a2f2f' : set.pal[parseInt(k, 16)], k }; };
+  if (set.noFace) { /* フードなどで顔が見えないセットは表情を描かない */ } else if (mood === 'happy') {
+    [29, 30, 35, 36].forEach(x => face(x, 12, '3')); [[29, 11], [30, 11], [28, 12], [31, 12], [35, 11], [36, 11], [34, 12], [37, 12]].forEach(([x, y]) => face(x, y, '0'));
+    [30, 31, 32, 33].forEach(x => face(x, 15, '0')); [31, 32].forEach(x => face(x, 16, 'r')); [30, 33].forEach(x => face(x, 16, '0'));
+  } else if (mood === 'hurt') {
+    [29, 30, 35, 36].forEach(x => face(x, 12, '3')); [[29, 11], [30, 12], [29, 13], [36, 11], [35, 12], [36, 13]].forEach(([x, y]) => face(x, y, '0'));
+    [[30, 16], [31, 15], [32, 16], [33, 15]].forEach(([x, y]) => face(x, y, '0'));
+  } else if (mood === 'fight') {
+    [[29, 11], [34, 11]].forEach(([x, y]) => face(x, y, '1')); [30, 31, 32, 33].forEach(x => face(x, 16, '0'));
+  }
+
+  // 2) 筋肉レベルに合わせて列を抜く（中心から外側の列が内側へ寄る）
+  const take = (list, n) => list.slice(0, Math.max(0, Math.min(list.length, Math.round(n))));
+  const mir = l => l.map(x => 63 - x);
+  const LEG = [23, 26, 21, 25];
+  const armCols = take([11, 9, 13, 10, 12], (1 - arm) * 5), chestCols = take([28, 26], (1 - chest) * 2), legCols = take(LEG, (1 - leg) * 4);
+  // legFrom：太ももが出ているセット用。legFrom行からlegFull行にかけて、抜く列を少しずつ増やす
+  const legD = y => (set.legFrom && y >= set.legFrom && y < 73 ? take(LEG, (1 - leg) * 4 * Math.min(1, (y - set.legFrom + 1) / (set.legFull - set.legFrom + 1))) : []);
+  const edgeOf = (e, y, none) => (e && y >= e[0] && y < e[0] + e[1].length ? e[1][y - e[0]] : none);
+  const armEdge = y => edgeOf(set.armEdge, y, -1), armEdgeR = y => edgeOf(set.armEdgeR, y, 999);
+  const del = y => {
+    const d = [];
+    if (y >= 18 && y <= 68) d.push(...armCols, ...mir(armCols));
+    if (y >= 18 && y <= 50) d.push(...chestCols, ...mir(chestCols));
+    if (y >= 73) d.push(...legCols, ...mir(legCols));
+    else { const lc = legD(y); d.push(...lc, ...mir(lc)); }
+    return new Set(d);
+  };
+  const mapX = (x, D) => (x < HERO_CX ? x + [...D].filter(d => d > x && d < HERO_CX).length : x - [...D].filter(d => d < x && d >= HERO_CX).length);
+  const rowsD = R.map((_, y) => del(y));
+  // 太ももを細くした行でも、横に下ろした腕（armEdge の列まで／armEdgeR の列から）は上の行とそろえる
+  const X = (x, y) => HERO_OX + mapX(x, rowsD[y]) - (x <= armEdge(y) ? legD(y).filter(d => d > x && d < HERO_CX).length : 0) + (x >= armEdgeR(y) ? legD(y).length : 0);
+  const tagOf = (k, y) => (k === '0' ? (y <= 17 ? 'fo' : 'ol') : k === '1' || k === '2' ? 'hair' : role(k) ? 'skin' : 'x');
+  // 元絵の y0〜y1 行を板 D に置く。xf(x,y) が偽の列は置かない
+  const stamp = (D, y0, y1, xf) => {
+    for (let y = y0; y <= y1; y++) for (let x = 0; x < R[y].length; x++) {
+      const p = R[y][x]; if (!p || rowsD[y].has(x) || (xf && !xf(x, y))) continue;
+      D.set(X(x, y), HERO_OY + y, p.c, tagOf(p.k, y));
+    }
+  };
+  const A = heroBuf(HERO_W, HERO_H, set.pal[0]);
+  stamp(A, 0, R.length - 1);
+  return { A, stamp, X, arm, skin, ln: pMix(skin.s, skin.d, 0.5), ol: set.pal[0], sp: set.pal[7] }; // ln：筋肉と筋肉の重なりの線（輪郭線より薄い）
+}
+
+// 勝ったとき：ダブルバイセップス。立ち姿から腕を外し、広背筋と、力こぶを作った腕を描き足す。
+// 奥から手前の順に重ねる：広背筋 → 胴体 → 上腕（三頭・力こぶ） → 前腕 → 肩 → こぶし。
+// 手前の部位が奥の部位に重なる所は、黒い輪郭線ではなく薄い線（st.ln）にする。
+function heroBiceps(st, set) {
+  const B = heroBuf(HERO_W, HERO_H, st.ol), sk = st.skin, Y = y => HERO_OY + y, a = st.arm, ln = st.ln;
+  const keep = y => (y < 18 || y > 68 ? 0 : y <= 34 ? 19 : y <= 50 ? 18 : 17);
+  const ua = 4 + 2.1 * a, fr = 3 + 1.3 * a, F = { tag: 'skin', inner: ln };
+  const side = sg => { const e = st.X(sg < 0 ? 19 : 44, 28) + 0.5; return n => e + sg * n; };
+  // 1) 広背筋（胴体の後ろ。わきの下から腰へ逆三角に）
+  for (const sg of [-1, 1]) {
+    const o = side(sg);
+    B.poly([[o(-3), Y(25)], [o(5 + 2.5 * a), Y(27)], [o(4.5 + 2.5 * a), Y(33)], [o(0), Y(50)], [o(-4), Y(50)]], sk, { tag: 'skin', shade: (x, y) => (y - Y(29)) / 9 });
+  }
+  // 2) 胴体・頭・脚（腕の列は外す）
+  st.stamp(B, 0, 114, (x, y) => x >= keep(y) && x <= 63 - keep(y));
+  for (const sg of [-1, 1]) {
+    const o = side(sg), sh = [o(3), Y(24)], el = [o(19), Y(20.5)], wr = [o(14.5), Y(7.5)];
+    // 3) 上腕：下にたれる三頭 → 上に盛り上がる力こぶ → 腕の芯。ひとかたまりなので間に線は入れない
+    B.ell(o(10.5), sh[1] + ua * 0.45, 7, ua * 0.95, sk, F);
+    B.ell(o(11), el[1] - ua * 0.6, 5.6, ua * 0.95, sk, { tag: 'skin', out: 'bg' });
+    B.cap(sh[0], sh[1], el[0], el[1], ua * 0.8, sk, { tag: 'skin', out: 'bg', flat: true });
+    for (let n = 6; n <= 15; n++) if (B.tag(Math.round(o(n) - 0.5), Math.round(sh[1] + ua * 0.35)) === 'skin') B.set(o(n) - 0.5, sh[1] + ua * 0.35 - (n - 6) * 0.2, sk.s); // 力こぶと三頭の境目
+    // 4) 前腕（ひじから先は上腕の手前に来る）：ひじ寄りが太く、手首へ細くなる
+    B.ell(el[0] + (wr[0] - el[0]) * 0.3, el[1] + (wr[1] - el[1]) * 0.3, fr + 1.3, fr + 2.2, sk, F);
+    B.cap(el[0], el[1] + 0.5, wr[0], wr[1], fr, sk, { tag: 'skin', out: 'bg' });
+    // 5) 肩（胸と上腕の付け根の手前）
+    B.ell(o(2.5), Y(23.2), 6 + 1.6 * a, 5.6 + 1.4 * a, sk, F);
+    // 6) こぶし（いちばん手前。手首を内側に巻き込む）
+    if (set.band != null) B.cap(wr[0], wr[1] + 1.5, wr[0], wr[1] + 1.5, fr + 0.2, pTone(set.pal[set.band]), { out: 'none', flat: true, clip: (x, y) => B.tag(x, y) === 'skin' });
+    B.ell(wr[0] - sg * 1.2, wr[1] - 3, fr + 1, fr + 0.6, sk, F);
+  }
+  return B.seal().soften(ln, 0, Y(52));
+}
+
+// 負けたとき：体育座り。立ち姿の部品（頭・肩・上腕・ひざ下）を組み直し、ひざと、すねを抱える前腕を描き足す。
+// A: 立ち姿の板 / L: 部品の位置
+function composeSit(A, L) {
+  const B = heroBuf(A.w, A.h, L.ol), sk = L.skin, F = { tag: 'skin', inner: L.ln };
+  if (L.behind) B.copy(A, ...L.behind);                                               // しっぽなど、体の後ろのもの
+  B.copy(A, 0, L.torsoY0, A.w - 1, L.torsoY1, 0, L.dy);                               // 胸・肩・上腕
+  B.copy(A, L.headX0, 0, L.headX1, L.headY1, 0, L.dy + L.bow);                        // 頭（うつむく）
+  // ひざ下の左右の幅を調べる
+  const legs = [];
+  for (let x = L.legX0, s = -1; x <= L.legX1 + 1; x++) {
+    const on = x <= L.legX1 && A.C[(L.legY0 + 2) * A.w + x];
+    if (on && s < 0) s = x; if (!on && s >= 0) { legs.push([s, x - 1]); s = -1; }
+  }
+  const l0 = legs[0], l1 = legs[legs.length - 1], mid = l => (l[0] + l[1] + 1) / 2;
+  B.shape((x, y) => x > mid(l0) && x < mid(l1) && y > L.legY0 + 2 && y < L.legY1 - 3, [l0[0], L.legY0, l1[1], L.legY1], { b: L.sp }, { out: 'none' }); // 脚の間に見えるパンツ
+  for (const l of [l0, l1]) { const r = (l[1] - l[0] + 1) / 2 + 0.8; B.ell(mid(l), L.legY0 - 0.5, r, r * 0.95, sk, F); } // ひざ（胴体の手前）
+  B.copy(A, L.legX0, L.legY0, L.legX1, L.legY1);                                      // ひざ下
+  if (L.armX) {                                                                        // 上腕は、ひざの横で手前に来る
+    B.copy(A, 0, L.armY0, L.armX[0], L.torsoY1, 0, L.dy); B.copy(A, L.armX[1], L.armY0, A.w - 1, L.torsoY1, 0, L.dy);
+  }
+  const cx = (mid(l0) + mid(l1)) / 2;
+  for (const sg of [-1, 1]) {                                                          // すねを抱える前腕（脚の手前）
+    const [ex, ey] = L.elbow[sg < 0 ? 0 : 1];
+    B.cap(ex, ey + L.dy, cx + sg * 1.5, L.handY + (sg < 0 ? 0 : 1), L.fr, sk, F);
+  }
+  for (const sg of [-1, 1]) B.ell(cx + sg * 2.6, L.handY + 0.5, L.fr * 0.95, L.fr * 0.95, sk, F); // 組んだ手（いちばん手前）
+  return B.seal().soften(L.ln);
+}
+function heroSit(st, set) {
+  const Y = y => HERO_OY + y, a = st.arm;
+  return composeSit(st.A, {
+    ol: st.ol, skin: st.skin, ln: st.ln, sp: st.sp, dy: 44, bow: 3,
+    armX: [st.X(17, 40), st.X(46, 40)], armY0: Y(35),
+    torsoY0: Y(18), torsoY1: Y(44), headX0: 0, headX1: HERO_W - 1, headY1: Y(17),
+    legX0: st.X(15, 100), legX1: st.X(48, 100), legY0: Y(84), legY1: Y(114),
+    elbow: [[st.X(10, 44), Y(44)], [st.X(53, 44), Y(44)]], handY: Y(93), fr: 3.2 + 1.3 * a,
+    behind: set.tail ? [HERO_OX + set.tail[0], Y(set.tail[1]), HERO_OX + set.tail[2], Y(set.tail[3])] : null,
+  });
+}
+
+// pose: relax=通常（リラックスポーズ） biceps=勝ったとき（ダブルバイセップス） sit=負けたとき（体育座り）
+function heroPixels(pl, mood, pose, set = HERO_SETS[0]) {
+  if (set.old) { // 元祖マッチョ（コード描画）
+    const A = drawHeroOld(pl, {}, mood, pose === 'biceps' ? 'flex' : 'stand');
+    const ln = pMix(SKN.s, SKN.d, 0.5);
+    if (pose === 'relax') return A;
+    if (pose === 'biceps') { const B = heroBuf(P_W, P_H, P_OL); B.copy(A, 0, 0, P_W - 1, P_H - 1); return B.soften(ln); } // 重なりの線を薄く
+    return composeSit(A, {
+      ol: P_OL, skin: SKN, ln, sp: '#353a43', dy: 32, bow: 2,
+      torsoY0: 18, torsoY1: 46, headX0: P_X - 10, headX1: P_X + 10, headY1: 25,
+      legX0: 0, legX1: P_W - 1, legY0: 75, legY1: P_H - 1,
+      elbow: [[P_X - A.ax, 46], [P_X + A.ax, 46]], handY: 83, fr: A.fR + 0.2,
+    });
+  }
+  const st = heroStand(pl, mood, set);
+  return pose === 'biceps' ? heroBiceps(st, set) : pose === 'sit' ? heroSit(st, set) : st.A;
+}
+function drawHero(pl, mood, pose, set = HERO_SETS[0]) {
+  const B = heroPixels(pl || {}, mood, pose, set);
+  const cv = document.createElement('canvas'); cv.width = B.w; cv.height = B.h;
+  const cx = cv.getContext('2d'), im = cx.createImageData(B.w, B.h);
+  B.C.forEach((col, i) => { if (!col) return; const [r, g2, b2] = pRgb(col); im.data.set([r, g2, b2, 255], i * 4); });
+  cx.putImageData(im, 0, 0);
+  return cv.toDataURL('image/png');
+}
+
+// ---------- 主人公のキャラクターセット ----------
+// ドット絵のセットは「64×115ドット・同じ体の配置」のテンプレートで描く。
+// 色番号の意味も共通（0=輪郭 1,2=髪 3〜6=肌 7〜9=短パン a〜d=靴）にすれば、筋肉の成長・表情・3つのポーズがそのまま使える。
+// 追加するときは { id, name, pal: [14色], rows: decodeHeroRle('...') } を並べるだけ。
+// 元絵は腕を体の横に下ろした立ち姿（リラックスポーズ）にする。
+const decodeHeroRle = s => s.split('/').map(r => r.replace(/(\d*)([A-N.])/g, (_, n, c) => (c === '.' ? c : (c.charCodeAt(0) - 65).toString(16)).repeat(n ? +n : 1)));
+// 片腕を上げた元絵を、左半分を鏡写しにして、両腕を下ろした立ち姿（幅64）にする
+const mirrorLeft = rows => rows.map((r, y) => (y < 18 ? r.slice(0, 41).padEnd(64, '.') : r.slice(0, 32) + [...r.slice(0, 32)].reverse().join('')));
+const HERO_SETS = [
+  { id: 'warrior', name: 'マッスル戦士', pal: HERO_PAL, rows: HERO_ROWS },
+  { id: 'classic', name: '元祖マッチョ', old: true }, // 以前のコード描画のドット絵
+  // 覆面レスラー：赤い覆面・トランクス・リングシューズ。元絵は片腕を上げた幅72ドットなので、mirrorLeft で両腕を下ろした立ち姿にして使う
+  // 1,2=覆面 a,b=白いふち・テーピング c,d=リングシューズ 7〜9=レスラーパンツ（ショートタイツ）
+  { id: 'luchador', name: '覆面レスラー', pal: ['#2a1612', '#c42638', '#7a1322', '#d29462', '#a5653f', '#efbd8a', '#74432c', '#7a1424', '#e8505f', '#bf2234', '#f4f1e8', '#c9c6be', '#b52032', '#6a111c'],
+    rows: mirrorLeft(decodeHeroRle('29.6A19.3A15./27.2A6B2A16.AFDEA14./26.A10BA15.AFDEA14./25.A5B2K4BCA14.AFDEA.A12./24.A5B4K3B2CA13.AFDE2AF3A9./24.A4B6K2B2CA13.AFDEA2F3DA8./24.A4B6K2B2CA13.AFDEA6DA7./24.AK4B4K3BCKA13.4AD7EA6./24.AK5B2K4BCKA12.A2FD2E8DA5./24.AB2K3B2K4BKCA12.A5D8EA5./23.A3B12KCA11.A4D2E4D3EA5./23.A3BK4D2K4DKCA12.AD2ED7E2A5./23.A3BKD2AD2KD2ADKCA12.2A5D4EAEA5./24.A2BK4D2K4DKA13.AFA2D5EA2EA5./25.A13K14.A2F3AE3A3EA5./25.AK10DKA11.2A.A4FDA3D3EA5./25.AK3D4E3DKA8.3A2F2A4F5D3EA5./25.AK10DKA7.A5F3D3F5D3EA5./12.7A4.2A2F10E2F2A4.A5F5D2F5D3EA5./10.2A7D2A.ADF14DFDA.2A4F8DF6D2EA5./9.A2D6F3DADF16DFDAD4F16D3EA4./8.AD10F24D2F18D3EA4./7.AD12F22D2F19D3EA4./7.A2D10F44D3EA4./6.A5D6F39D2E5D3E2A3./6.A14DE6F3D2E3D6FAF12D2E6D3E2A3./6.A13DE8F2D2E2D7FAF10D4E6D2E2A4./6.A13DE9FD2ED8FA10D5E6D2E2A4./6.AE11DED8F2D2E2D6FA9D6EF6DEAEA4./6.AE10DG3D6F3D2E3D5FA8D6ED2A4D2AEA5./7.AE9DG12D2E9DA5D7ED3E4A2EA6./7.ADE8DG12D2E9DA7D2E2D10EA7./6.AD2F2E6DG12D2E9DA8D11E2A8./5.AD4F7EG6DE5D2E5DE4DA5D10E3A10./5.AD6F5E2G10DG2EG10DAD11E2A13./4.A3D6F4DA2G8D2G2E2G8DG.A8E3A15./4.A4D4F5DA3G6D2GD2ED2G6D2G2.3A2E3A18./4.A13DAED8G2D2E2D8GD5.2A21./4.A13DAE3D4G4D2E4D4G3D28./4.A2DE10DA3E3DE5F2E5FE3D2E28./4.A2DE10DA2E4DE5D2E5DE4DE28./4.A2DE10DA2EDE2D14E2DEDE28./4.AEDE9DEA2E4DE5F2E5FE4DE28./5.ADE9D2A3E3DE5D2E5DE3D2E28./5.A2E8DE2A2E4D14E4DE28./6.AE7DEA.A2EDE2DE5F2E5FE2DEDE28./6.AD3F3D2EA.A2E4DE5D2E5DE4DE28./5.A7FDEA2.A2E4D14E4DE28./4.AD7F2DA3.AE10D2E10DEA27./3.A2D7F3DA2.AE10D2G10DEA27./3.A4D3F5DA2.AE10D2E10DEA27./3.A12DA.A26HA26./3.A12D3AIHIHIHIHIHIHIHIHIHIHIHIHIH2A25./3.A12D2AH27JHA24./3.A12K2AH27JHA24./3.A12L2AH28JHA23./4.AE8DE2AH30JHA22./4.A2E6D2E2A2EKH24JHK2EA22./5.A2E4D2E2A2E2DKH21JHK2D3EA21./5.A8D2A2E2D2FKH17JHK2F2D3EA21./4.A10D2A2E2D2FDKH13JHK2D2F2D3EA21./4.A10D2A2E2D2F2DKH11JHK3D2F2D3EA21./4.A10D2A2E2D2F4DKH7JHK4D2F3D2EA22./4.A3DEDEDE2D2A2E2D2F5DKH4JHK6D2F3D2EA22./4.AE8DE2A2E2D2F6DEKHJHK7D2F3D2EA22./5.AE6GE2A2E2D2F7D2E2K2E7D2F3D2EA22./6.A6EA.A2E2D2F7D2E2G2E7D2F3D2EA22./7.A4EA2.A2E2D2F5D2F2E2G2ED2F4D2F3D2EA22./8.4A3.A2E9D2F2E2G2ED2F9D2EA22./15.A2E9D2F2E2G2E2F9D2EA23./15.A2E9D2F2E2G2E2F9D2EA23./15.A2E9D2F2E2G2E2F9D2EA23./15.A2E8D5E2G5E8D2EA23./15.A3DE7DE3D2G3DE7DE3DA23./15.A3DE7DE3D2G3DE7DE3DA23./15.A3DE7DE3D2G3DE7DE3DA23./15.A2DE8DE3D2G3DE8DE2DA23./15.AEDE9DE2D2G2DE9DEDEA23./16.ADE9DE2D2G2DE9DEDA24./16.ADE7D2FE2D2G2DE2F7DEDA24./16.AE7D4FDE2GED4F7DEA24./17.AE5D6F4A6F5DEA25./17.AE5D6FA2.A6F5DEA25./18.A11DA2.A11DA26./18.A11DA2.A11DA26./18.A11DA2.A11DA26./18.A2DED3FDE2DA2.A2DED3FDE2DA26./18.A11DA2.A11DA26./18.A11DA2.A11DA26./18.A2D5F2DEDA2.ADE2D5F2DA26./18.A10KA4.A10KA26./17.A12KA2.A12KA25./17.A12MA2.A12MA25./16.A6M2K6M2A7M2K5MA24./16.A14M2A14MA24./16.A14M2A14MA24./16.A6M2K6M2A7M2K5MA24./16.A14M2A14MA24./16.AN12MN2AN12MNA24./16.AN5M2K5MN2AN6M2K4MNA24./17.AN10MNA2.AN10MNA25./17.A3N9MA2.A9M3NA25./18.A2N2M2K5MA2.A6M2KM2NA26./19.AN9MA2.A9MNA27./19.AN9MA2.A9MNA27./19.A10MA2.A10MA27./19.A10MA2.A10MA27./16.4A10NA2.A10N4A24./15.AN13LN2AN13LNA23./15.A15N2A15NA23./15.A5N6L4N2A4N6L5NA23./15.A15N2A15NA23./15.A15N2A15NA23./15.A15N2A15NA23./16.15A2.15A24.')), band: 10, // band：ダブルバイセップスの手首に巻くテーピングの色番号
+    // レスラーパンツで太ももが出ているので、51行目から少しずつ脚を細くする（腕は armEdge の列までずらさない）
+    legFrom: 51, legFull: 66, armEdge: [51, [16, 16, 16, 16, 16, 15, 15, 14, 14, 15, 15, 15, 15, 15, 14, 13, 12, 11]] },
+  // 全身タイツ：フード・アイマスク・口のプレートまで一体のスーツ（マッスル戦士と同じ立ち姿・幅64ドット）
+  // 3〜6=スーツ（肌の番号なので、筋肉の陰影がスーツの光沢になる） 7〜9=腰のパネル（パンツを装備すると色が変わる） 1,2=アイマスク a,b=口のプレート
+  { id: 'zentai', name: '全身タイツ', pal: ['#050507', '#15161b', '#7d8697', '#4b505b', '#33363e', '#8e97a8', '#24262c', '#383c45', '#5a606c', '#4b505b', '#666c79', '#0a0a0c', '#50545e', '#1d1e23'], noFace: true,
+    rows: decodeHeroRle('29.6A29./27.2A2DG3D2A27./26.A2DFDG2DF2DA26./25.A2DF2DG3DF2DA25./24.A6DG7DA24./24.A6DG7DA24./24.A6DG7DA24./24.A6DG7DA24./24.A6DG7DA24./24.A6DG7DA24./23.A2B3C11BA23./23.A2BC13BA23./23.A16BA23./24.A2B2C10BA24./25.AFD8KDFA25./25.A2DKLKLKLKL2DA25./25.A2D2KLKLKLK2DA25./25.2AD8KD2A25./12.7A4.2A2F10G2F2A4.7A12./10.2A7D2A.ADF14DFDA.2A7D2A10./9.A2D6F3DADF16DFDA3D6F2DA9./8.AD10FG22DG10FDA8./7.AD10FGF22DFG10FDA7./7.A2D8FGF24DFG8F2DA7./6.A5D5FG28DG5F5DA6./6.A9DG4DE6F3D2E3D6FE4DG9DA6./6.A8DG4DE8F2D2E2D8FE4DG8DA6./6.A7DG5DE9FD2ED9FE5DG7DA6./6.AE11DED8F2D2E2D8FDE11DEA6./6.AE10DG3D6F3D2E3D6F3DG10DEA6./7.AE9DG12D2E12DG9DEA7./7.ADE8DG12D2E12DG8DEDA7./6.AD2F2E6DG12D2E12DG6D2E2FDA6./5.AD4F7EG6DE5D2E5DE6DG7E4FDA5./5.AD6F5E2G10DG2EG10D2G5E6FDA5./4.A3D6F4DA2G8D2G2E2G8D2GA4D6F3DA4./4.A4D4F5DA3G6D2GD2ED2G6D3GA5D4F4DA4./4.A13DAED8G2D2E2D8GDEA13DA4./4.A13DAE3D4G4D2E4D4G3DEA13DA4./4.A2DE10DA3E3DE5F2E5FE3D3EA10DE2DA4./4.A2DE10DA2E4DE5D2E5DE4D2EA10DE2DA4./4.A2DE10DA2EDE2D14E2DED2EA10DE2DA4./4.AEDE9DEA2E4DE5F2E5FE4D2EAE9DEDEA4./5.ADE9D2A3E3DE5D2E5DE3D3E2A9DEDA5./5.A2E8DE2A2E4D14E4D2E2AE8D2EA5./6.AE7DEA.A2EDE2DE5F2E5FE2DED2EA.AE7DEA6./6.AD3F3D2EA.A2E4DE5D2E5DE4D2EA.A2E3D3FDA6./5.A7FDEA2.A2E4D14E4D2EA2.AED7FA5./4.AD7F2DA3.AE10D2E10DEA3.A2D7FDA4./3.A2D7F3DA2.AE10D2G10DEA2.A3D7F2DA3./3.A4D3F5DA2.AE10D2E10DEA2.A5D3F4DA3./3.A12DA.A3HI22HA.A12DA3./3.A12D2AH2JI23JH2A12DA3./3.A12G2AH2JI23JH2A12GA3./3.A12D2AH2JI23JH2A12DA3./3.AE10DE2AH26JH2AE10DEA3./4.AE8DE2A2EH24JH2E2AE8DEA4./4.A2E6D2E2A2E2DH20JH2D2E2A2E6D2EA4./5.A2E4D2E2A2E2D2FDH16JHD2F2D2E2A2E4D2EA5./5.A8D2A2E2D2F2DH14JH2D2F2D2E2A8DA5./4.A10D2A2E2D2F3DH10JH3D2F2D2E2A10DA4./4.A10D2A2E2D2F5DH6JH5D2F2D2E2A10DA4./4.A10D2A2E2D2F6DH4JH6D2F2D2E2A10DA4./4.A3DEDEDE2D2A2E2D2F6D2E2H2E6D2F2D2E2A2DEDEDE3DA4./4.AE8DE2A2E2D2F6D2E2G2E6D2F2D2E2AE8DEA4./5.AE6GE2A2E2D2F7D2E2G2E7D2F2D2E2AE6GEA5./6.A6EA.A2E2D2F7D2E2G2E7D2F2D2EA.A6EA6./7.A4EA2.A2E2D2F5D2F2E2G2E2F5D2F2D2EA2.A4EA7./8.4A3.A2E9D2F2E2G2E2F9D2EA3.4A8./15.A2E9D2F2E2G2E2F9D2EA15./15.A2E9D2F2E2G2E2F9D2EA15./15.A2E9D2F2E2G2E2F9D2EA15./15.A2E11D2E2G2E11D2EA15./15.A3DE7DE3D2G3DE7DE3DA15./15.A3DE7DE3D2G3DE7DE3DA15./15.A3DE7DE3D2G3DE7DE3DA15./15.A2DE8DE3D2G3DE8DE2DA15./15.AEDE9DE2D2G2DE9DEDEA15./16.ADE9DE2D2G2DE9DEDA16./16.ADE7D2FE2D2G2DE2F7DEDA16./16.AE7D4FDE2GED4F7DEA16./17.AE5D6F4A6F5DEA17./17.AE5D6FA2.A6F5DEA17./18.A11DA2.A11DA18./18.A11DA2.A11DA18./18.A11DA2.A11DA18./18.A2DED3FDE2DA2.A2DED3FDE2DA18./18.A11DA2.A11DA18./18.A11DA2.A11DA18./18.A2D5F2DEDA2.ADE2D5F2DA18./18.AD7F2DA4.A2D7FDA18./17.AD9F2DA2.A2D9FDA17./17.A2D7F3DA2.A3D7F2DA17./16.A4D5F5D2A5D5F4DA16./16.A14D2A14DA16./16.A14D2A14DA16./16.A14G2A14GA16./16.A14D2A14DA16./16.AE12DE2AE12DEA16./16.AE12DE2AE12DEA16./17.AE10DEA2.AE10DEA17./17.A3E9DA2.A9D3EA17./18.A2E9DA2.A9D2EA18./19.AE9DA2.A9DEA19./19.AE9DA2.A9DEA19./19.A10GA2.A10GA19./19.A10DA2.A10DA19./16.4A10EA2.A10E4A16./15.AD13ED2AD13EDA15./15.A15D2A15DA15./15.A5D6E4D2A4D6E5DA15./15.A15D2A15DA15./15.A15D2A15DA15./15.A15E2A15EA15./16.15A2.15A16.'),
+    legFrom: 51, legFull: 66, armEdge: [51, [16, 16, 16, 16, 16, 15, 15, 14, 14, 15, 15, 15, 15, 15, 14, 13, 12, 11]],
+    armEdgeR: [51, [47, 47, 47, 47, 47, 48, 48, 49, 49, 48, 48, 48, 48, 48, 49, 50, 51, 52]] },
+  // シャチ：黒い体に白いお腹・頭に背びれ・体の後ろにしっぽ（マッスル戦士と同じ立ち姿・幅64ドット）
+  // 3〜6=黒い体 a〜d=白いお腹・顔（skin2で「肌」扱い。服を着ると上書きされる） 1,2=背びれ 7〜9=腰の白いパネル（パンツ装備で色が変わる）
+  { id: 'orca', name: 'シャチ', pal: ['#0b0d14', '#232733', '#5a6478', '#2e3340', '#1d2029', '#56607a', '#151820', '#b9c0cc', '#ffffff', '#e6eaf0', '#e6eaf0', '#b9c0cc', '#ffffff', '#8e97a6'],
+    skin2: { a: 'b', b: 's', c: 'h', d: 'd' }, faceSkin: 'a',
+    rows: decodeHeroRle('31.AC3BA27./30.AC3BA28./29.A2C3BA28./27.3AC3B2A28./26.A3DC3B2DA27./25.AD2FD4B3DA26./24.ADF11DA25./23.A2DK9DK2DA24./23.A5K5D5KA24./22.A2D3K7D3K2DA23./22.A17DA23./22.AD5KAK2D3KA2KDA23./22.AD5K2A2D2K2A2KEA23./23.A6KDF2D5KA24./23.A6KE2DE5KA24./24.A3KN2K2L2KN2KA25./25.A3K6N2KA26./26.2A7L2A27./12.7A4.2A2FE7ALE2F2A4.7A12./10.2A7D2A.ADFD12KDFDA.2A7D2A10./9.A2D6F3DAKM16KMKA3D6F2DA9./8.AD10FD22KD10FDA8./7.AD12F22K12FDA7./7.A2D10FD22KD10F2DA7./6.A5D6F3D22K3D6F5DA6./6.A14DL6M3K2L3K6ML14DA6./6.A13DE8M2K2L2K8ME13DA6./6.A13DE9MK2LK9ME13DA6./6.AE11DED8M2K2L2K8MDE11DEA6./6.AE10DG2DK6M3K2L3K6MK2DG10DEA6./7.AE9DG2D10K2L10K2DG9DEA7./7.ADE8DG2D10K2L10K2DG8DEDA7./6.AK2F2E6DG3D9K2L9K3DG6D2E2FKA6./5.AK2M2F7EG4D2KL5K2L5KL2K4DG7E2F2MKA5./5.AK2M4F5E2G4D6KN2LN6K4D2G5E4F2MKA5./4.AD2KM5F4DA2G4D4K2N2L2N4K4D2GA4D5FM2KDA4./4.AD3K4F5DA3G4D2K2NK2LK2N2K4D3GA5D4F3KDA4./4.AD3K9DAED5G3N2K2L2K3N5GDEA9D3KDA4./4.AD3K9DAE3D3GN4K2L4KN3G3DEA9D3KDA4./4.A2DL10DA3E3DE5M2L5ME3D3EA10DL2DA4./4.A2DE10DA2E4DE5K2L5KE4D2EA10DE2DA4./4.A2DE10DA2EDE2DE12LE2DED2EA10DE2DA4./4.AEDE9DEA2E4DE5M2L5ME4D2EAE9DEDEA4./5.ADE9D2A3E3DE5K2L5KE3D3E2A9DEDA5./5.A2E8DE2A2E4DE12LE4D2E2AE8D2EA5./6.AE7DEA.A2EDE2DE5M2L5ME2DED2EA.AE7DEA6./6.AD3F3D2EA.A2E4DE5K2L5KE4D2EA.A2E3D3FDA6./5.A7FDEA2.A2E4DE12LE4D2EA2.AED7FA5./4.AD7F2DA3.AE5D5K2L5K5DEA3.A2D7FDA4./3.A2D7F3DA2.AE5D5K2N5K5DEA2.A3D7F2DA3./3.A4D3F5DA2.AE5D5K2L5K5DEA2.A5D3F4DA3./3.A12DA.A2E5DHI9JH5D2EA.A12DA3./3.A12D2A2E6DHI9JH6D2E2A12DA3./3.A12D2A2E7DHI7JH7D2E2A12DA3./3.A12D2A2E7DH8JH7D2E2A12DA3./3.AE10DE2A2E7DH8JH7D2E2AE10DEA3./4.AE8DE2A2E9DH6JH9D2E2AE8DEA4./4.A2E6D2E2A2E9DH6JH9D2E2A2E6D2EA4./5.A2E4D2E2A2E2D2F7DH4JH7D2F2D2E2A2E4D2EA5./5.A8D2A2E2D2F7DH4JH7D2F2D2E2A8DA5./4.A10D2A2E2D2F6DEH2JHE6D2F2D2E2A10DA4./4.A10D2A2E2D2F6DEH2JHE6D2F2D2E2A10DA4./4.A10D2A2E2D2F6D2E2H2E6D2F2D2E2A10DA4./4.A3DEDEDE2D2A2E2D2F6D2E2H2E6D2F2D2E2A2DEDEDE3DA4./4.AE8DE2A2E2D2F6D2E2G2E6D2F2D2E2AE8DEA4./5.AE6GE2A2E2D2F7D2E2G2E7D2F2D2E2AE6GEA5./6.A6EA.A2E2D2F7D2E2G2E7D2F2D2EA.A6EA6./7.A4EA2.A2E2D2F5D2F2E2G2E2F5D2F2D2EA2.A4EA7./8.4A3.A2E9D2F2E2G2E2F9D2EA3.4A8./14.2A2E9D2F2E2G2E2F9D2EA15./13.ADA2E9D2F2E2G2E2F9D2EA15./13.ADA2E9D2F2E2G2E2F9D2EA15./13.ADA2E11D2E2G2E11D2EA15./13.ADA3DE7DE3D2G3DE7DE3DA15./12.A2DA3DE7DE3D2G3DE7DE3DA15./12.A2DA3DE7DE3D2G3DE7DE3DA15./12.A2DA2DE8DE3D2G3DE8DE2DA15./11.A3DAEDE9DE2D2G2DE9DEDEA15./11.A3DEADE9DE2D2G2DE9DEDA16./11.A2D2EADE7D2FE2D2G2DE2F7DEDA16./10.A3D2EAE7D4FDE2GED4F7DEA16./10.A3D2EKAE5D6F4A6F5DEA17./10.A2D2E2KAE5D6FA2.A6F5DEA17./9.A3D2E3KA11DA2.A11DA18./9.A3D2E2K2A11DA2.A11DA18./9.A2D2E3K2A11DA2.A11DA18./8.A3D2E2KA.A2DED3FDE2DA2.A2DED3FDE2DA18./8.A2D2E3KA.A11DA2.A11DA18./8.A2D2E2KA2.A11DA2.A11DA18./7.A2D2E3KA2.A2D5F2DEDA2.ADE2D5F2DA18./7.A2D2E2KA3.AD7F2DA4.A2D7FDA18./6.A3DE3KA2.AD9F2DA2.A2D9FDA17./6.A2D2E2KA3.A2D7F3DA2.A3D7F2DA17./6.A2DE3KA2.A4D5F5D2A5D5F4DA16./5.A2D2E2KA3.A14D2A14DA16./5.A2D2E2KA3.A14D2A14DA16./5.A2DE2KA4.A14D2A14DA16./4.A2D2E2KA4.A14D2A14DA16./.3A4DEK2A4.AE12DE2AE12DEA16./A5DED4EA3.AE12DE2AE12DEA16./A7D5EA3.AE10DEA2.AE10DEA17./A7D6EA2.A3E9DA2.A9D3EA17./A2K3D2A4E3KA2.A2E9DA2.A9D2EA18./3K2DA2.2A2E3KA3.AE9DA2.A9DEA19./A2K2A5.2A3KA3.AE9DA2.A9DEA19./.2A9.3A4.A10DA2.A10DA19./19.A10DA2.A10DA19./16.4A10EA2.A10E4A16./15.AD13ED2AD13EDA15./15.A15D2A15DA15./15.A3DGDEG2EGE4D2A4DG2EG2EG4DA15./15.A15E2A15EA15./15.A15K2A15KA15./15.A15L2A15LA15./16.15A2.15A16.'),
+    tail: [0, 69, 14, 104], // 体育座りのとき、体の後ろにそのまま置く範囲（しっぽ）
+    legFrom: 51, legFull: 66, armEdge: [51, [16, 16, 16, 16, 16, 15, 15, 14, 14, 15, 15, 15, 15, 15, 14, 13, 12, 11]],
+    armEdgeR: [51, [47, 47, 47, 47, 47, 48, 48, 49, 49, 48, 48, 48, 48, 48, 49, 50, 51, 52]] },
+];
+const heroSet = () => HERO_SETS.find(s => s.id === (S.settings && S.settings.hero)) || HERO_SETS[0];
+const charImgFor = (set, pl) => `<img class="hero-svg pix" src="${drawHero(pl || {}, 'normal', 'relax', set)}" alt="${esc(set.name)}" draggable="false">`;
 
 // ---------- ボスの絵（自キャラと同じ線・塗りの手描き風SVG） ----------
 function bossSvg(art, mood = 'normal', cls = '') {
@@ -2463,7 +2892,7 @@ function fight() {
   const startBh = bossHpLeft(g, boss), st = bNew(h, startBh, startKi()), sp = spName(h);
   return dialog(`<div class="battle">
       <div class="bt-top"><span id="bt-turn"></span><span class="ki">気合 <span id="bt-ki" class="kidots">${kiDots(st.ki)}</span></span></div>
-      <div class="bt-row"><div class="bt-side"><div id="bt-me">${charSvg(h.pl, g.equip, 'mini', 'fight')}</div><b>あなた</b><div class="hpbar"><i id="bt-ph" style="width:100%"></i></div><small id="bt-phn">${h.hp}/${h.hp}</small></div>
+      <div class="bt-row"><div class="bt-side"><div id="bt-me">${charSvg(h.pl, 'mini', 'relax', 'fight')}</div><b>あなた</b><div class="hpbar"><i id="bt-ph" style="width:100%"></i></div><small id="bt-phn">${h.hp}/${h.hp}</small>${gearHtml(g.equip, { cls: 'sm' })}</div>
       <div class="bt-vs">VS</div>
       <div class="bt-side"><div class="bt-boss" id="bt-boss">${bossSvg(boss.art)}</div><b>${esc(boss.name)}</b><div class="hpbar boss"><i id="bt-bh" style="width:${(startBh / boss.hp) * 100}%"></i></div><small id="bt-bhn">${startBh}/${boss.hp}</small></div></div>
       <div class="bt-log" id="bt-log" aria-live="polite"><div class="muted">行動を選ぼう。ボスが力をためたら「ぼうぎょ」が有効</div></div>
@@ -2481,7 +2910,7 @@ function fight() {
       q('#bt-ph').style.width = (st.ph / h.hp) * 100 + '%'; q('#bt-phn').textContent = `${st.ph}/${h.hp}`;
       q('#bt-bh').style.width = (st.bh / boss.hp) * 100 + '%'; q('#bt-bhn').textContent = `${st.bh}/${boss.hp}`;
     };
-    const me = (mood, pose) => { q('#bt-me').innerHTML = charSvg(h.pl, g.equip, 'mini', mood, pose); };
+    const me = (mood, pose = 'relax') => { q('#bt-me').innerHTML = charSvg(h.pl, 'mini', pose, mood); };
     const bs = mood => { q('#bt-boss').innerHTML = bossSvg(boss.art, mood); };
     const shake = sel => { const el = q(sel); el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); };
     const say1 = (txt, cls) => { const line = document.createElement('div'); line.className = cls; line.textContent = txt; logEl.prepend(line); };
@@ -2500,7 +2929,7 @@ function fight() {
       q('#bt-ph').style.width = (s.ph / h.hp) * 100 + '%'; q('#bt-phn').textContent = `${s.ph}/${h.hp}`;
       q('#bt-bh').style.width = (s.bh / boss.hp) * 100 + '%'; q('#bt-bhn').textContent = `${s.bh}/${boss.hp}`;
       if (e.k === 'atk') { say1(`💪 あなたの攻撃！${e.crit ? '会心の一撃！' : ''} ${e.v}ダメージ`, 'me'); bs('hurt'); shake('#bt-boss'); me('fight'); }
-      if (e.k === 'sp') { say1(`🔥 ${sp}！！ ${e.v}ダメージ`, 'me spx'); bs('hurt'); shake('#bt-boss'); me('happy', 'flex'); }
+      if (e.k === 'sp') { say1(`🔥 ${sp}！！ ${e.v}ダメージ`, 'me spx'); bs('hurt'); shake('#bt-boss'); me('happy'); }
       if (e.k === 'grd') { say1('🛡️ 身を固めて気合をためた', 'me'); me('fight'); bs('normal'); }
       if (e.k === 'charge') { say1(`⚠️ ${boss.name}が力をためている…！`, 'warnl'); bs('normal'); }
       if (e.k === 'batk') { say1(`${boss.name}の攻撃！${e.crit ? '痛恨の一撃！' : ''} ${e.v}ダメージ${e.guard ? '（半減）' : ''}`, 'en'); bs('normal'); me(e.guard ? 'fight' : 'hurt'); shake('#bt-me'); }
@@ -2524,11 +2953,11 @@ function fight() {
         g.beaten++; g.bonus += boss.coins; g.bossDmg = 0;
         const it = boss.reward && itemById(boss.reward);
         if (it && !g.owned.includes(it.id)) g.owned.push(it.id);
-        gtouch(); me('happy', 'flex'); bs('hurt'); q('#bt-boss').classList.add('down');
+        gtouch(); me('happy', 'biceps'); bs('hurt'); q('#bt-boss').classList.add('down');
         html = `<div class="bt-res win">🎉 勝利！</div><p>🪙 ${boss.coins}コイン獲得${it ? `<br>非売品「${it.icon} ${esc(it.name)}」を手に入れた！（装備から付けられます）` : ''}</p>`;
       } else {
         const dealt = startBh - st.bh;
-        g.bossDmg = boss.hp - st.bh; gtouch(); me('hurt');
+        g.bossDmg = boss.hp - st.bh; gtouch(); me('hurt', 'sit');
         html = `<div class="bt-res lose">${why === 'timeout' ? `⌛ 時間切れ…（${MAXT}ターン）` : why === 'run' ? '🏃 にげた' : '💥 敗北…'}</div><p>今回 <b>${dealt}</b> ダメージを与えた！<br>${esc(boss.name)}の残りHP <b>${Math.max(1, st.bh)}/${boss.hp}</b> は次回に引き継がれます</p><p class="muted small">トレーニングした日にまた挑戦しよう</p>`;
       }
       q('#bt-end').innerHTML = html;
@@ -2562,7 +2991,7 @@ function celebrate(a, msg = '') {
   const d = gameDiff(a); if (d.gain <= 0 && !d.big.length && !msg) return;
   const fx = document.querySelector('#fx'); if (!fx) return;
   const h = hero(), g = gstate(), big = d.big.length > 0;
-  fx.innerHTML = `<div class="fx-pop ${big ? 'big' : ''}"><div class="fx-char">${charSvg(h.pl, g.equip, '', 'happy', 'flex')}</div>
+  fx.innerHTML = `<div class="fx-pop ${big ? 'big' : ''}"><div class="fx-char">${charSvg(h.pl, '', 'biceps')}</div>
     <div class="fx-txt">${msg ? `<div class="fx-msg">${esc(msg).replace(/[　・]/g, '<br>')}</div>` : ''}${d.big.map(([t, s]) => `<div class="fx-big"><b>${t}</b><span>${esc(s)}</span></div>`).join('')}${d.gain > 0 ? `<div class="fx-gain">🪙 +${d.gain}</div>` : ''}</div></div>`;
   const pop = fx.firstElementChild;
   clearTimeout(fxTimer);
@@ -2611,7 +3040,7 @@ function renderGame() {
   const el = document.querySelector('#view-game'); if (!el) return;
   const g = gstate(), h = hero(), wi = h.wi;
   let x = `<section class="card hero">
-    <div class="hero-wrap">${charSvg(h.pl, g.equip, 'idle')}</div>
+    <div class="hero-wrap">${charSvg(h.pl, 'idle')}${gearHtml(g.equip, { btn: true })}<button class="chg" data-gchar="1">👤 キャラ変更</button></div>
     <div class="hero-info">
       <div class="ttl">${titleOf(h.lv.L)}</div>
       <div class="lvl">Lv <b>${h.lv.L}</b></div>
@@ -2643,7 +3072,7 @@ function renderGame() {
       const cur = g.equip[slot];
       return `<div class="eqrow"><div class="eqh"><span>${l}</span><b>${cur ? `${itemById(cur).icon} ${esc(itemById(cur).name)}` : '<span class="muted">なし</span>'}</b></div>
         <div class="chips">${owned.length ? owned.map(it => `<button class="chip ${cur === it.id ? 'on' : ''} ${it.special ? 'sp' : ''}" data-geq="${it.id}">${it.icon} ${esc(it.name)}<small> ${statLine(it)}</small></button>`).join('') : '<span class="muted small">持っていません</span>'}</div></div>`;
-    }).join('')}<p class="muted small">付けている装備をもう一度タップすると外せます。</p></section>`;
+    }).join('')}<p class="muted small">付けている装備をもう一度タップすると外せます。装備はキャラクターの下に並びます（体には重ねません）。</p></section>`;
   }
 
   if (gtab === 'shop') {
@@ -2688,11 +3117,27 @@ function resetDialog() {
   });
 }
 
+function charDialog() {
+  const h = hero(), g = gstate(), cur = heroSet().id;
+  return dialog(`<h3>キャラクターを選ぶ</h3>
+    <div class="chargrid">${HERO_SETS.map(s => `<button class="charopt ${s.id === cur ? 'on' : ''}" data-c="${s.id}"><span class="pv">${charImgFor(s, h.pl)}</span><b>${esc(s.name)}</b>${s.id === cur ? '<small>使用中</small>' : ''}</button>`).join('')}</div>
+    <p class="muted small">見た目だけが変わります。レベル・筋肉・装備はそのままです。勝つとダブルバイセップス、負けると体育座りのポーズになります。</p>
+    <div class="row2"><button class="ghost" data-c="0" style="grid-column:1/3">閉じる</button></div>`,
+  (m, close) => {
+    m.querySelector('.sheet').onclick = e => {
+      const b = e.target.closest('[data-c]'); if (!b) return;
+      const id = b.dataset.c;
+      if (id !== '0' && id !== cur) { S.settings.hero = id; gtouch(); toast(`${HERO_SETS.find(s => s.id === id).name}に変えました`); }
+      close(null);
+    };
+  });
+}
+
 function shopDialog(id) {
   const it = itemById(id), g = gstate(), h = hero();
   const own = g.owned.includes(id), can = h.coins >= it.price;
   const preview = { ...g.equip, [it.slot]: it.id };
-  return dialog(`<div class="shopdlg"><div class="pv">${charSvg(h.pl, preview)}</div>
+  return dialog(`<div class="shopdlg"><div class="pv">${charSvg(h.pl)}${gearHtml(preview, { hl: it.id })}</div>
     <h3>${it.icon} ${esc(it.name)}</h3><p>${statLine(it)}</p>
     <p>${own ? '所持しています' : `価格 🪙${it.price.toLocaleString()}（所持 🪙${Math.max(0, h.coins).toLocaleString()}）`}</p>
     <div class="row2"><button class="ghost" data-c="0">閉じる</button>${own ? `<button class="primary" data-c="eq">装備する</button>` : `<button class="primary" data-c="buy" ${can ? '' : 'disabled'}>${can ? '購入して装備' : 'コイン不足'}</button>`}</div></div>`,
@@ -2710,8 +3155,9 @@ function shopDialog(id) {
 }
 
 document.addEventListener('click', e => {
-  const b = e.target.closest('[data-gtab],[data-geq],[data-gitem],[data-gfight],[data-greset]'); if (!b) return;
+  const b = e.target.closest('[data-gtab],[data-geq],[data-gitem],[data-gfight],[data-greset],[data-gchar]'); if (!b) return;
   if (b.dataset.greset) { resetDialog(); return; }
+  if (b.dataset.gchar) { charDialog(); return; }
   const d = b.dataset, g = gstate();
   if (d.gtab) { gtab = d.gtab; renderGame(); return; }
   if (d.geq) { const it = itemById(d.geq); if (g.equip[it.slot] === it.id) delete g.equip[it.slot]; else g.equip[it.slot] = it.id; gtouch(); return; }
