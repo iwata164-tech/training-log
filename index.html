@@ -3239,6 +3239,7 @@ function rpStats(key, unit) {
 function rpText(R, detail) {
   const { st, pv, unit, key } = R, L = [], label = unitLabel(key, unit);
   if (!st.ss.length) return `${label}はトレーニングの記録がありません`;
+  if (!detail) return rpShort(R);
   if (unit === 'day') {
     L.push(`🏋️ ${label}のトレーニング`);
     R.order.forEach(n => {
@@ -3263,6 +3264,28 @@ function rpText(R, detail) {
   if (detail && typeof hero === 'function') { const h = hero(); L.push(`⚔️ 冒険 Lv${h.lv.L}（${titleOf(h.lv.L)}）`); }
   L.push('#筋トレ #筋トレ記録');
   return L.join('\n');
+}
+// 短め：概略だけ。X換算280文字に必ず収める（入りきらなければ大事でない行から削る）
+function rpShort(R) {
+  const { st, pv, unit, key } = R, d = pd(key), y = d.getFullYear(), m = d.getMonth() + 1;
+  const label = unit === 'day' ? `${m}/${d.getDate()}` : unit === 'week' ? unitLabel(key, unit).replace(/^\d+年 /, '') + 'の週'
+    : unit === 'month' ? `${y}年${m}月` : unit === 'quarter' ? `${y}年Q${Math.floor((m - 1) / 3) + 1}` : `${y}年`;
+  const vol = st.vol ? `・総負荷${fmtVol(st.vol)}` : '';
+  let names = R.order.slice(0, 3);
+  const exLine = () => names.join('・') + (R.order.length > names.length ? ` ほか${R.order.length - names.length}種目` : '');
+  const build = (o) => [
+    unit === 'day' ? `🏋️ ${label}の筋トレ` : `🏋️ ${label}の筋トレ報告`,
+    unit === 'day' ? (o.ex ? exLine() : '') : '',
+    unit === 'day' ? `${st.ss.length}セット${vol}` : `📅 ${st.days.size}日・${st.ss.length}セット${vol}`,
+    o.cmp && pv && pv.ss.length ? `📈 ${RP_PREV[unit]}比 セット${rpSign(rpPct(st.ss.length, pv.ss.length))}%` : '',
+    o.pr && R.prs.length ? `🏆 自己ベスト更新 ${R.prs.length}種目` : '',
+    o.tag ? '#筋トレ' : '',
+  ].filter(Boolean).join('\n');
+  const o = { ex: true, cmp: true, pr: true, tag: true };
+  let t = build(o);
+  while (rpXLen(t) > 280 && names.length > 1) { names = names.slice(0, -1); t = build(o); }
+  for (const k of ['cmp', 'ex', 'tag', 'pr']) { if (rpXLen(t) <= 280) break; o[k] = false; t = build(o); }
+  return t;
 }
 // X（旧Twitter）の文字数の数え方：日本語・絵文字は2、英数字は1
 const rpXLen = s => [...s].reduce((a, ch) => a + (ch.codePointAt(0) > 0x10ff ? 2 : 1), 0);
