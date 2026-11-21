@@ -376,6 +376,22 @@ body.local #badge{display:none}
 .battle .row2 .ghost{margin-top:0}
 @media (prefers-reduced-motion:reduce){.fx-pop,.hero-svg.idle,.hud-coin.bump b{animation:none}.fx-pop.big{transform:translateX(-50%)}.bt-boss{transition:none}}
 :focus-visible{outline:2px solid var(--acc2);outline-offset:2px}
+.rp-open{margin:0 0 12px;color:var(--acc2)}
+#rp h3{margin:0 0 4px}
+#rp .seg{margin:8px 0}
+#rp .primary{margin-top:14px}
+.rp-nav{margin:4px 0 8px}
+.rp-nav input{padding:7px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--text);font-size:15px;color-scheme:dark}
+.rp-prev{margin:6px 0 4px;background:var(--card2);border-radius:12px;min-height:60px;display:grid;place-items:center;overflow:hidden;font-size:13px;color:var(--muted)}
+.rp-prev img{display:block;width:100%;height:auto}
+.rp-txt{display:block;width:100%;min-height:170px;background:var(--card2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px;font-family:inherit;font-size:14px;line-height:1.55;resize:vertical}
+.rp-cnt{text-align:right;font-size:12px;color:var(--muted);margin:3px 0 4px}
+.rp-cnt.over{color:var(--warn)}
+.rp-phs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:4px}
+.rp-phs:empty{display:none}
+.rp-ph{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--card2)}
+.rp-ph img{width:100%;height:100%;object-fit:cover;display:block}
+.rp-ph button{position:absolute;top:3px;right:3px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;font-size:13px}
 #mic{display:none!important}
 </style>
 </head>
@@ -1322,6 +1338,7 @@ function renderToday() {
     const o = dayOrm(ss), pr = isPrDay(n, today());
     h += `<section class="card log"><div class="log-head"><button class="log-title" data-ex="${esc(n)}">${esc(n)}</button>${o ? `<span class="orm-tag ${pr ? 'pr' : ''}">${pr ? '★ ' : ''}1RM ${r1(o)}kg</span>` : ''}</div><ol>${ss.map(s => `<li><button class="row" data-edit="${s.id}">${fmtW(s.w)} × ${s.r}回<small>${e1rm(s.w, s.r) && s.r > 1 ? ' → ' + r1(e1rm(s.w, s.r)) : ''}</small><span class="pen">✎</span></button><button class="x" data-del="${s.id}" aria-label="削除">✕</button></li>`).join('')}</ol></section>`;
   }
+  if (all.length) h += '<button class="ghost slim rp-open" data-act="report">📣 今日の報告を投稿</button>';
   el.innerHTML = h;
 }
 
@@ -1376,7 +1393,8 @@ function startOf(dateStr, unit) {
 }
 function addUnit(key, unit, n) {
   const d = pd(key);
-  if (unit === 'week') d.setDate(d.getDate() + 7 * n);
+  if (unit === 'day') d.setDate(d.getDate() + n);
+  else if (unit === 'week') d.setDate(d.getDate() + 7 * n);
   else if (unit === 'month') d.setMonth(d.getMonth() + n, 1);
   else if (unit === 'quarter') d.setMonth(d.getMonth() + 3 * n, 1);
   else d.setFullYear(d.getFullYear() + n, 0, 1);
@@ -1384,6 +1402,7 @@ function addUnit(key, unit, n) {
 }
 function unitLabel(key, unit, short = false) {
   const d = pd(key), y = d.getFullYear(), m = d.getMonth() + 1;
+  if (unit === 'day') return short ? `${m}/${d.getDate()}` : `${y}年${m}/${d.getDate()}(${'日月火水木金土'[d.getDay()]})`;
   if (unit === 'week') { const e = pd(addUnit(key, 'week', 1)); e.setDate(e.getDate() - 1); return short ? `${m}/${d.getDate()}` : `${y}年 ${m}/${d.getDate()}〜${e.getMonth() + 1}/${e.getDate()}`; }
   if (unit === 'month') return short ? `${m}月` : `${y}年${m}月`;
   if (unit === 'quarter') return short ? `${String(y).slice(2)}Q${Math.floor((m - 1) / 3) + 1}` : `${y}年 Q${Math.floor((m - 1) / 3) + 1}（${m}〜${m + 2}月）`;
@@ -1587,7 +1606,8 @@ function renderOverview(el) {
 function renderHistory() {
   const el = $('#view-history');
   const seg = `<div class="seg">${UNITS.map(([k, l]) => `<button class="${hist.unit === k ? 'on' : ''}" data-unit="${k}">${l}</button>`).join('')}</div>`;
-  if (hist.unit !== 'day') { const box = document.createElement('div'); renderOverview(box); el.innerHTML = seg + box.innerHTML; return; }
+  const rpBtn = '<button class="ghost slim rp-open" data-act="report">📣 報告を投稿（統計・グラフ・写真）</button>';
+  if (hist.unit !== 'day') { const box = document.createElement('div'); renderOverview(box); el.innerHTML = seg + rpBtn + box.innerHTML; return; }
   const by = {};
   S.sets.filter(s => !s.del).forEach(s => (by[s.date] = by[s.date] || []).push(s));
   const months = [...new Set(Object.keys(by).map(d => d.slice(0, 7)))].sort().reverse();
@@ -1595,7 +1615,7 @@ function renderHistory() {
   const days = Object.keys(by).filter(d => !dm || d.startsWith(dm)).sort().reverse().slice(0, dm ? 31 : 60);
   const mjump = months.length ? `<div class="jump"><select id="hj-dm" aria-label="表示する月">${opt('', '最近の記録', dm)}${months.map(m => opt(m, `${m.slice(0, 4)}年${+m.slice(5)}月`, dm)).join('')}</select></div>` : '';
   if (!days.length) { el.innerHTML = seg + '<p class="muted pad">まだ記録がありません</p>'; return; }
-  el.innerHTML = seg + mjump + '<p class="muted small pad">記録をタップすると修正・削除できます。★はその時点の自己ベスト1RM（推定）です。</p>' + days.map(d => {
+  el.innerHTML = seg + rpBtn + mjump + '<p class="muted small pad">記録をタップすると修正・削除できます。★はその時点の自己ベスト1RM（推定）です。</p>' + days.map(d => {
     const ss = by[d].sort((a, b) => a.ts - b.ts); const order = [];
     ss.forEach(s => { if (!order.includes(s.ex)) order.push(s.ex); });
     return `<section class="card day"><h3>${fmtDate(d)} <small>${d.slice(0, 4)}</small></h3>${order.map(n => {
@@ -1915,6 +1935,7 @@ function bind() {
       case 'pat-new': return editPattern(null);
       case 'pat-today': { const order = []; todaySets().forEach(s => { if (!order.includes(s.ex)) order.push(s.ex); }); return editPattern(null, { name: '', items: order }); }
       case 'add-ex': { const x = await openAddDialog(''); if (x) selectEx(x.name); return; }
+      case 'report': return reportDialog(tab === 'today' ? { unit: 'day', key: today() } : null);
       case 'copy-out': return copyOut();
       case 'paste-in': return pasteIn();
       case 'claim-past': return claimPast();
@@ -3164,6 +3185,348 @@ document.addEventListener('click', e => {
   if (d.gitem) { shopDialog(d.gitem); return; }
   if (d.gfight) { fight(); }
 });
+
+</script>
+<script>
+'use strict';
+/* =========================================================
+   報告の投稿（日・週・月・四半期・年）
+   - 期間の統計をまとめた文章（編集できる）と、グラフ入りの報告画像を作る
+   - 写真を追加できる（任意）
+   - 「投稿する」でスマホの共有メニューを開き、X・Instagram・LINE などに投稿
+     共有メニューが使えない環境では、画像を保存して文章をコピーする
+   ========================================================= */
+const RP_UNITS = [['day', '日'], ['week', '週'], ['month', '月'], ['quarter', '四半期'], ['year', '年']];
+const RP_N = { week: 8, month: 12, quarter: 8, year: 5 };
+const RP_PREV = { week: '先週', month: '前月', quarter: '前四半期', year: '前年' };
+const RP_KIND = { day: 'デイリー', week: '週間', month: '月間', quarter: '四半期', year: '年間' };
+const RP_MAX_PH = 9;
+const rp = { unit: 'week', key: null, detail: false, img: true, hero: true, photos: [], blob: null, url: '', gen: 0, busy: null };
+
+function rpLastDay() { const ds = S.sets.filter(s => !s.del && s.date <= today()).map(s => s.date).sort(); return ds.length ? ds[ds.length - 1] : today(); }
+// 同じ重量が続くセットはまとめる：60kg×10・10・9 / 62.5kg×8
+function rpSetsLine(ss) {
+  const out = [];
+  ss.forEach(s => { const l = out[out.length - 1]; if (l && l.w === s.w) l.r.push(s.r); else out.push({ w: s.w, r: [s.r] }); });
+  return out.map(g => `${g.w === 0 ? '自重' : num(g.w) + 'kg'}×${g.r.join('・')}`).join(' / ');
+}
+const rpPct = (a, b) => (b ? Math.round((a / b - 1) * 100) : null);
+const rpSign = n => (n > 0 ? '+' : n < 0 ? '−' : '±') + Math.abs(n);
+
+function rpStats(key, unit) {
+  const st = bucketStats(key, unit);
+  const pv = unit === 'day' ? null : bucketStats(addUnit(key, unit, -1), unit);
+  const ss = st.ss.slice().sort((a, b) => a.ts - b.ts);
+  const prs = [];
+  for (const [n, e] of Object.entries(st.byEx)) {
+    const before = S.sets.filter(s => !s.del && s.ex === n && s.date < key);
+    if (!before.length) continue;
+    if (e.orm > 0) {
+      const b = Math.max(0, ...before.map(s => e1rm(s.w, s.r)));
+      if (b > 0 && e.orm > b + 0.05) prs.push({ n, txt: `1RM ${r1(e.orm)}kg`, plus: `+${r1(e.orm - b)}kg` });
+    } else {
+      const mr = Math.max(...ss.filter(s => s.ex === n).map(s => s.r)), b = Math.max(0, ...before.filter(s => !(s.w > 0)).map(s => s.r));
+      if (b > 0 && mr > b) prs.push({ n, txt: `${mr}回`, plus: `+${mr - b}回` });
+    }
+  }
+  const order = []; ss.forEach(s => { if (!order.includes(s.ex)) order.push(s.ex); });
+  return { key, unit, st, pv, ss, prs, order,
+    exs: Object.entries(st.byEx).sort((a, b) => b[1].sets - a[1].sets),
+    parts: Object.entries(st.byPart).sort((a, b) => b[1] - a[1]) };
+}
+
+// ---------- 文章 ----------
+function rpText(R, detail) {
+  const { st, pv, unit, key } = R, L = [], label = unitLabel(key, unit);
+  if (!st.ss.length) return `${label}はトレーニングの記録がありません`;
+  if (unit === 'day') {
+    L.push(`🏋️ ${label}のトレーニング`);
+    R.order.forEach(n => {
+      const x = R.ss.filter(s => s.ex === n), o = dayOrm(x);
+      L.push(`・${n} ${rpSetsLine(x)}${detail && o ? `（1RM ${r1(o)}kg）` : ''}`);
+    });
+    L.push(`合計 ${st.ss.length}セット${st.vol ? `・総負荷 ${fmtVol(st.vol)}` : ''}`);
+  } else {
+    L.push(`🏋️ ${label}のトレーニング報告`);
+    L.push(`📅 ${st.days.size}日・${st.ss.length}セット${st.vol ? `・総負荷 ${fmtVol(st.vol)}` : ''}`);
+    if (pv && pv.ss.length) {
+      const a = rpPct(st.ss.length, pv.ss.length), b = rpPct(st.vol, pv.vol);
+      L.push(`📈 ${RP_PREV[unit]}比 日数${rpSign(st.days.size - pv.days.size)}・セット${rpSign(a)}%${b != null && st.vol ? `・総負荷${rpSign(b)}%` : ''}`);
+    }
+    if (R.parts.length) L.push(`💪 ${detail ? R.parts.map(([p, n]) => `${p}${n}`).join('・') : R.parts.slice(0, 4).map(([p]) => p).join('・')}`);
+    if (detail) R.exs.slice(0, 5).forEach(([n, e]) => L.push(`・${n} ${e.sets}セット${e.orm ? `（1RM ${r1(e.orm)}kg）` : `（${e.reps}回）`}`));
+  }
+  if (R.prs.length) {
+    if (detail) { L.push('🏆 自己ベスト更新'); R.prs.slice(0, 6).forEach(p => L.push(`・${p.n} ${p.txt}（${p.plus}）`)); }
+    else L.push(`🏆 自己ベスト更新：${R.prs[0].n} ${R.prs[0].txt}${R.prs.length > 1 ? ` ほか${R.prs.length - 1}種目` : ''}`);
+  }
+  if (detail && typeof hero === 'function') { const h = hero(); L.push(`⚔️ 冒険 Lv${h.lv.L}（${titleOf(h.lv.L)}）`); }
+  L.push('#筋トレ #筋トレ記録');
+  return L.join('\n');
+}
+// X（旧Twitter）の文字数の数え方：日本語・絵文字は2、英数字は1
+const rpXLen = s => [...s].reduce((a, ch) => a + (ch.codePointAt(0) > 0x10ff ? 2 : 1), 0);
+
+// ---------- 報告画像 ----------
+const RP_FONT = 'system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif';
+const RPC = { text: '#e9eef3', muted: '#8d98a6', card: '#1a1f26', card2: '#222933', acc: '#ff7a1a', acc2: '#ffb066', ok: '#3ecf8e', warn: '#f5b84b', gold: '#f2c230', bar: '#5b4a3d', pbar: '#7c8da3' };
+const rpImg = src => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
+
+async function rpDraw(R, withHero) {
+  const W = 1080, P = 60, IW = W - 2 * P, cv = document.createElement('canvas'); cv.width = W; cv.height = 2600;
+  const c = cv.getContext('2d'); c.textBaseline = 'alphabetic';
+  const F = (w, px) => (c.font = `${w} ${px}px ${RP_FONT}`);
+  const box = (x, y, w, h, r, fill) => { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); c.fillStyle = fill; c.fill(); };
+  const fit = (s, mw) => { s = String(s); if (!mw || c.measureText(s).width <= mw) return s; while (s.length > 1 && c.measureText(s + '…').width > mw) s = s.slice(0, -1); return s + '…'; };
+  const T = (s, x, y, col, al = 'left', mw) => { c.fillStyle = col; c.textAlign = al; c.fillText(fit(s, mw), x, y); };
+  const { st, pv, unit, key } = R;
+  let y = P;
+
+  // 見出し（右上にキャラクター）
+  let heroW = 0;
+  if (withHero && typeof hero === 'function') {
+    try {
+      const h = hero(), im = await rpImg(drawHero(h.pl, 'happy', R.prs.length ? 'biceps' : 'relax', heroSet()));
+      const k = Math.min(2.2, 250 / im.naturalHeight), w = im.naturalWidth * k, hh = im.naturalHeight * k;
+      c.imageSmoothingEnabled = false; c.drawImage(im, W - P - w, y - 6, w, hh); c.imageSmoothingEnabled = true;
+      F(700, 26); T(`Lv${h.lv.L} ${titleOf(h.lv.L)}`, W - P - w / 2, y + hh + 22, RPC.acc2, 'center');
+      heroW = w + 24;
+    } catch (e) { /* キャラなしで続ける */ }
+  }
+  F(700, 28); T(`TRAINING REPORT ・ ${RP_KIND[unit]}レポート`, P, y + 30, RPC.acc2, 'left', IW - heroW);
+  const ttl = unit === 'week' ? unitLabel(key, unit).replace(/^\d+年 /, '') : unitLabel(key, unit);
+  F(800, ttl.length > 9 ? 60 : 72); T(ttl, P, y + 120, RPC.text, 'left', IW - heroW);
+  F(400, 28); T(unit === 'day' ? (st.ss.length ? `${R.order.length}種目・${st.ss.length}セット` : '') : unit === 'week' ? key.slice(0, 4) + '年' : st.ss.length ? `${st.days.size}日トレーニング` : '', P, y + 166, RPC.muted);
+  y += heroW ? 300 : 200;
+
+  // 数字のタイル
+  const tile = (x, w, label, val, sub, subCol) => {
+    box(x, y, w, 170, 24, RPC.card);
+    F(400, 26); T(label, x + 24, y + 42, RPC.muted);
+    F(800, 58); T(val, x + 24, y + 112, RPC.text, 'left', w - 40);
+    if (sub) { F(600, 24); T(sub, x + 24, y + 150, subCol || RPC.muted, 'left', w - 40); }
+  };
+  const dl = (a, b, pct) => { if (!pv || !pv.ss.length) return [pv ? `${RP_PREV[unit]} なし` : '', RPC.muted]; const d = pct ? rpPct(a, b) : a - b; return [`${RP_PREV[unit]}比 ${d > 0 ? '▲' : d < 0 ? '▼' : '±'}${Math.abs(d)}${pct ? '%' : ''}`, d > 0 ? RPC.ok : d < 0 ? RPC.warn : RPC.muted]; };
+  const tw = (IW - 2 * 20) / 3;
+  if (unit === 'day') {
+    tile(P, tw, '種目', `${R.order.length}`, '', null);
+    tile(P + tw + 20, tw, 'セット', `${st.ss.length}`, '', null);
+    tile(P + 2 * (tw + 20), tw, '総負荷', st.vol ? fmtVol(st.vol) : '—', R.prs.length ? `🏆 自己ベスト ${R.prs.length}` : '', RPC.gold);
+  } else {
+    tile(P, tw, 'トレ日数', `${st.days.size}日`, ...dl(st.days.size, pv && pv.days.size, false));
+    tile(P + tw + 20, tw, 'セット', `${st.ss.length}`, ...dl(st.ss.length, pv && pv.ss.length, true));
+    tile(P + 2 * (tw + 20), tw, '総負荷', st.vol ? fmtVol(st.vol) : '—', ...dl(st.vol, pv && pv.vol, true));
+  }
+  y += 170 + 24;
+
+  // 週：曜日ごとのトレーニング
+  if (unit === 'week') {
+    box(P, y, IW, 130, 24, RPC.card);
+    const gw = IW / 7;
+    for (let i = 0; i < 7; i++) {
+      const d = addUnit(key, 'day', i), on = st.days.has(d), cx = P + gw * (i + 0.5);
+      c.beginPath(); c.arc(cx, y + 58, 26, 0, Math.PI * 2); c.fillStyle = on ? RPC.ok : RPC.card2; c.fill();
+      if (on) { F(800, 26); T('✓', cx, y + 67, '#06200f', 'center'); }
+      F(on ? 700 : 400, 22); T('月火水木金土日'[i], cx, y + 112, on ? RPC.text : RPC.muted, 'center');
+    }
+    y += 130 + 24;
+  }
+
+  // 推移のグラフ（週・月・四半期・年）／その日の種目一覧（日）
+  if (unit !== 'day') {
+    const N = RP_N[unit], keys = Array.from({ length: N }, (_, i) => addUnit(key, unit, i - N + 1));
+    let vals = keys.map(k => bucketStats(k, unit).vol), byVol = vals.some(v => v > 0);
+    if (!byVol) vals = keys.map(k => bucketStats(k, unit).ss.length);
+    const H = 400; box(P, y, IW, H, 24, RPC.card);
+    F(700, 30); T(byVol ? '総負荷の推移' : 'セット数の推移', P + 28, y + 50, RPC.text);
+    const top = y + 100, bot = y + H - 56, mx = Math.max(...vals, 1), gx = (IW - 56) / N, bw = Math.min(64, gx * 0.62);
+    c.fillStyle = '#2c343f'; c.fillRect(P + 28, bot, IW - 56, 2);
+    keys.forEach((k, i) => {
+      const v = vals[i], x = P + 28 + gx * i + (gx - bw) / 2, on = k === key, hgt = v ? Math.max(6, (v / mx) * (bot - top)) : 0;
+      if (hgt) box(x, bot - hgt, bw, hgt, Math.min(10, bw / 3), on ? RPC.acc : RPC.bar);
+      if (on && v) { F(800, 26); T(byVol ? fmtVol(v) : `${v}`, x + bw / 2, bot - hgt - 12, RPC.text, 'center'); }
+      if (N <= 8 || i % 2 === (N - 1) % 2 || on) { F(on ? 700 : 400, 22); T(unitLabel(k, unit, true), x + bw / 2, bot + 34, on ? RPC.text : RPC.muted, 'center'); }
+    });
+    y += H + 24;
+  } else if (R.order.length) {
+    const rows = R.order.slice(0, 8), H = 76 + rows.length * 92 + (R.order.length > 8 ? 40 : 0);
+    box(P, y, IW, H, 24, RPC.card);
+    F(700, 30); T('種目', P + 28, y + 50, RPC.text);
+    rows.forEach((n, i) => {
+      const x = R.ss.filter(s => s.ex === n), o = dayOrm(x), yy = y + 76 + i * 92, pr = R.prs.some(p => p.n === n);
+      F(700, 32); T(n, P + 28, yy + 38, RPC.text, 'left', IW - 300);
+      if (o) { F(700, 26); T(`${pr ? '🏆 ' : ''}1RM ${r1(o)}kg`, W - P - 28, yy + 38, pr ? RPC.gold : RPC.acc2, 'right'); }
+      F(400, 26); T(rpSetsLine(x), P + 28, yy + 76, RPC.muted, 'left', IW - 56);
+    });
+    if (R.order.length > 8) { F(400, 24); T(`ほか ${R.order.length - 8}種目`, P + 28, y + H - 22, RPC.muted); }
+    y += H + 24;
+  }
+
+  // 部位別セット数
+  if (R.parts.length) {
+    const rows = R.parts.slice(0, 6), H = 80 + rows.length * 54, mx = rows[0][1];
+    box(P, y, IW, H, 24, RPC.card);
+    F(700, 30); T('部位別セット数', P + 28, y + 50, RPC.text);
+    rows.forEach(([p, n], i) => {
+      const yy = y + 80 + i * 54, bx = P + 150, bwid = IW - 150 - 110;
+      F(400, 28); T(p, P + 28, yy + 30, RPC.text, 'left', 116);
+      box(bx, yy + 10, bwid, 18, 9, RPC.card2); box(bx, yy + 10, Math.max(18, bwid * n / mx), 18, 9, RPC.pbar);
+      F(700, 28); T(`${n}`, W - P - 28, yy + 30, RPC.text, 'right');
+    });
+    y += H + 24;
+  }
+
+  // よく行った種目（週以上）
+  if (unit !== 'day' && R.exs.length) {
+    const rows = R.exs.slice(0, 4), H = 80 + rows.length * 58;
+    box(P, y, IW, H, 24, RPC.card);
+    F(700, 30); T('よく行った種目', P + 28, y + 50, RPC.text);
+    rows.forEach(([n, e], i) => {
+      const yy = y + 80 + i * 58;
+      F(600, 28); T(n, P + 28, yy + 34, RPC.text, 'left', IW - 360);
+      F(400, 26); T(`${e.sets}セット${e.orm ? `・1RM ${r1(e.orm)}kg` : `・${e.reps}回`}`, W - P - 28, yy + 34, RPC.muted, 'right');
+    });
+    y += H + 24;
+  }
+
+  // 自己ベスト
+  if (R.prs.length && unit !== 'day') {
+    const rows = R.prs.slice(0, 4), H = 80 + rows.length * 58 + (R.prs.length > 4 ? 36 : 0);
+    box(P, y, IW, H, 24, '#2a2416');
+    F(700, 30); T('🏆 自己ベスト更新', P + 28, y + 50, RPC.gold);
+    rows.forEach((p, i) => {
+      const yy = y + 80 + i * 58;
+      F(600, 28); T(p.n, P + 28, yy + 34, RPC.text, 'left', IW - 380);
+      F(700, 26); T(`${p.txt}  ${p.plus}`, W - P - 28, yy + 34, RPC.ok, 'right');
+    });
+    if (R.prs.length > 4) { F(400, 24); T(`ほか ${R.prs.length - 4}種目`, P + 28, y + H - 20, RPC.muted); }
+    y += H + 24;
+  }
+
+  if (!st.ss.length) { F(600, 34); T('この期間の記録はありません', W / 2, y + 60, RPC.muted, 'center'); y += 120; }
+
+  F(400, 24); T('#筋トレ記録', P, y + 30, RPC.muted); T(`${ymd().replace(/-/g, '/')} 作成`, W - P, y + 30, RPC.muted, 'right');
+  y += 30 + P;
+
+  // 背景を付けて、使った高さで切り出す
+  const Hh = Math.max(1080, Math.ceil(y)), out = document.createElement('canvas'); out.width = W; out.height = Hh;
+  const o = out.getContext('2d'), g = o.createLinearGradient(0, 0, W, Hh);
+  g.addColorStop(0, '#16110c'); g.addColorStop(0.35, '#101317'); g.addColorStop(1, '#0c0f12');
+  o.fillStyle = g; o.fillRect(0, 0, W, Hh);
+  o.fillStyle = RPC.acc; o.fillRect(0, 0, W, 8);
+  o.drawImage(cv, 0, 0);
+  return new Promise(res => out.toBlob(res, 'image/png'));
+}
+
+// ---------- 投稿画面 ----------
+function rpFiles() {
+  const f = [];
+  if (rp.img && rp.blob) f.push(new File([rp.blob], `training-report-${rp.unit}-${rp.key}.png`, { type: 'image/png' }));
+  rp.photos.forEach(p => f.push(p.file));
+  return f;
+}
+function rpSave(blob, name) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+}
+async function rpCopy(text) { try { await navigator.clipboard.writeText(text); return true; } catch (e) { return false; } }
+async function rpShare(text) {
+  if (rp.img && !rp.blob && rp.busy) await rp.busy;
+  const files = rpFiles(), copied = await rpCopy(text);
+  if (navigator.share) {
+    const canFiles = files.length && navigator.canShare && navigator.canShare({ files });
+    if (!files.length || canFiles) {
+      try { await navigator.share(files.length ? { text, files } : { text }); if (copied && files.length) toast('文章はコピー済み。画像だけのアプリでは貼り付けてください'); return; }
+      catch (e) { if (e && e.name === 'AbortError') return; }
+    }
+  }
+  if (rp.img && rp.blob) rpSave(rp.blob, `training-report-${rp.unit}-${rp.key}.png`);
+  toast(`${rp.img && rp.blob ? '画像を保存し、' : ''}${copied ? '文章をコピーしました。投稿したいアプリに貼り付けてください' : 'この環境では共有メニューが使えません'}`);
+}
+
+function reportDialog(o) {
+  rp.unit = (o && o.unit) || hist.unit || 'week';
+  rp.key = startOf(o && o.key ? o.key : rp.unit === 'day' ? rpLastDay() : hist.anchor || today(), rp.unit);
+  rp.photos = []; rp.blob = null;
+  return dialog(`<div id="rp">
+    <h3>📣 報告を投稿</h3>
+    <div class="seg sm" id="rp-units">${RP_UNITS.map(([k, l]) => `<button data-rpu="${k}">${l}</button>`).join('')}</div>
+    <div class="pnav rp-nav"><button class="x" data-rpn="-1" aria-label="前の期間">‹</button><b id="rp-lbl"></b><button class="x" data-rpn="1" id="rp-next" aria-label="次の期間">›</button></div>
+    <div class="rp-prev" id="rp-prev"></div>
+    <label class="toggle"><input type="checkbox" id="rp-img" ${rp.img ? 'checked' : ''}> 統計の画像（グラフ入り）を付ける</label>
+    <label class="toggle"><input type="checkbox" id="rp-hero" ${rp.hero ? 'checked' : ''}> 画像にキャラクターを入れる</label>
+    <div class="lbl" style="margin-top:12px">投稿する文章（自由に書き直せます）</div>
+    <div class="seg sm" id="rp-det"><button data-rpd="0">短め</button><button data-rpd="1">詳しく</button></div>
+    <textarea id="rp-txt" class="rp-txt" aria-label="投稿する文章"></textarea>
+    <div class="rp-cnt" id="rp-cnt"></div>
+    <div class="lbl">写真（任意・${RP_MAX_PH}枚まで）</div>
+    <div class="rp-phs" id="rp-phs"></div>
+    <label class="ghost filebtn">📷 写真を追加<input type="file" id="rp-ph" accept="image/*" multiple hidden></label>
+    <button class="primary" data-rpgo="share">投稿する</button>
+    <div class="row2"><button class="ghost" data-rpgo="save">画像を保存</button><button class="ghost" data-rpgo="copy">文章をコピー</button></div>
+    <button class="ghost" data-rpgo="close">閉じる</button>
+    <p class="muted small">「投稿する」でスマホの共有メニューが開きます。X・Instagram・LINE など投稿先のアプリを選んでください。文章はコピーもされるので、画像だけを受け取るアプリでは貼り付けて使えます。</p>
+  </div>`, (m, close) => {
+    const q = s => m.querySelector(s), ta = q('#rp-txt');
+    const cnt = () => { const n = rpXLen(ta.value), el = q('#rp-cnt'); el.textContent = `X換算 ${n} / 280`; el.classList.toggle('over', n > 280); };
+    const head = () => {
+      m.querySelectorAll('[data-rpu]').forEach(b => b.classList.toggle('on', b.dataset.rpu === rp.unit));
+      m.querySelectorAll('[data-rpd]').forEach(b => b.classList.toggle('on', +b.dataset.rpd === +rp.detail));
+      q('#rp-lbl').innerHTML = rp.unit === 'day' ? `<input type="date" id="rp-day" value="${rp.key}" max="${today()}" aria-label="日付">` : esc(unitLabel(rp.key, rp.unit));
+      q('#rp-next').disabled = rp.key >= startOf(today(), rp.unit);
+    };
+    const preview = async () => {
+      const el = q('#rp-prev'), id = ++rp.gen;
+      if (!rp.img) { rp.blob = null; el.innerHTML = '<span class="pad">画像は付けません</span>'; return; }
+      el.innerHTML = '<span class="pad">画像を作成中…</span>';
+      rp.busy = rpDraw(rpStats(rp.key, rp.unit), rp.hero);
+      const blob = await rp.busy;
+      if (id !== rp.gen || !el.isConnected) return;
+      rp.blob = blob; if (rp.url) URL.revokeObjectURL(rp.url); rp.url = URL.createObjectURL(blob);
+      el.innerHTML = `<img src="${rp.url}" alt="報告画像のプレビュー">`;
+    };
+    const text = () => { ta.value = rpText(rpStats(rp.key, rp.unit), rp.detail); cnt(); };
+    const photos = () => {
+      q('#rp-phs').innerHTML = rp.photos.map((p, i) => `<div class="rp-ph"><img src="${p.url}" alt="追加した写真${i + 1}"><button data-rpx="${i}" aria-label="写真${i + 1}を外す">✕</button></div>`).join('');
+    };
+    const all = () => { head(); text(); preview(); };
+    ta.oninput = cnt;
+    m.querySelector('.sheet').addEventListener('click', async e => {
+      const b = e.target.closest('button'); if (!b || b.disabled) return; const d = b.dataset;
+      if (d.rpu) { rp.unit = d.rpu; rp.key = startOf(rp.unit === 'day' ? rpLastDay() : rp.key, rp.unit); if (rp.key > today()) rp.key = startOf(today(), rp.unit); return all(); }
+      if (d.rpn) { rp.key = addUnit(rp.key, rp.unit, +d.rpn); return all(); }
+      if (d.rpd != null) { rp.detail = d.rpd === '1'; head(); return text(); }
+      if (d.rpx != null) { const [p] = rp.photos.splice(+d.rpx, 1); if (p) URL.revokeObjectURL(p.url); return photos(); }
+      if (d.rpgo === 'close') return close(null);
+      if (d.rpgo === 'copy') return toast((await rpCopy(ta.value)) ? '文章をコピーしました' : 'コピーできませんでした');
+      if (d.rpgo === 'save') {
+        if (!rp.img) return toast('「統計の画像を付ける」をオンにしてください');
+        if (!rp.blob && rp.busy) await rp.busy;
+        if (rp.blob) rpSave(rp.blob, `training-report-${rp.unit}-${rp.key}.png`);
+        return;
+      }
+      if (d.rpgo === 'share') return rpShare(ta.value);
+    });
+    m.querySelector('.sheet').addEventListener('change', e => {
+      const id = e.target.id;
+      if (id === 'rp-day' && e.target.value) { rp.key = e.target.value > today() ? today() : e.target.value; return all(); }
+      if (id === 'rp-img') { rp.img = e.target.checked; return preview(); }
+      if (id === 'rp-hero') { rp.hero = e.target.checked; return preview(); }
+      if (id === 'rp-ph') {
+        const fs = [...e.target.files].filter(f => f.type.startsWith('image/') || /\.(heic|heif)$/i.test(f.name));
+        const room = RP_MAX_PH - rp.photos.length;
+        fs.slice(0, room).forEach(f => rp.photos.push({ file: f, url: URL.createObjectURL(f) }));
+        if (fs.length > room) toast(`写真は${RP_MAX_PH}枚までです`);
+        e.target.value = ''; photos();
+      }
+    });
+    all();
+  }).then(v => {
+    rp.gen++; rp.photos.forEach(p => URL.revokeObjectURL(p.url)); rp.photos = [];
+    if (rp.url) { URL.revokeObjectURL(rp.url); rp.url = ''; }
+    return v;
+  });
+}
 
 </script>
 </body>
