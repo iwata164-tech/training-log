@@ -3394,7 +3394,9 @@ async function rpDraw(R, withHero) {
       const x = R.ss.filter(s => s.ex === n), o = dayOrm(x), yy = y + 76 + i * 92, pr = R.prs.some(p => p.n === n);
       F(700, 32); T(n, P + 28, yy + 38, RPC.text, 'left', IW - 300);
       if (o) { F(700, 26); T(`${pr ? '🏆 ' : ''}1RM ${r1(o)}kg`, W - P - 28, yy + 38, pr ? RPC.gold : RPC.acc2, 'right'); }
-      F(400, 26); T(rpSetsLine(x), P + 28, yy + 76, RPC.muted, 'left', IW - 56);
+      const v = x.reduce((a, s) => a + s.w * s.r, 0);
+      if (v) { F(700, 26); T(`総重量 ${fmtVol(v)}`, W - P - 28, yy + 76, RPC.text, 'right'); }
+      F(400, 26); T(rpSetsLine(x), P + 28, yy + 76, RPC.muted, 'left', IW - 56 - (v ? 250 : 0));
     });
     if (R.order.length > 8) { F(400, 24); T(`ほか ${R.order.length - 8}種目`, P + 28, y + H - 22, RPC.muted); }
     y += H + 24;
