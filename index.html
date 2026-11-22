@@ -118,7 +118,18 @@ nav button.on{color:var(--text);box-shadow:inset 0 2px 0 var(--text)}
 .orm-main b{font-size:20px}
 .orm-past{color:#c9d2dc;margin-top:2px}
 .orm-past small{color:var(--muted);margin-left:3px}
-.orm-calc{color:var(--muted);margin-top:4px}
+.goals-h{margin-top:10px;font-size:13px;font-weight:700;color:var(--acc2)}
+.goals-h small{font-weight:400;color:var(--muted);margin-left:4px}
+.goals{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:6px}
+.goal{background:var(--card);border:1px solid rgba(255,176,102,.45);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;align-items:flex-start}
+.goal span{font-size:13px;color:var(--text)}
+.goal b{font-size:28px;line-height:1.15;color:var(--acc2);font-weight:800}
+.goal b small{font-size:14px;margin-left:2px}
+.goal b.sm{font-size:16px;margin:6px 0 2px}
+.goal em{font-style:normal;font-size:12px;color:var(--muted)}
+.vol-tag{font-size:12px;color:var(--text);background:var(--card2);padding:2px 8px;border-radius:99px;white-space:nowrap}
+.tags{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.day-vol{float:right;font-size:13px;font-weight:700;color:var(--acc2)}
 .pr{color:#1a0d00;background:var(--ok);font-size:11px;font-weight:700;padding:2px 7px;border-radius:99px}
 .log-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .orm-tag{font-size:12px;color:var(--muted);background:var(--card2);padding:2px 8px;border-radius:99px;white-space:nowrap}
@@ -712,7 +723,7 @@ const cur = { ex: null, w: '', r: '' };
 let browse = { parts: [], equip: null };
 let tab = 'today';
 const trend = { unit: 'week', metric: null, open: true };
-const hist = { unit: 'day', anchor: null, ex: null, dayMonth: '' };
+const hist = { unit: 'day', anchor: null, ex: null, dayMonth: '', metric: 'orm' };
 
 function save() {
   try { localStorage.setItem(KEY, JSON.stringify(S)); }
@@ -1282,10 +1293,10 @@ function ormHtml(name) {
   if (st.today) h += `　今日 <b>${r1(st.today)}kg</b>`;
   h += '</div>';
   if (base) {
-    const tips = [];
-    if (w > 0) { const n = repsAt(w, base); tips.push(n > 0 ? `${num(w)}kgなら 最大 約${n}回` : `${num(w)}kgは前回1RM以上`); }
-    if (r > 0) tips.push(`${r}回なら 最大 約${r1(weightFor(r, base))}kg`);
-    if (tips.length) h += `<div class="orm-calc">前回1RM換算：${tips.join('／')}</div>`;
+    const t = [];
+    if (w > 0) { const n = repsAt(w, base); t.push(`<div class="goal"><span>${num(w)}kgなら</span>${n > 0 ? `<b>${n}<small>回</small></b><em>まで</em>` : '<b class="sm">前回1RM以上</b>'}</div>`); }
+    if (r > 0) t.push(`<div class="goal"><span>${r}回なら</span><b>${r1(weightFor(r, base))}<small>kg</small></b><em>まで</em></div>`);
+    if (t.length) h += `<div class="goals-h">🎯 目標の目安<small>（${st.last ? '前回' : 'ベスト'}1RM ${r1(base)}kg換算）</small></div><div class="goals">${t.join('')}</div>`;
   }
   return h;
 }
@@ -1427,7 +1438,7 @@ function deltaHtml(cur, prev, unit = '%') {
   return `<span class="dlt ${d > 0 ? 'up' : 'down'}">${d > 0 ? '▲' : '▼'}${Math.abs(d)}${unit}</span>`;
 }
 
-// 棒グラフ（直近の期間ごとの総負荷）
+// 棒グラフ（直近の期間ごとの総重量）
 function volChart(keys, unit, sel) {
   const vals = keys.map(k => bucketStats(k, unit).vol);
   const max = Math.max(...vals, 1), W = 340, H = 150, top = 18, bot = 22, n = keys.length;
@@ -1442,11 +1453,12 @@ function volChart(keys, unit, sel) {
     if (n <= 8 || i % 2 === (n - 1) % 2 || on) g += `<text x="${x + bw / 2}" y="${H - 6}" class="xl ${on ? 'on' : ''}">${unitLabel(k, unit, true)}</text>`;
     g += '</g>';
   });
-  return `<svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="期間ごとの総負荷">${g}</svg>`;
+  return `<svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="期間ごとの総重量">${g}</svg>`;
 }
 // 折れ線（種目の期間ベスト推定1RM）
-function ormChart(keys, unit, ex, sel) {
-  const pts = keys.map(k => { const ss = S.sets.filter(s => !s.del && s.ex === ex && inBucket(s, k, unit)); return ss.length ? dayOrm(ss) : null; });
+function ormChart(keys, unit, ex, sel, vol) {
+  const pts = keys.map(k => { const ss = S.sets.filter(s => !s.del && s.ex === ex && inBucket(s, k, unit)); return ss.length ? (vol ? ss.reduce((a, s) => a + s.w * s.r, 0) : dayOrm(ss)) || null : null; });
+  const fv = vol ? fmtVol : r1, lb = vol ? '総重量' : '1RM';
   const have = pts.filter(v => v);
   if (!have.length) return '<p class="muted small">この期間の記録がありません</p>';
   let lo = Math.min(...have), hi = Math.max(...have); const pad = Math.max((hi - lo) * 0.15, 2); lo = Math.max(0, lo - pad); hi += pad;
@@ -1461,13 +1473,13 @@ function ormChart(keys, unit, ex, sel) {
     const on = keys[i] === sel;
     g += `<g class="hb" data-hb="${keys[i]}"><rect x="${X(i) - 14}" y="0" width="28" height="${H}" fill="transparent"/>`;
     if (v) {
-      g += `<circle cx="${X(i)}" cy="${Y(v)}" r="${on ? 5.5 : 4}" class="pt ${on ? 'on' : ''}"><title>${unitLabel(keys[i], unit)}：1RM ${r1(v)}kg</title></circle>`;
-      if (on || i === lastI || v === bestV) g += `<text x="${Math.min(Math.max(X(i), 20), W - 20)}" y="${Y(v) - 9}" class="vl">${r1(v)}</text>`;
+      g += `<circle cx="${X(i)}" cy="${Y(v)}" r="${on ? 5.5 : 4}" class="pt ${on ? 'on' : ''}"><title>${unitLabel(keys[i], unit)}：${lb} ${fv(v)}${vol ? '' : 'kg'}</title></circle>`;
+      if (on || i === lastI || v === bestV) g += `<text x="${Math.min(Math.max(X(i), 24), W - 24)}" y="${Y(v) - 9}" class="vl">${fv(v)}</text>`;
     }
     if (n <= 8 || i % 2 === (n - 1) % 2 || on) g += `<text x="${Math.min(Math.max(X(i), 12), W - 12)}" y="${H - 6}" class="xl ${on ? 'on' : ''}">${unitLabel(keys[i], unit, true)}</text>`;
     g += '</g>';
   });
-  return `<svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="${esc(ex)}の推定1RMの推移">${g}</svg>`;
+  return `<svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="${esc(ex)}の${vol ? '総重量' : '推定1RM'}の推移">${g}</svg>`;
 }
 function calHtml(key, unit) {
   if (unit !== 'week' && unit !== 'month') return '';
@@ -1498,7 +1510,7 @@ function jumpHtml(key, u) {
 }
 
 // 種目ごとの推移（今日タブの種目カード内）
-const METRICS = { orm: ['推定1RM', 'kg'], maxw: ['最大重量', 'kg'], vol: ['総負荷', ''], reps: ['最大回数', '回'] };
+const METRICS = { orm: ['推定1RM', 'kg'], maxw: ['最大重量', 'kg'], vol: ['総重量', ''], reps: ['最大回数', '回'] };
 function lineChart(keys, unit, vals, fmt, label) {
   const have = vals.filter(v => v != null);
   if (!have.length) return '<p class="muted small pad">この範囲の記録がありません</p>';
@@ -1578,9 +1590,9 @@ function renderOverview(el) {
   h += `<div class="kpis">
     <div><span>トレ日数</span><b>${st.days.size}<small>日</small></b>${deltaHtml(st.days.size, pv.days.size, '')}<em>${unitWord} ${pv.days.size}日</em></div>
     <div><span>セット</span><b>${st.ss.length}</b>${deltaHtml(st.ss.length, pv.ss.length)}<em>${unitWord} ${pv.ss.length}</em></div>
-    <div><span>総負荷</span><b>${fmtVol(st.vol)}</b>${deltaHtml(st.vol, pv.vol)}<em>${unitWord} ${fmtVol(pv.vol)}</em></div></div>
+    <div><span>総重量</span><b>${fmtVol(st.vol)}</b>${deltaHtml(st.vol, pv.vol)}<em>${unitWord} ${fmtVol(pv.vol)}</em></div></div>
     <p class="muted small cmp">▲▼は${unitWord}（期間全体）との比較</p>`;
-  h += `<section class="card"><h3>総負荷の推移</h3>${volChart(keys, u, key)}<p class="muted small">棒をタップするとその期間を表示</p></section>`;
+  h += `<section class="card"><h3>総重量の推移</h3>${volChart(keys, u, key)}<p class="muted small">棒をタップするとその期間を表示</p></section>`;
   h += calHtml(key, u) ? `<section class="card"><h3>トレーニングした日</h3>${calHtml(key, u)}</section>` : '';
   const parts = Object.entries(st.byPart).sort((a, b) => b[1] - a[1]);
   if (parts.length) {
@@ -1598,7 +1610,8 @@ function renderOverview(el) {
   const withOrm = [...new Set(S.sets.filter(s => !s.del && s.w > 0).map(s => s.ex))];
   if (withOrm.length) {
     if (!hist.ex || !withOrm.includes(hist.ex)) hist.ex = (exs.find(([n, e]) => e.orm) || [withOrm[0]])[0];
-    h += `<section class="card"><h3>推定1RMの推移</h3><label class="field"><select id="hex-sel">${withOrm.map(n => `<option ${n === hist.ex ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>${ormChart(keys, u, hist.ex, key)}</section>`;
+    const hv = hist.metric === 'vol';
+    h += `<section class="card"><h3>種目の推移 <small class="muted">${hv ? '期間内の合計' : '期間内の最高（推定）'}</small></h3><label class="field"><select id="hex-sel">${withOrm.map(n => `<option ${n === hist.ex ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label><div class="chips">${[['orm', '推定1RM'], ['vol', '総重量']].map(([m, l]) => `<button class="chip ${(hv ? 'vol' : 'orm') === m ? 'on' : ''}" data-hmetric="${m}">${l}</button>`).join('')}</div>${ormChart(keys, u, hist.ex, key, hv)}</section>`;
   }
   el.innerHTML = h;
 }
@@ -1618,11 +1631,12 @@ function renderHistory() {
   el.innerHTML = seg + rpBtn + mjump + '<p class="muted small pad">記録をタップすると修正・削除できます。★はその時点の自己ベスト1RM（推定）です。</p>' + days.map(d => {
     const ss = by[d].sort((a, b) => a.ts - b.ts); const order = [];
     ss.forEach(s => { if (!order.includes(s.ex)) order.push(s.ex); });
-    return `<section class="card day"><h3>${fmtDate(d)} <small>${d.slice(0, 4)}</small></h3>${order.map(n => {
+    const dv = ss.reduce((a, s) => a + s.w * s.r, 0);
+    return `<section class="card day"><h3>${fmtDate(d)} <small>${d.slice(0, 4)}</small>${dv ? `<span class="day-vol">総重量 ${fmtVol(dv)}</span>` : ''}</h3>${order.map(n => {
       const x = ss.filter(s => s.ex === n);
       const vol = x.reduce((a, s) => a + s.w * s.r, 0);
       const o = dayOrm(x), pr = isPrDay(n, d);
-      return `<div class="hrow"><div class="log-head"><button class="log-title" data-ex="${esc(n)}">${esc(n)}</button>${o ? `<span class="orm-tag ${pr ? 'pr' : ''}">${pr ? '★ ' : ''}1RM ${r1(o)}kg</span>` : ''}</div><div class="pills">${x.map(s => `<button class="pill" data-edit="${s.id}">${s.w === 0 ? '自重' : num(s.w)}×${s.r}</button>`).join('')}</div>${vol ? `<div class="vol">総負荷 ${Math.round(vol).toLocaleString()}kg</div>` : ''}</div>`;
+      return `<div class="hrow"><div class="log-head"><button class="log-title" data-ex="${esc(n)}">${esc(n)}</button><span class="tags">${vol ? `<span class="vol-tag">総重量 ${fmtVol(vol)}</span>` : ''}${o ? `<span class="orm-tag ${pr ? 'pr' : ''}">${pr ? '★ ' : ''}1RM ${r1(o)}kg</span>` : ''}</span></div><div class="pills">${x.map(s => `<button class="pill" data-edit="${s.id}">${s.w === 0 ? '自重' : num(s.w)}×${s.r}</button>`).join('')}</div></div>`;
     }).join('')}</section>`;
   }).join('');
 }
@@ -1903,6 +1917,7 @@ function bind() {
     if (d.pick) { pick.tab = d.pick; return render(); }
     if (d.unit) { hist.unit = d.unit; hist.anchor = hist.anchor || today(); return render(); }
     if (d.hnav) { hist.anchor = addUnit(hist.anchor, hist.unit, +d.hnav); return render(); }
+    if (d.hmetric) { hist.metric = d.hmetric; render(); return; }
     if (d.hex) { hist.ex = d.hex; render(); const c = $('#hex-sel'); if (c) c.closest('.card').scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
     if (d.askdel) { const s = S.sets.find(x => x.id === d.askdel); if (s && await confirmDialog(`${s.date} ${s.ex} ${fmtW(s.w)} × ${s.r}回 を削除しますか？`)) deleteSet(s.id); return; }
     if (d.part) { browse.parts = d.part === 'すべて' ? [] : [d.part]; return render(); }
@@ -2106,7 +2121,7 @@ function bossAt(n) {
 // ---------- 状態 ----------
 const liveSets = () => { const t = (S.game && S.game.since) || 0; return S.sets.filter(s => !s.del && s.ts >= t); };
 
-// 旧ルール（総負荷ベース）での獲得量。ルール変更で手持ちが減らないよう、差分の引き継ぎにだけ使う
+// 旧ルール（総重量ベース）での獲得量。ルール変更で手持ちが減らないよう、差分の引き継ぎにだけ使う
 function oldCalc() {
   let xp = 0, vol = 0, reps = 0, coins = 0;
   const live = liveSets().sort((a, b) => a.ts - b.ts), byEx = {};
@@ -3246,13 +3261,13 @@ function rpText(R, detail) {
       const x = R.ss.filter(s => s.ex === n), o = dayOrm(x);
       L.push(`・${n} ${rpSetsLine(x)}${detail && o ? `（1RM ${r1(o)}kg）` : ''}`);
     });
-    L.push(`合計 ${st.ss.length}セット${st.vol ? `・総負荷 ${fmtVol(st.vol)}` : ''}`);
+    L.push(`合計 ${st.ss.length}セット${st.vol ? `・総重量 ${fmtVol(st.vol)}` : ''}`);
   } else {
     L.push(`🏋️ ${label}のトレーニング報告`);
-    L.push(`📅 ${st.days.size}日・${st.ss.length}セット${st.vol ? `・総負荷 ${fmtVol(st.vol)}` : ''}`);
+    L.push(`📅 ${st.days.size}日・${st.ss.length}セット${st.vol ? `・総重量 ${fmtVol(st.vol)}` : ''}`);
     if (pv && pv.ss.length) {
       const a = rpPct(st.ss.length, pv.ss.length), b = rpPct(st.vol, pv.vol);
-      L.push(`📈 ${RP_PREV[unit]}比 日数${rpSign(st.days.size - pv.days.size)}・セット${rpSign(a)}%${b != null && st.vol ? `・総負荷${rpSign(b)}%` : ''}`);
+      L.push(`📈 ${RP_PREV[unit]}比 日数${rpSign(st.days.size - pv.days.size)}・セット${rpSign(a)}%${b != null && st.vol ? `・総重量${rpSign(b)}%` : ''}`);
     }
     if (R.parts.length) L.push(`💪 ${detail ? R.parts.map(([p, n]) => `${p}${n}`).join('・') : R.parts.slice(0, 4).map(([p]) => p).join('・')}`);
     if (detail) R.exs.slice(0, 5).forEach(([n, e]) => L.push(`・${n} ${e.sets}セット${e.orm ? `（1RM ${r1(e.orm)}kg）` : `（${e.reps}回）`}`));
@@ -3270,7 +3285,7 @@ function rpShort(R) {
   const { st, pv, unit, key } = R, d = pd(key), y = d.getFullYear(), m = d.getMonth() + 1;
   const label = unit === 'day' ? `${m}/${d.getDate()}` : unit === 'week' ? unitLabel(key, unit).replace(/^\d+年 /, '') + 'の週'
     : unit === 'month' ? `${y}年${m}月` : unit === 'quarter' ? `${y}年Q${Math.floor((m - 1) / 3) + 1}` : `${y}年`;
-  const vol = st.vol ? `・総負荷${fmtVol(st.vol)}` : '';
+  const vol = st.vol ? `・総重量${fmtVol(st.vol)}` : '';
   let names = R.order.slice(0, 3);
   const exLine = () => names.join('・') + (R.order.length > names.length ? ` ほか${R.order.length - names.length}種目` : '');
   const build = (o) => [
@@ -3334,11 +3349,11 @@ async function rpDraw(R, withHero) {
   if (unit === 'day') {
     tile(P, tw, '種目', `${R.order.length}`, '', null);
     tile(P + tw + 20, tw, 'セット', `${st.ss.length}`, '', null);
-    tile(P + 2 * (tw + 20), tw, '総負荷', st.vol ? fmtVol(st.vol) : '—', R.prs.length ? `🏆 自己ベスト ${R.prs.length}` : '', RPC.gold);
+    tile(P + 2 * (tw + 20), tw, '総重量', st.vol ? fmtVol(st.vol) : '—', R.prs.length ? `🏆 自己ベスト ${R.prs.length}` : '', RPC.gold);
   } else {
     tile(P, tw, 'トレ日数', `${st.days.size}日`, ...dl(st.days.size, pv && pv.days.size, false));
     tile(P + tw + 20, tw, 'セット', `${st.ss.length}`, ...dl(st.ss.length, pv && pv.ss.length, true));
-    tile(P + 2 * (tw + 20), tw, '総負荷', st.vol ? fmtVol(st.vol) : '—', ...dl(st.vol, pv && pv.vol, true));
+    tile(P + 2 * (tw + 20), tw, '総重量', st.vol ? fmtVol(st.vol) : '—', ...dl(st.vol, pv && pv.vol, true));
   }
   y += 170 + 24;
 
@@ -3361,7 +3376,7 @@ async function rpDraw(R, withHero) {
     let vals = keys.map(k => bucketStats(k, unit).vol), byVol = vals.some(v => v > 0);
     if (!byVol) vals = keys.map(k => bucketStats(k, unit).ss.length);
     const H = 400; box(P, y, IW, H, 24, RPC.card);
-    F(700, 30); T(byVol ? '総負荷の推移' : 'セット数の推移', P + 28, y + 50, RPC.text);
+    F(700, 30); T(byVol ? '総重量の推移' : 'セット数の推移', P + 28, y + 50, RPC.text);
     const top = y + 100, bot = y + H - 56, mx = Math.max(...vals, 1), gx = (IW - 56) / N, bw = Math.min(64, gx * 0.62);
     c.fillStyle = '#2c343f'; c.fillRect(P + 28, bot, IW - 56, 2);
     keys.forEach((k, i) => {
