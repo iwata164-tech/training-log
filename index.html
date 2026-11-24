@@ -3311,7 +3311,7 @@ const RPC = { text: '#e9eef3', muted: '#8d98a6', card: '#1a1f26', card2: '#22293
 const rpImg = src => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
 
 async function rpDraw(R, withHero) {
-  const W = 1080, P = 60, IW = W - 2 * P, cv = document.createElement('canvas'); cv.width = W; cv.height = 2600;
+  const W = 1080, P = 60, IW = W - 2 * P, cv = document.createElement('canvas'); cv.width = W; cv.height = 2600 + Math.max(0, R.order.length - 8) * 92 + Math.max(0, R.prs.length - 4) * 58;
   const c = cv.getContext('2d'); c.textBaseline = 'alphabetic';
   const F = (w, px) => (c.font = `${w} ${px}px ${RP_FONT}`);
   const box = (x, y, w, h, r, fill) => { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); c.fillStyle = fill; c.fill(); };
@@ -3324,7 +3324,7 @@ async function rpDraw(R, withHero) {
   let heroW = 0;
   if (withHero && typeof hero === 'function') {
     try {
-      const h = hero(), im = await rpImg(drawHero(h.pl, 'happy', R.prs.length ? 'biceps' : 'relax', heroSet()));
+      const h = hero(), im = await rpImg(drawHero(h.pl, 'happy', R.unit !== 'day' || R.prs.length ? 'biceps' : 'relax', heroSet()));
       const k = Math.min(2.2, 250 / im.naturalHeight), w = im.naturalWidth * k, hh = im.naturalHeight * k;
       c.imageSmoothingEnabled = false; c.drawImage(im, W - P - w, y - 6, w, hh); c.imageSmoothingEnabled = true;
       F(700, 26); T(`Lv${h.lv.L} ${titleOf(h.lv.L)}`, W - P - w / 2, y + hh + 22, RPC.acc2, 'center');
@@ -3387,7 +3387,7 @@ async function rpDraw(R, withHero) {
     });
     y += H + 24;
   } else if (R.order.length) {
-    const rows = R.order.slice(0, 8), H = 76 + rows.length * 92 + (R.order.length > 8 ? 40 : 0);
+    const rows = R.order, H = 76 + rows.length * 92;
     box(P, y, IW, H, 24, RPC.card);
     F(700, 30); T('種目', P + 28, y + 50, RPC.text);
     rows.forEach((n, i) => {
@@ -3398,7 +3398,6 @@ async function rpDraw(R, withHero) {
       if (v) { F(700, 26); T(`総重量 ${fmtVol(v)}`, W - P - 28, yy + 76, RPC.text, 'right'); }
       F(400, 26); T(rpSetsLine(x), P + 28, yy + 76, RPC.muted, 'left', IW - 56 - (v ? 250 : 0));
     });
-    if (R.order.length > 8) { F(400, 24); T(`ほか ${R.order.length - 8}種目`, P + 28, y + H - 22, RPC.muted); }
     y += H + 24;
   }
 
@@ -3431,7 +3430,7 @@ async function rpDraw(R, withHero) {
 
   // 自己ベスト
   if (R.prs.length && unit !== 'day') {
-    const rows = R.prs.slice(0, 4), H = 80 + rows.length * 58 + (R.prs.length > 4 ? 36 : 0);
+    const rows = R.prs, H = 80 + rows.length * 58;
     box(P, y, IW, H, 24, '#2a2416');
     F(700, 30); T('🏆 自己ベスト更新', P + 28, y + 50, RPC.gold);
     rows.forEach((p, i) => {
@@ -3439,7 +3438,6 @@ async function rpDraw(R, withHero) {
       F(600, 28); T(p.n, P + 28, yy + 34, RPC.text, 'left', IW - 380);
       F(700, 26); T(`${p.txt}  ${p.plus}`, W - P - 28, yy + 34, RPC.ok, 'right');
     });
-    if (R.prs.length > 4) { F(400, 24); T(`ほか ${R.prs.length - 4}種目`, P + 28, y + H - 20, RPC.muted); }
     y += H + 24;
   }
 
