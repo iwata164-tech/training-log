@@ -36,6 +36,15 @@ main{padding:12px 14px;max-width:640px;margin:0 auto}
 .goal{font-size:22px;font-weight:700;letter-spacing:.01em}
 .why{font-size:13px;color:#c9d2dc;margin-top:2px}
 .last,.note{font-size:13px;color:var(--muted);margin:4px 0}
+.memo{display:block;width:100%;text-align:left;margin:8px 0;padding:10px 12px;border-radius:12px;background:var(--card2);border:1px dashed var(--line);color:var(--muted);font-size:13px}
+.memo.has{border-style:solid;color:var(--text)}
+.memo b{display:block;font-size:12px;color:var(--muted);margin-bottom:3px}
+.memo .mt{white-space:pre-wrap;font-size:15px;line-height:1.45}
+.memo-i{font-size:12px}
+.memo-ta{width:100%;min-height:130px;margin-top:4px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--text);font-size:16px;line-height:1.5}
+.cr-inputs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.cr-inputs label{font-size:13px;color:var(--muted)}
+.cr-inputs .full{grid-column:1/-1}
 .inputs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
 .inputs label{font-size:12px;color:var(--muted)}
 .stepper{display:flex;align-items:stretch;margin-top:4px;background:var(--card2);border:1px solid var(--line);border-radius:12px;overflow:hidden}
@@ -711,10 +720,11 @@ function loadState() {
   return {
     sets: d.sets || [],
     customEx: d.customEx || [],
+    notes: d.notes || {},
     game: d.game || null,
     patterns: d.patterns || PRESET_PATTERNS.map(p => ({ ...p, items: [...p.items], u: 1 })),
     session: d.session || null,
-    settings: Object.assign({ clientId: '', repMin: 8, repMax: 12, speak: false, rest: 90, weekGoal: 3 }, d.settings),
+    settings: Object.assign({ clientId: '', repMin: 8, repMax: 12, speak: false, rest: 90, weekGoal: 3, confirmRec: true }, d.settings),
     sync: Object.assign({ fileId: null, dirty: false, lastSync: null, connected: false, seq: 0, token: null, tokenExp: 0 }, d.sync),
   };
 }
@@ -1021,6 +1031,12 @@ async function handleCommand(text, alts = []) {
         else { say('重量が聞き取れませんでした'); selectEx(ex.name); return; }
       }
       if (c.r == null) { say('回数が聞き取れませんでした'); selectEx(ex.name); cur.w = w; render(); return; }
+      if (S.settings.confirmRec !== false) {
+        const v = await confirmRecDialog(ex.name, w, c.r, Math.min(c.sets || 1, 10));
+        if (v) addSets(ex.name, v.w, v.r, v.n);
+        else { selectEx(ex.name); cur.w = w; cur.r = c.r; render(); }
+        break;
+      }
       addSets(ex.name, w, c.r, Math.min(c.sets || 1, 10));
       break;
     }
@@ -1086,7 +1102,10 @@ function mergeData(a, b) {
   const pm = new Map();
   for (const x of [...(a.patterns || []), ...(b.patterns || [])]) { const o = pm.get(x.id); if (!o || (x.u || 0) > (o.u || 0)) pm.set(x.id, x); }
   const ga = a.game, gb = b.game, game = !gb ? ga : !ga ? gb : (ga.u || 0) >= (gb.u || 0) ? ga : gb;
-  return { sets: [...m.values()].sort((x, y) => x.ts - y.ts), customEx: [...c.values()], patterns: [...pm.values()], game };
+  // 種目ごとのメモ（マシンの設定など）：種目名ごとに新しい方を残す
+  const notes = { ...(a.notes || {}) };
+  for (const [k, v] of Object.entries(b.notes || {})) if (!notes[k] || (v.u || 0) > (notes[k].u || 0)) notes[k] = v;
+  return { sets: [...m.values()].sort((x, y) => x.ts - y.ts), customEx: [...c.values()], patterns: [...pm.values()], game, notes };
 }
 
 function scheduleSync() { clearTimeout(syncTimer); syncTimer = setTimeout(() => syncNow(false), 1500); }
@@ -1117,7 +1136,7 @@ async function syncNow(interactive) {
       const j = await r.json();
       if (j.files && j.files[0]) { id = j.files[0].id; remote = (await getFile(id)) || null; }
     }
-    const merged = mergeData({ sets: S.sets, customEx: S.customEx, patterns: S.patterns, game: S.game }, remote || {});
+    const merged = mergeData({ sets: S.sets, customEx: S.customEx, patterns: S.patterns, game: S.game, notes: S.notes }, remote || {});
     const body = JSON.stringify({ app: 'training-log', version: 1, savedAt: new Date().toISOString(), ...merged });
     if (id) {
       const r = await gfetch(`https://www.googleapis.com/upload/drive/v3/files/${id}?uploadType=media`,
@@ -1133,8 +1152,8 @@ async function syncNow(interactive) {
       id = (await r.json()).id;
     }
     // 同期中に追加された記録も失わないよう再マージ
-    const fin = mergeData({ sets: S.sets, customEx: S.customEx, patterns: S.patterns, game: S.game }, merged);
-    S.sets = fin.sets; S.customEx = fin.customEx; S.patterns = fin.patterns; if (fin.game) S.game = fin.game;
+    const fin = mergeData({ sets: S.sets, customEx: S.customEx, patterns: S.patterns, game: S.game, notes: S.notes }, merged);
+    S.sets = fin.sets; S.customEx = fin.customEx; S.patterns = fin.patterns; S.notes = fin.notes; if (fin.game) S.game = fin.game;
     S.sync.fileId = id; S.sync.lastSync = Date.now();
     if (S.sync.seq === seq) S.sync.dirty = false;
     save();
@@ -1233,7 +1252,7 @@ function renderRest() {
 }
 
 // ---------- 記録の引っ越し（コピー＆貼り付け） ----------
-const dumpJson = () => JSON.stringify({ app: 'training-log', version: 1, sets: S.sets, customEx: S.customEx, patterns: S.patterns, game: S.game, settings: { repMin: S.settings.repMin, repMax: S.settings.repMax, rest: S.settings.rest, weekGoal: S.settings.weekGoal } });
+const dumpJson = () => JSON.stringify({ app: 'training-log', version: 1, sets: S.sets, customEx: S.customEx, patterns: S.patterns, game: S.game, notes: S.notes, settings: { repMin: S.settings.repMin, repMax: S.settings.repMax, rest: S.settings.rest, weekGoal: S.settings.weekGoal } });
 async function copyOut() {
   const txt = dumpJson();
   try { await navigator.clipboard.writeText(txt); toast(`${S.sets.filter(s => !s.del).length}セット分をコピーしました。移した先の「読み込み」に貼り付けてください`); return; } catch (e) { /* 下で手動コピー */ }
@@ -1247,8 +1266,8 @@ function pasteIn() {
       try {
         const j = JSON.parse(m.querySelector('#mv-in').value.trim());
         if (!j || !Array.isArray(j.sets)) throw 0;
-        const before = S.sets.length, mg = mergeData({ sets: S.sets, customEx: S.customEx, patterns: S.patterns, game: S.game }, j);
-        S.sets = mg.sets; S.customEx = mg.customEx; S.patterns = mg.patterns;
+        const before = S.sets.length, mg = mergeData({ sets: S.sets, customEx: S.customEx, patterns: S.patterns, game: S.game, notes: S.notes }, j);
+        S.sets = mg.sets; S.customEx = mg.customEx; S.patterns = mg.patterns; S.notes = mg.notes;
         if (j.game && (!S.game || (j.game.u || 0) >= (S.game.u || 0))) S.game = j.game;
         if (j.settings) for (const k of ['repMin', 'repMax', 'rest', 'weekGoal']) if (j.settings[k] != null) S.settings[k] = j.settings[k];
         close(null); touch(); toast(`読み込みました（${S.sets.length - before}セット追加）`);
@@ -1323,6 +1342,7 @@ function renderToday() {
       <div class="sugg ${sg.up ? 'up' : sg.down ? 'down' : ''}"><div class="lbl">今日の目安</div><div class="goal">${goal}</div><div class="why">${esc(sg.reason)}</div></div>
       ${sg.last ? `<div class="last">前回 ${fmtDate(sg.last.date)}：${esc(setsLine(sg.last.sets))}</div>` : ''}
       ${ex.equip === 'ダンベル' ? '<div class="note">ダンベルは片手の重量で記録</div>' : ''}
+      ${exNoteHtml(ex.name)}
       <div class="inputs">
         <label>重量(kg)<div class="stepper"><button data-act="w-" aria-label="重量を下げる">−</button><input id="in-w" type="number" inputmode="decimal" step="any" value="${esc(cur.w)}" placeholder="0"><button data-act="w+" aria-label="重量を上げる">＋</button></div></label>
         <label>回数<div class="stepper"><button data-act="r-" aria-label="回数を減らす">−</button><input id="in-r" type="number" inputmode="numeric" value="${esc(cur.r)}" placeholder="0"><button data-act="r+" aria-label="回数を増やす">＋</button></div></label>
@@ -1357,7 +1377,7 @@ function renderToday() {
 const pick = { tab: null };
 function exRow(x) {
   const l = lastOf(x.name);
-  return `<li><button data-ex="${esc(x.name)}"><span class="nm">${esc(x.name)}</span><span class="meta">${esc(x.part)}・${esc(x.equip)}${l ? `｜前回 ${fmtDate(l.date)} ${esc(setsLine(l.sets.slice(0, 1)))}` : ''}</span></button></li>`;
+  return `<li><button data-ex="${esc(x.name)}"><span class="nm">${esc(x.name)}${noteOf(x.name) ? ' <small class="memo-i" title="メモあり">📝</small>' : ''}</span><span class="meta">${esc(x.part)}・${esc(x.equip)}${l ? `｜前回 ${fmtDate(l.date)} ${esc(setsLine(l.sets.slice(0, 1)))}` : ''}</span></button></li>`;
 }
 function pickerHtml() {
   const rec = recentExNames(12);
@@ -1654,6 +1674,7 @@ function renderSettings() {
     <div class="row2"><label class="field">目標回数の下限<input id="rmin" type="number" inputmode="numeric" value="${st.repMin}"></label><label class="field">上限<input id="rmax" type="number" inputmode="numeric" value="${st.repMax}"></label></div>
     <p class="muted small">前回すべてのセットで上限回数に届いたら重量を上げ（バーベル・マシン +2.5kg、ダンベル +1kg）、下限から再スタート。2回続けて下限に届かなければ約10%下げます。</p>
     <label class="toggle"><input id="speak" type="checkbox" ${st.speak ? 'checked' : ''}> 音声で読み上げる</label>
+    <label class="toggle"><input id="confirm-rec" type="checkbox" ${st.confirmRec !== false ? 'checked' : ''}> 声・入力欄で記録するとき、重量と回数を確認・修正してから記録する</label>
   </section>
   <section class="card"><h3>休憩と週の目標</h3>
     <div class="row2"><label class="field">セット間の休憩<select id="rest-sec">${[[0, 'タイマーなし'], [60, '60秒'], [90, '90秒'], [120, '2分'], [150, '2分30秒'], [180, '3分'], [240, '4分']].map(([v, l]) => opt(v, l, st.rest)).join('')}</select></label><label class="field">週の目標<select id="wgoal">${[1, 2, 3, 4, 5, 6, 7].map(v => opt(v, `週${v}日`, st.weekGoal)).join('')}</select></label></div>
@@ -1769,6 +1790,75 @@ function plateDialog(curW, equip) {
       draw();
     };
     draw();
+  });
+}
+
+// ---------- 種目ごとのメモ（マシンの椅子の位置・ベンチの角度など） ----------
+const NOTE_KEYS = ['椅子の高さ', '背もたれ', 'ベンチ角度', 'パッド', 'ピンの位置', 'グリップ', 'スタンス', 'ラックの高さ'];
+function noteOf(name) { const n = name && S.notes && S.notes[name]; return n && n.t ? n.t : ''; }
+function exNoteHtml(name) {
+  const t = noteOf(name);
+  return t ? `<button class="memo has" data-act="note"><b>📝 設定メモ <span class="pen">✎</span></b><span class="mt">${esc(t)}</span></button>`
+    : '<button class="memo" data-act="note">📝 椅子の位置・ベンチの高さなどのメモを残す</button>';
+}
+function editNote(name) {
+  if (!name) return;
+  return dialog(`<h3>📝 ${esc(name)} のメモ</h3>
+    <p class="muted small">マシンの椅子の位置やベンチの高さなど。種目を選ぶたびに表示されます。</p>
+    <div class="chips">${NOTE_KEYS.map(k => `<button class="chip" data-nk="${esc(k)}">＋${esc(k)}</button>`).join('')}</div>
+    <textarea id="nt" class="memo-ta" placeholder="例：椅子の高さ 4／背もたれ 2／グリップは肩幅">${esc(noteOf(name))}</textarea>
+    <div class="row2"><button class="ghost danger-t" data-c="clear">消す</button><button class="primary" data-c="save">保存</button></div>
+    <button class="ghost" data-c="cancel">キャンセル</button>`,
+  (m, close) => {
+    const ta = m.querySelector('#nt');
+    m.querySelector('.sheet').onclick = e => {
+      const b = e.target.closest('button'); if (!b) return;
+      if (b.dataset.nk) {
+        const v = ta.value.replace(/\s+$/, '');
+        ta.value = (v ? v + '\n' : '') + b.dataset.nk + ' ';
+        ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); return;
+      }
+      const c = b.dataset.c; if (!c) return;
+      if (c === 'cancel') return close(null);
+      const t = c === 'clear' ? '' : ta.value.trim();
+      if (!S.notes) S.notes = {};
+      S.notes[name] = { t, u: Date.now() };
+      touch(); toast(t ? 'メモを保存しました' : 'メモを消しました'); close(true);
+    };
+  });
+}
+
+// 声・入力欄で記録するとき、重量・回数を確かめて直してから記録する
+function confirmRecDialog(name, w, r, n = 1) {
+  const inc = INC[exInfo(name).equip] || 1;
+  const memo = noteOf(name);
+  return dialog(`<h3>${esc(name)} を記録</h3>
+    <p class="muted small">聞き取った内容です。違っていたら直してから記録してください。</p>
+    ${memo ? `<div class="memo has"><b>📝 設定メモ</b><span class="mt">${esc(memo)}</span></div>` : ''}
+    <div class="cr-inputs">
+      <label>重量(kg)<div class="stepper"><button data-s="w-" aria-label="重量を下げる">−</button><input id="cr-w" type="number" inputmode="decimal" step="any" value="${num(w)}"><button data-s="w+" aria-label="重量を上げる">＋</button></div></label>
+      <label>回数<div class="stepper"><button data-s="r-" aria-label="回数を減らす">−</button><input id="cr-r" type="number" inputmode="numeric" value="${Math.round(r)}"><button data-s="r+" aria-label="回数を増やす">＋</button></div></label>
+      <label class="full">セット数<div class="stepper"><button data-s="n-" aria-label="セット数を減らす">−</button><input id="cr-n" type="number" inputmode="numeric" value="${n}"><button data-s="n+" aria-label="セット数を増やす">＋</button></div></label>
+    </div>
+    <div class="row2"><button class="ghost" data-c="cancel">キャンセル</button><button class="primary" data-c="ok">記録する</button></div>`,
+  (m, close) => {
+    const f = id => m.querySelector(id);
+    m.querySelector('.sheet').onclick = e => {
+      const b = e.target.closest('button'); if (!b) return;
+      const sd = b.dataset.s;
+      if (sd) {
+        const [k, dir] = [sd[0], sd[1] === '+' ? 1 : -1];
+        const el = f('#cr-' + k), step = k === 'w' ? inc : 1, min = k === 'w' ? 0 : 1;
+        el.value = Math.max(min, num(+(el.value || 0) + dir * step)); return;
+      }
+      if (b.dataset.c === 'cancel') return close(null);
+      if (b.dataset.c === 'ok') {
+        const vw = f('#cr-w').value === '' ? NaN : +f('#cr-w').value, vr = +f('#cr-r').value, vn = Math.round(+f('#cr-n').value || 1);
+        if (isNaN(vw) || vw < 0) return toast('重量を入力してください');
+        if (!vr || vr < 1) return toast('回数を入力してください');
+        close({ w: vw, r: vr, n: Math.min(Math.max(vn, 1), 10) });
+      }
+    };
   });
 }
 
@@ -1924,6 +2014,7 @@ function bind() {
     if (d.equip) { browse.equip = d.equip === 'すべて' ? null : d.equip; return render(); }
     switch (d.act) {
       case 'clear': cur.ex = null; return render();
+      case 'note': return editNote(cur.ex);
       case 'w-': case 'w+': {
         const inc = +d.inc || 1; const v = +($('#in-w').value || 0) + (d.act === 'w+' ? inc : -inc);
         cur.w = Math.max(0, num(v)); $('#in-w').value = cur.w; updOrm(); return;
@@ -1961,8 +2052,12 @@ function bind() {
       case 'seed': return seedSample();
       case 'wipe': if (await confirmDialog('すべての記録を消しますか？')) { S.sets = []; S.customEx = []; cur.ex = null; touch(); toast('消しました'); } return;
       case 'csv': return exportCsv();
-      case 'json': return download(`training-log-${today()}.json`, JSON.stringify({ app: 'training-log', version: 1, sets: S.sets, customEx: S.customEx, patterns: S.patterns, game: S.game }, null, 1), 'application/json');
+      case 'json': return download(`training-log-${today()}.json`, JSON.stringify({ app: 'training-log', version: 1, sets: S.sets, customEx: S.customEx, patterns: S.patterns, game: S.game, notes: S.notes }, null, 1), 'application/json');
     }
+  });
+  // 重量・回数の欄をタップしたら中身を選択して、そのまま打ち直せるようにする
+  document.addEventListener('focusin', e => {
+    if (e.target.matches && e.target.matches('#in-w, #in-r, #cr-w, #cr-r, #cr-n, #ed-w, #ed-r')) setTimeout(() => { try { e.target.select(); } catch (x) { /* noop */ } }, 0);
   });
   document.addEventListener('input', e => {
     const id = e.target.id;
@@ -1990,13 +2085,14 @@ function bind() {
     }
     if (id === 'hex-sel') { hist.ex = e.target.value; render(); }
     if (id === 'speak') { S.settings.speak = e.target.checked; save(); }
+    if (id === 'confirm-rec') { S.settings.confirmRec = e.target.checked; save(); }
     if (id === 'rest-sec') { S.settings.rest = +e.target.value; save(); }
     if (id === 'wgoal') { S.settings.weekGoal = +e.target.value || 3; save(); render(); }
     if (id === 'imp' && e.target.files[0]) {
       try {
         const j = JSON.parse(await e.target.files[0].text());
-        const m = mergeData({ sets: S.sets, customEx: S.customEx, patterns: S.patterns, game: S.game }, j);
-        const before = S.sets.length; S.sets = m.sets; S.customEx = m.customEx; S.patterns = m.patterns; if (m.game) S.game = m.game; touch();
+        const m = mergeData({ sets: S.sets, customEx: S.customEx, patterns: S.patterns, game: S.game, notes: S.notes }, j);
+        const before = S.sets.length; S.sets = m.sets; S.customEx = m.customEx; S.patterns = m.patterns; S.notes = m.notes; if (m.game) S.game = m.game; touch();
         toast(`読み込みました（${S.sets.length - before}件追加）`);
       } catch (err) { toast('JSONを読み込めませんでした'); }
     }
