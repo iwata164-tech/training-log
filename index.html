@@ -413,6 +413,62 @@ body.local #badge{display:none}
 .rp-ph img{width:100%;height:100%;object-fit:cover;display:block}
 .rp-ph button{position:absolute;top:3px;right:3px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;font-size:13px}
 #mic{display:none!important}
+#tut-help{flex:none;width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--card2);color:var(--acc2);font-weight:700;font-size:15px;line-height:1;display:grid;place-items:center}
+#tut{position:fixed;inset:0;z-index:40;touch-action:none}
+.tut-hole{position:fixed;border-radius:12px;box-shadow:0 0 0 2px var(--acc2),0 0 0 9999px rgba(0,0,0,.72);transition:left .25s,top .25s,width .25s,height .25s;pointer-events:none}
+.tut-hole.off{left:50%!important;top:50%!important;width:0!important;height:0!important;box-shadow:0 0 0 9999px rgba(0,0,0,.72)}
+.tut-bub{position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));max-width:520px;margin:0 auto;max-height:62vh;overflow:auto;background:var(--card);border:1px solid #3d4856;border-radius:16px;padding:12px 14px 10px;box-shadow:0 10px 30px rgba(0,0,0,.5);outline:none}
+.tut-bub.top{bottom:auto;top:calc(10px + env(safe-area-inset-top))}
+.tut-bub.mid{bottom:auto;top:50%;transform:translateY(-50%)}
+.tut-top{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--muted)}
+.tut-x{width:32px;height:32px;margin:-6px -8px -6px 0;color:var(--muted);font-size:15px}
+.tut-bub h3{margin:2px 0 4px;font-size:17px}
+.tut-bub p{margin:0 0 6px;font-size:14.5px;line-height:1.6}
+.tut-bub b{color:var(--acc2)}
+.tut-note{color:var(--warn);font-size:13px!important}
+.tut-dots{display:flex;gap:5px;justify-content:center;margin:8px 0 2px}
+.tut-dots i{width:7px;height:7px;border-radius:50%;background:#3a4350}
+.tut-dots i.done{background:#6b7584}.tut-dots i.on{background:var(--acc);width:16px;border-radius:4px}
+.tut-btns{display:grid;grid-template-columns:1fr 1.6fr;gap:8px;margin-top:8px}
+.tut-btns .ghost{margin:0;padding:11px}.tut-btns .primary{padding:11px;font-size:16px}
+.tut-btns .ghost:disabled{opacity:.35}
+.tut-skip,.tut-more{display:block;margin:8px auto 0;padding:6px 12px;font-size:13px;color:var(--muted);text-decoration:underline}
+.tut-more{color:var(--acc2)}
+.tut-mock{margin:6px 0 2px;pointer-events:none;font-size:13px}
+.tm-card{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:9px 10px}
+.tm-h{display:flex;align-items:center;gap:6px;margin-bottom:4px}.tm-h b{color:var(--text)!important;flex:1}
+.tm-link{text-decoration:underline}
+.tm-tag{font-size:11px;padding:1px 7px;border-radius:99px;background:var(--card2);color:var(--muted)}.tm-tag.pr{color:var(--warn)}
+.tm-row{display:flex;gap:10px;align-items:center;padding:5px 2px;border-top:1px solid var(--line)}.tm-row span:first-child{flex:1}
+.tm-pen{color:var(--muted)}.tm-x{color:var(--muted)}
+.tm-pills{display:flex;gap:5px}.tm-pills span{padding:2px 8px;border-radius:7px;background:var(--card2)}
+.tm-li{padding:4px 6px;border-radius:8px;color:var(--muted)}.tm-li.cur{background:var(--card2);color:var(--text)}.tm-li.done{color:var(--ok)}.tm-li small{float:right}
+.tm-btn{margin-top:6px;text-align:center;padding:6px;border:1px solid var(--line);border-radius:9px;background:var(--card2)}.tm-btn.on{background:var(--acc);color:#1a0d00;font-weight:700;border-color:var(--acc)}
+.tm-in{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0}
+.tm-box{padding:4px 9px;border:1px solid var(--line);border-radius:8px;background:var(--card2)}
+.tm-btns{display:grid;grid-template-columns:1fr 1fr;gap:6px}.tm-btns span{text-align:center;padding:6px;border-radius:9px;border:1px solid var(--line);background:var(--card2)}
+.tm-btns .on{background:var(--acc);color:#1a0d00;font-weight:700;border-color:var(--acc)}.tm-btns .del{color:var(--bad)}
+.tm-seg{display:flex;background:var(--card2);border-radius:9px;padding:2px;margin-bottom:6px}.tm-seg span{flex:1;text-align:center;padding:4px 0;border-radius:7px}.tm-seg .on{background:var(--acc);color:#1a0d00;font-weight:700}
+.tm-nav{display:flex;justify-content:space-between;align-items:center;padding:0 6px}
+.tm-txt{background:var(--card2);border-radius:8px;padding:7px;line-height:1.5}
+.tm-cnt{text-align:right;font-size:11px;color:var(--muted);margin:2px 0 4px}
+.tm-ph{display:flex;gap:6px}.tm-ph span{flex:1;text-align:center;padding:10px 0;border:1px dashed var(--line);border-radius:8px;color:var(--muted)}
+.tm-acts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.tm-acts div{display:flex;flex-direction:column;align-items:center;padding:8px 2px;border-radius:10px;background:var(--card2);border:1px solid var(--line);line-height:1.3}
+.tm-acts b{color:var(--text)!important;font-size:14px}.tm-acts small{font-size:10.5px;color:var(--muted)}
+.tm-acts .sp{background:var(--acc);border-color:var(--acc)}.tm-acts .sp b,.tm-acts .sp small{color:#1a0d00!important}
+.tm-log{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px;line-height:1.7}.tm-log .warnl{color:var(--warn);font-weight:700}
+.tut-g{font-size:13px;color:var(--muted);margin:12px 2px 6px}
+.tut-list{display:flex;flex-direction:column;gap:6px}
+.tut-item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:11px 12px;border-radius:12px;background:var(--card2);border:1px solid var(--line)}
+.tut-item:active{background:#2d3542}
+.tut-item .ic{font-size:20px;width:26px;text-align:center}
+.tut-item .nm{flex:1;font-size:15px;line-height:1.35}.tut-item .nm small{display:block;font-size:11.5px;color:var(--muted)}
+.tut-item .ok{color:var(--ok);font-weight:700}.tut-item .go{color:var(--muted);font-size:12px}
+.tut-wel{text-align:center}
+.tut-wel .tut-hero{width:120px;height:auto;max-height:150px;display:block;margin:0 auto 4px}
+.tut-wel h3{margin:4px 0 6px}.tut-wel p{margin:0 0 6px;line-height:1.6}
+@media (prefers-reduced-motion:reduce){.tut-hole{transition:none}}
 </style>
 </head>
 <body>
@@ -725,7 +781,7 @@ function loadState() {
     patterns: d.patterns || PRESET_PATTERNS.map(p => ({ ...p, items: [...p.items], u: 1 })),
     session: d.session || null,
     settings: Object.assign({ clientId: '', repMin: 8, repMax: 12, speak: false, rest: 90, weekGoal: 3, confirmRec: true }, d.settings),
-    sync: Object.assign({ fileId: null, dirty: false, lastSync: null, connected: false, seq: 0, token: null, tokenExp: 0 }, d.sync),
+    sync: Object.assign({ fileId: null, dirty: false, lastSync: null, connected: false, seq: 0, token: null, tokenExp: 0, email: null }, d.sync),
   };
 }
 let S = loadState();
@@ -1053,39 +1109,61 @@ async function handleCommand(text, alts = []) {
 // =========================================================
 const SCOPE = 'https://www.googleapis.com/auth/drive.file';
 const FILE_NAME = 'training-log.json';
-let syncing = false, syncTimer = null, gisPromise = null, lastError = '';
+let syncing = false, syncTimer = null, lastError = '';
 
-function loadGis() {
-  if (typeof google !== 'undefined' && google.accounts && google.accounts.oauth2) return Promise.resolve();
-  if (gisPromise) return gisPromise;
-  gisPromise = new Promise((res, rej) => {
-    const s = document.createElement('script');
-    s.src = 'https://accounts.google.com/gsi/client'; s.async = true;
-    s.onload = res; s.onerror = () => { gisPromise = null; rej(new Error('gis')); };
-    document.head.appendChild(s);
-  });
-  return gisPromise;
-}
 const LOCAL_ONLY = typeof window !== 'undefined' && !!window.LOCAL_ONLY;
 // アプリに組み込んだ OAuth クライアントID（公開して問題ない値）。使う人は自分のGoogleアカウントでログインするだけでよい
 const CLIENT_ID = '115508503135-npijq188304brq54tht3hjpf2h9nbe2g.apps.googleusercontent.com';
 const clientId = () => CLIENT_ID || (S.settings.clientId || '').trim();
 const tokenValid = () => S.sync.token && Date.now() < S.sync.tokenExp - 60000;
 
-function requestToken() {
-  return new Promise((res, rej) => {
-    if (typeof google === 'undefined' || !google.accounts) { rej(new Error('Googleのログイン部品を読み込み中です。もう一度タップしてください')); loadGis().catch(() => {}); return; }
-    const tc = google.accounts.oauth2.initTokenClient({
-      client_id: clientId(), scope: SCOPE,
-      callback: r => {
-        if (r.error) { rej(new Error(r.error)); return; }
-        S.sync.token = r.access_token; S.sync.tokenExp = Date.now() + (r.expires_in || 3600) * 1000;
-        S.sync.connected = true; save(); res();
-      },
-      error_callback: e => rej(new Error(e && e.type ? e.type : 'popup')),
-    });
-    tc.requestAccessToken({ prompt: S.sync.connected ? '' : 'consent' });
-  });
+// ログインはポップアップではなく、同じ画面でGoogleに移動して戻ってくる方式（リダイレクト）。
+// ホーム画面のアプリでもログイン後に別のページ（ブラウザのタブ）が残らない。
+// 一度ログインしたアカウントのメールアドレスを覚えておき、次からはアカウント選択を省く。
+const AUTH_KEY = 'tl-auth';
+const redirectUri = () => location.origin + location.pathname.replace(/index\.html$/, '');
+
+function requestToken(switchAccount) {
+  const state = uid() + uid();
+  try { sessionStorage.setItem(AUTH_KEY, JSON.stringify({ state, tab, ex: cur.ex, w: cur.w, r: cur.r })); } catch (e) { /* noop */ }
+  const q = { client_id: clientId(), redirect_uri: redirectUri(), response_type: 'token', scope: SCOPE, state, include_granted_scopes: 'true' };
+  if (switchAccount || !S.sync.email) q.prompt = 'select_account';
+  else q.login_hint = S.sync.email;
+  location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + new URLSearchParams(q);
+  return new Promise(() => {}); // ページを離れるので戻らない
+}
+
+// Googleから戻ってきたとき：アドレスの # の後ろからトークンを受け取る。戻ってきたなら true
+function takeAuthResult() {
+  if (!location.hash || !/(access_token|error)=/.test(location.hash)) return false;
+  const h = new URLSearchParams(location.hash.slice(1));
+  history.replaceState(null, '', location.pathname + location.search);
+  let saved = null;
+  try { saved = JSON.parse(sessionStorage.getItem(AUTH_KEY) || 'null'); sessionStorage.removeItem(AUTH_KEY); } catch (e) { /* noop */ }
+  if (saved) {
+    if (saved.tab) tab = saved.tab;
+    if (saved.ex) { cur.ex = saved.ex; cur.w = saved.w || ''; cur.r = saved.r || ''; }
+  }
+  if (!saved || h.get('state') !== saved.state) { lastError = 'ログインの確認に失敗しました（もう一度タップ）'; return true; }
+  if (h.get('error')) { lastError = h.get('error') === 'access_denied' ? 'ログインがキャンセルされました' : 'ログインできませんでした: ' + h.get('error'); return true; }
+  S.sync.token = h.get('access_token');
+  S.sync.tokenExp = Date.now() + (+h.get('expires_in') || 3600) * 1000;
+  S.sync.connected = true; save();
+  return true;
+}
+
+// ログインしたアカウントのメールアドレスを覚える（次から選択を省くため）
+async function rememberAccount() {
+  if (S.sync.email) return;
+  try {
+    const r = await gfetch('https://www.googleapis.com/drive/v3/about?fields=user(emailAddress)');
+    if (r.ok) { const j = await r.json(); if (j.user && j.user.emailAddress) { S.sync.email = j.user.emailAddress; save(); } }
+  } catch (e) { /* 覚えられなくても同期は続ける */ }
+}
+
+function switchAccount() {
+  S.sync.email = null; S.sync.token = null; S.sync.tokenExp = 0; S.sync.fileId = null; save();
+  requestToken(true);
 }
 
 async function gfetch(url, opt = {}) {
@@ -1116,11 +1194,12 @@ async function syncNow(interactive) {
   if (!navigator.onLine) { if (interactive) toast('オフラインです。端末に保存し、通信が戻ったら同期します'); renderBadge(); return; }
   if (!tokenValid()) {
     if (!interactive) { renderBadge(); return; }
-    try { await requestToken(); } catch (e) { toast('Googleに接続できませんでした: ' + e.message); return; }
+    await requestToken(); return;
   }
   syncing = true; lastError = ''; renderBadge();
   const seq = S.sync.seq;
   try {
+    await rememberAccount();
     let id = S.sync.fileId, remote = null;
     const getFile = async fid => {
       const r = await gfetch(`https://www.googleapis.com/drive/v3/files/${fid}?alt=media`);
@@ -1664,11 +1743,12 @@ function renderHistory() {
 function renderSettings() {
   const el = $('#view-settings');
   const st = S.settings;
-  el.innerHTML = (LOCAL_ONLY ? '' : `
+  el.innerHTML = (typeof tutCardHtml === 'function' ? tutCardHtml() : '') + (LOCAL_ONLY ? '' : `
   <section class="card"><h3>Google Drive 同期</h3>
     ${CLIENT_ID ? '' : `<label class="field">OAuth クライアントID<input id="cid" type="text" autocomplete="off" spellcheck="false" placeholder="xxxx.apps.googleusercontent.com" value="${esc(st.clientId)}"></label>`}
     <button class="primary" data-act="sync">${S.sync.connected ? '今すぐ同期' : 'Googleに接続して同期'}</button>
-    <p class="muted small">保存先：マイドライブの <b>${FILE_NAME}</b><br>最終同期：${S.sync.lastSync ? new Date(S.sync.lastSync).toLocaleString('ja-JP') : 'なし'}${lastError ? `<br><span class="err">エラー：${esc(lastError)}</span>` : ''}<br>記録はまず端末に保存され、通信できるときに自動で同期されます。ログインは約1時間で切れるので、その後は上の「未同期」バッジをタップしてください。</p>
+    ${S.sync.email ? `<p class="small">接続中のアカウント：<b>${esc(S.sync.email)}</b></p><button data-act="switch-acct">別のアカウントに切り替える</button>` : ''}
+    <p class="muted small">保存先：マイドライブの <b>${FILE_NAME}</b><br>最終同期：${S.sync.lastSync ? new Date(S.sync.lastSync).toLocaleString('ja-JP') : 'なし'}${lastError ? `<br><span class="err">エラー：${esc(lastError)}</span>` : ''}<br>記録はまず端末に保存され、通信できるときに自動で同期されます。ログインは約1時間で切れるので、その後は上の「未同期」バッジをタップしてください（アカウントは覚えているので選び直す必要はありません）。</p>
   </section>`) + `
   <section class="card"><h3>提案の設定</h3>
     <div class="row2"><label class="field">目標回数の下限<input id="rmin" type="number" inputmode="numeric" value="${st.repMin}"></label><label class="field">上限<input id="rmax" type="number" inputmode="numeric" value="${st.repMax}"></label></div>
@@ -2049,6 +2129,7 @@ function bind() {
       case 'rest+': if (rest) { rest.end = Math.max(rest.end, Date.now()) + 30000; rest.total += 30; rest.done = false; renderRest(); } return;
       case 'rest-x': return stopRest();
       case 'sync': return syncNow(true);
+      case 'switch-acct': if (await confirmDialog('別のGoogleアカウントに切り替えますか？', '切り替える')) switchAccount(); return;
       case 'seed': return seedSample();
       case 'wipe': if (await confirmDialog('すべての記録を消しますか？')) { S.sets = []; S.customEx = []; cur.ex = null; touch(); toast('消しました'); } return;
       case 'csv': return exportCsv();
@@ -2067,7 +2148,7 @@ function bind() {
   });
   document.addEventListener('change', async e => {
     const id = e.target.id;
-    if (id === 'cid') { S.settings.clientId = e.target.value.trim(); S.sync.connected = false; S.sync.token = null; save(); if (clientId()) loadGis().catch(() => {}); renderBadge(); }
+    if (id === 'cid') { S.settings.clientId = e.target.value.trim(); S.sync.connected = false; S.sync.token = null; S.sync.email = null; save(); renderBadge(); }
     if (id === 'rmin' || id === 'rmax') { const v = parseInt(e.target.value, 10); if (v > 0) { S.settings[id === 'rmin' ? 'repMin' : 'repMax'] = v; save(); } }
     if (id && id.startsWith('hj-')) {
       const u = hist.unit, v = e.target.value;
@@ -2102,7 +2183,7 @@ function bind() {
   $('#toast').onclick = () => $('#toast').classList.remove('show');
   $('#cmdform').onsubmit = e => { e.preventDefault(); const v = $('#cmd').value; $('#cmd').value = ''; $('#cmd').blur(); handleCommand(v); };
 
-  window.addEventListener('online', () => { if (clientId()) loadGis().catch(() => {}); syncNow(false); });
+  window.addEventListener('online', () => syncNow(false));
   window.addEventListener('offline', renderBadge);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { syncNow(false); render(); renderRest(); } });
   setInterval(() => { if (S.sync.dirty) syncNow(false); }, 5 * 60 * 1000);
@@ -2137,10 +2218,12 @@ function seedSample() {
 function init() {
   $('#cmd').placeholder = PH;
   if (LOCAL_ONLY) document.body.classList.add('local');
+  const back = !LOCAL_ONLY && takeAuthResult();
+  window.TL_AUTH_BACK = !!back;
   bind(); render();
   if (LOCAL_ONLY) { S.settings.speak = false; render(); return; }
-  if (clientId() && navigator.onLine) loadGis().catch(() => {});
-  syncNow(false);
+  if (back && lastError) toast(lastError);
+  syncNow(back && !lastError);
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
 }
 
@@ -3663,5 +3746,312 @@ function reportDialog(o) {
 }
 
 </script>
+<script>
+'use strict';
+/* =========================================================
+   チュートリアル（使い方ガイド）
+   - 初めて開いたとき：見る／スキップ を選べる（S.settings.tut.seen）
+   - ヘッダーの「？」・設定の「使い方ガイド」から、やりたいことを選んで見られる
+   - 実際の画面を切り替えて、説明する所を明るく抜き出して見せる（記録・データは変更しない）
+   - 対象が画面にない（記録がまだない等）ときは、見本の絵で説明する
+   ========================================================= */
+
+const TUT_DEMO_EX = 'ベンチプレス';
+const $q = s => document.querySelector(s);
+const secByH = (root, word) => [...document.querySelectorAll(root + ' section.card')].find(s => { const h = s.querySelector('h3'); return h && h.textContent.includes(word); });
+
+// 見本の絵（対象が画面にないときに使う）
+const TM = {
+  log: `<div class="tm-card"><div class="tm-h"><b>ベンチプレス</b><span class="tm-tag">1RM 80kg</span></div>
+    <div class="tm-row"><span>60kg × 10回</span><span class="tm-pen">✎</span><span class="tm-x">✕</span></div>
+    <div class="tm-row"><span>60kg × 9回</span><span class="tm-pen">✎</span><span class="tm-x">✕</span></div></div>`,
+  day: `<div class="tm-card"><div class="tm-h"><b>11/26(水)</b><span class="tm-tag">総重量 3.2t</span></div>
+    <div class="tm-h"><b class="tm-link">スクワット</b><span class="tm-tag pr">★ 1RM 105kg</span></div>
+    <div class="tm-pills"><span>80×10</span><span>80×9</span><span>80×8</span></div></div>`,
+  sess: `<div class="tm-card"><div class="tm-h"><b>📋 胸の日</b><span class="tm-tag">1/5種目</span><span class="tm-x">✕</span></div>
+    <div class="tm-li done">✓ ベンチプレス <small>3/3</small></div><div class="tm-li cur">2 インクラインダンベルプレス <small>0/3</small></div><div class="tm-li">3 ダンベルフライ <small>0/3</small></div>
+    <div class="tm-btn">次の種目へ ▶ インクラインダンベルプレス</div></div>`,
+  confirm: `<div class="tm-card"><b>この内容で記録しますか？</b><div class="tm-in"><span>スクワット</span><span class="tm-box">80 kg</span><span class="tm-box">8 回</span><span class="tm-box">3 セット</span></div><div class="tm-btns"><span>キャンセル</span><span class="on">記録する</span></div></div>`,
+  edit: `<div class="tm-card"><b>記録を修正</b><div class="tm-in"><span class="tm-box">種目 ▾</span><span class="tm-box">60 kg</span><span class="tm-box">10 回</span><span class="tm-box">日付</span></div><div class="tm-btns"><span class="del">削除</span><span class="on">保存</span></div></div>`,
+  period: `<div class="tm-card"><div class="tm-seg"><span>日</span><span class="on">週</span><span>月</span><span>四半期</span><span>年</span></div><div class="tm-nav"><span>‹</span><b>11/23〜11/29</b><span>›</span></div></div>`,
+  report: `<div class="tm-card"><div class="tm-seg"><span class="on">短め</span><span>詳しく</span></div><div class="tm-txt">今週のトレーニング：3日・42セット 💪<br>自己ベスト更新：ベンチプレス 82.5kg…</div><div class="tm-cnt">X換算 118 / 280</div><div class="tm-ph"><span>📊 報告画像</span><span>＋写真</span></div><div class="tm-btn on">投稿する</div></div>`,
+  acts: `<div class="tm-acts"><div><b>こうげき</b><small>気合+1</small></div><div><b>ぼうぎょ</b><small>半減・気合+2</small></div><div class="sp"><b>必殺技</b><small>気合3つで使える</small></div></div>`,
+  blog: `<div class="tm-log"><div>⚔️ あなたの攻撃！ 24のダメージ</div><div class="warnl">⚠️ ボスは力をためている…</div><div>🛡️ ぼうぎょ！ 強攻撃のダメージを大きく減らした</div></div>`,
+};
+
+// 種目カードを見せるための仮の選択（記録はしない。終わったら元に戻す）
+function tutDemoEx() {
+  if (cur.ex) return;
+  const n = recentExNames(12).find(x => !['自重', 'チューブ'].includes(exInfo(x).equip)) || TUT_DEMO_EX;
+  const sg = suggest(n), t = todaySets(n);
+  cur.ex = n;
+  if (t.length) { cur.w = t[t.length - 1].w; cur.r = t[t.length - 1].r; } else { cur.w = sg.w ?? ''; cur.r = sg.r ?? ''; }
+}
+const noEx = () => { cur.ex = null; };
+
+// 各ステップ：tab（開く画面） / setup（画面の準備） / sel（明るくする所） / t（見出し） / b（説明） / mock（対象がないときの見本） / alt（見本を出すときの一言）
+const TUT_TOPICS = [
+  { id: 'intro', g: 'はじめに', icon: '🚀', name: 'アプリ全体の使い方（はじめての案内）', steps: [
+    { t: 'ようこそ！', b: 'このアプリは、筋トレを<b>記録</b>すると前回の記録から今日の重量・回数を提案し、記録するほど<b>キャラクターが育って、ボスと戦える</b>トレーニング記録です。<br>1分ほどで、基本の使い方を案内します。' },
+    { tab: 'today', sel: 'nav', t: '画面の切り替え', b: '下のボタンで画面を切り替えます。<br><b>今日</b>：記録する ／ <b>種目</b>：種目の一覧 ／ <b>履歴</b>：過去の記録・グラフ ／ <b>冒険</b>：キャラクター・ボス ／ <b>設定</b>' },
+    { tab: 'today', setup: noEx, sel: '#view-today .picker', t: '① 種目を選ぶ', b: 'まず、今からやる種目を選びます。<b>最近</b>やった種目・<b>パターン</b>（その日のメニュー）・<b>種目</b>の一覧から、タップするだけです。' },
+    { tab: 'today', setup: noEx, sel: '.cmdbar', t: '入力欄でも探せます', b: '「ベンチ」と打てば種目を探せます。「<b>ベンチプレス 60キロ 10回</b>」と打てば、そのまま記録もできます。' },
+    { tab: 'today', setup: tutDemoEx, sel: '.ex-card .sugg', t: '② 今日の目安を見る', b: '種目を選ぶと、前回の記録から<b>今日の重量・回数・セット数の目安</b>が出ます。前回すべてのセットで目標回数に届いていれば、重量アップを提案します。' },
+    { tab: 'today', setup: tutDemoEx, sel: '.ex-card .inputs', t: '③ 重量と回数を入れる', b: '目安が最初から入っています。<b>−・＋</b>で調整するか、欄をタップして打ち直します。' },
+    { tab: 'today', setup: tutDemoEx, sel: '.ex-card [data-act="rec"]', t: '④ 1セットずつ記録', b: '1セット終わるたびに<b>「1セット記録」</b>。休憩タイマーが自動で始まります。' },
+    { tab: 'today', sel: '#hud-main', t: '記録すると冒険が進む', b: '記録するたびに<b>経験値とコイン</b>がたまり、鍛えた部位の筋肉が育ちます。トレーニングした日は<b>ボスに1回挑戦</b>できます。ここをタップすると冒険の画面へ。' },
+    { tab: 'today', sel: '#tut-help', t: '困ったらここ', b: 'この<b>「？」</b>から、いつでも「記録の直し方」「履歴の見方」「バトルの説明」など、<b>やりたいことを選んで</b>使い方を見られます。設定の画面からも開けます。' },
+  ] },
+
+  { id: 'pick', g: 'トレーニング', icon: '🏋️', name: 'いまからやる種目を選ぶ', steps: [
+    { tab: 'today', setup: noEx, sel: '#view-today .picker .seg', t: '3つの選び方', b: '<b>最近</b>：最近やった種目 ／ <b>パターン</b>：「胸の日」などのメニュー ／ <b>種目</b>：全部の種目から部位・器具で絞り込み' },
+    { tab: 'today', setup: () => { noEx(); pick.tab = 'recent'; }, sel: '#view-today .picker .exlist li', t: '最近やった種目', b: '最近やった順に並び、<b>前回の日付と重量×回数</b>も表示されます。タップすると選べます。', alt: 'まだ記録がないので、今は空です。記録するとここに並びます。' },
+    { tab: 'today', setup: () => { noEx(); pick.tab = 'ex'; }, sel: '#view-today .picker .filters', t: '部位・器具で絞り込む', b: '「種目」タブでは、<b>部位</b>（胸・背中・脚…）と<b>器具</b>（バーベル・ダンベル・マシン…）で一覧を絞り込めます。' },
+    { tab: 'today', setup: () => { noEx(); pick.tab = 'ex'; }, sel: '#view-today .picker .exlist li', t: 'タップして選ぶ', b: '種目名をタップすると選べます。名前の横に <b>📝</b> がある種目は、設定メモ（椅子の位置など）が残っています。' },
+    { tab: 'today', setup: () => { noEx(); pick.tab = 'ex'; }, sel: '#view-today .picker [data-act="add-ex"]', t: '一覧にない種目', b: '一覧にない種目は<b>「＋ 種目を追加」</b>で、名前・部位・器具を決めて追加できます。' },
+    { tab: 'today', setup: noEx, sel: '.cmdbar', t: '名前で探す', b: '上の入力欄に「<b>ベンチ</b>」「<b>ラット</b>」など一部を打つと探せます。「<b>胸 ダンベル</b>」なら、胸のダンベル種目の一覧が出ます。' },
+    { tab: 'browse', sel: 'nav [data-go="browse"]', t: '「種目」画面からも', b: '下の<b>「種目」</b>からも同じ一覧で選べます。選ぶと「今日」の画面に移ります。' },
+  ] },
+
+  { id: 'change', g: 'トレーニング', icon: '🔁', name: '選んでいる種目を変える', steps: [
+    { tab: 'today', setup: tutDemoEx, sel: '.ex-card .ex-head .x', t: '✕で選び直す', b: '種目カード右上の<b>✕</b>で選択を外すと、種目の一覧と入力欄に戻るので、別の種目を選び直せます。' },
+    { tab: 'today', setup: tutDemoEx, sel: 'nav [data-go="browse"]', t: '「種目」画面からすぐ切り替え', b: '✕を押さなくても、下の<b>「種目」</b>から別の種目をタップすれば、すぐにその種目に切り替わります。' },
+    { tab: 'today', setup: tutDemoEx, sel: '#view-today .card.log .log-title', t: '今日やった種目に戻る', b: '下の「今日の記録」の<b>種目名をタップ</b>すると、その種目に戻ってセットを追加できます。', mock: TM.log, alt: '今日の記録があると、こんな形で表示されます。種目名をタップするとその種目に戻ります。' },
+    { tab: 'today', sel: '#view-today .card.sess', t: 'パターン中の切り替え', b: 'パターンで始めると上にメニューが出ます。<b>種目名をタップ</b>するか、<b>「次の種目へ」</b>で順番に進めます。✕でパターンを終わります。', mock: TM.sess, alt: 'パターンを始めると、こんなメニューが上に出ます。' },
+  ] },
+
+  { id: 'record', g: 'トレーニング', icon: '✍️', name: '重量・回数を記録する', steps: [
+    { tab: 'today', setup: tutDemoEx, sel: '.ex-card .sugg', t: '今日の目安', b: '前回の記録から、今日の<b>重量×回数×セット数</b>を提案します。目標回数（初期値8〜12回）の上限に全セット届いたら重量アップ、2回続けて下限に届かなければ約10%ダウン。範囲は設定で変えられます。' },
+    { tab: 'today', setup: tutDemoEx, sel: '.ex-card .inputs', t: '重量・回数の入れ方', b: '<b>−・＋</b>で器具に合わせた幅（バーベル・マシン2.5kg、ダンベル1kgなど）で増減します。欄をタップすると中身が選ばれ、そのまま打ち直せます。<b>ダンベルは片手の重量</b>で記録します。' },
+    { tab: 'today', setup: tutDemoEx, sel: '.ex-card .plate-btn', t: 'プレートで重量を入れる', b: 'バーに付けたプレートを選ぶと、合計の重量を計算して入れます。' },
+    { tab: 'today', setup: tutDemoEx, sel: '.ex-card .orm', t: '推定1RMと目標の目安', b: '入れた重量・回数から<b>推定1RM</b>（1回だけ挙がる重さ）を出し、前回・ベストと比べます。「この重量なら何回」「この回数なら何kg」の目安も出ます。' },
+    { tab: 'today', setup: tutDemoEx, sel: '.ex-card [data-act="rec"]', t: '1セット記録', b: '押すたびに1セット記録され、下の●が埋まります。<b>休憩タイマー</b>が自動で始まり、終わると音と振動で知らせます（+30秒・✕で調整）。' },
+    { tab: 'today', setup: tutDemoEx, sel: '.ex-card .memo', t: '種目ごとの設定メモ', b: 'マシンの<b>椅子の位置・ベンチの角度</b>などを種目ごとに残せます。次にこの種目を選ぶと表示されます。' },
+    { tab: 'today', setup: noEx, sel: '.cmdbar', t: '入力欄でまとめて記録', b: '「<b>スクワット 80キロ 8回 3セット</b>」のように打つと、3セット分をまとめて記録できます。記録の前に確認画面が出て、重量・回数・セット数を直せます。', mock: TM.confirm, always: 1 },
+    { t: '入力欄で使える言葉', b: '・「62.5キロ 8回」→ 選択中の種目に記録<br>・「取り消し」→ 直前の記録を削除<br>・「脚の日」→ パターン開始 ／「次」「終了」<br>確認画面は、設定の「提案の設定」でオフにすると、すぐ記録されます。' },
+  ] },
+
+  { id: 'pattern', g: 'トレーニング', icon: '📋', name: 'パターン（その日のメニュー）を使う・作る', steps: [
+    { tab: 'today', setup: () => { noEx(); pick.tab = 'pattern'; }, sel: '#view-today .picker .pats', t: 'パターンとは', b: '「胸の日」「脚の日」のような、<b>その日にやる種目の並び</b>です。名前をタップするとそのパターンで始まり、最初の種目が選ばれます。' },
+    { tab: 'today', setup: () => { noEx(); pick.tab = 'pattern'; }, sel: '#view-today .picker [data-pedit]', t: 'パターンを編集', b: '<b>「編集」</b>で、名前・種目の追加・並べ替え・削除ができます。' },
+    { tab: 'today', setup: () => { noEx(); pick.tab = 'pattern'; }, sel: '#view-today .picker .pats .row2', t: '新しく作る', b: '<b>「＋ 新しいパターン」</b>で一から作るか、<b>「今日の記録から作る」</b>で今日やった種目の順番をそのままパターンにできます。' },
+    { tab: 'today', sel: '#view-today .card.sess', t: 'パターンの進め方', b: '始めると上にメニューが出て、終わった種目に ✓ が付きます。<b>「次の種目へ」</b>で進み、✕で終了します。', mock: TM.sess },
+  ] },
+
+  { id: 'edit', g: '記録を見る・直す', icon: '🩹', name: '記録を直す・消す', steps: [
+    { tab: 'today', setup: noEx, sel: '#view-today .card.log', t: '今日の記録を直す', b: '「今日の記録」の<b>行（✎）をタップ</b>すると修正画面が開きます。<b>✕</b>ですぐ削除します。', mock: TM.log, alt: '今日の記録があると、こんな形で表示されます。' },
+    { t: '修正画面でできること', b: '<b>種目・重量・回数・日付</b>を直して「保存」。「削除」で消せます。種目を間違えて記録したときも、ここで別の種目に付け替えられます。', mock: TM.edit },
+    { tab: 'history', setup: () => { hist.unit = 'day'; }, sel: '#view-history .card.day .pill', t: '過去の記録を直す', b: '前の日の記録は<b>「履歴」</b>で、<b>重量×回数の数字をタップ</b>すると同じ修正画面が開きます。', mock: TM.day, alt: '記録があると、履歴にこんな形で並びます。数字（80×10など）をタップします。' },
+    { tab: 'today', setup: noEx, sel: '.cmdbar', t: '直前の記録を取り消す', b: '入力欄に「<b>取り消し</b>」と打つと、直前の1セットを削除します。入力欄で記録するときは、確認画面で重量・回数を直してから記録できます。' },
+  ] },
+
+  { id: 'history', g: '記録を見る・直す', icon: '📅', name: '履歴の見方', steps: [
+    { tab: 'history', setup: () => { hist.unit = 'day'; }, sel: '#view-history .seg', t: '期間の切り替え', b: '<b>日別</b>：日ごとの記録 ／ <b>週・月・四半期・年</b>：期間ごとのまとめ（日数・セット・総重量・グラフ）' },
+    { tab: 'history', setup: () => { hist.unit = 'day'; }, sel: '#view-history .card.day', t: '日別の記録', b: '日ごとに、種目・重量×回数・<b>総重量</b>（重量×回数の合計）が並びます。<b>★</b>はその時点の自己ベスト（推定1RM）です。', mock: TM.day, alt: '記録があると、こんな形で並びます。' },
+    { tab: 'history', setup: () => { hist.unit = 'day'; }, sel: '#view-history .jump', t: '過去の月へ', b: '月を選ぶと、その月の記録だけを表示します。' },
+    { tab: 'history', setup: () => { hist.unit = 'week'; hist.anchor = null; }, sel: '#view-history .pnav', t: '週・月などのまとめ', b: '<b>‹ ›</b>で前後の期間へ。下の欄で年・月を選んで飛ぶこともできます。' },
+    { tab: 'history', setup: () => { hist.unit = 'week'; hist.anchor = null; }, sel: '#view-history .kpis', t: '前の期間との比較', b: '<b>トレ日数・セット・総重量</b>を、前の期間と比べて ▲▼ で表示します。下にはグラフ・部位別セット数・種目別の記録・種目の推移が続きます。' },
+    { tab: 'today', setup: tutDemoEx, sel: '.ex-card .trendbox', t: '種目ごとの推移', b: '「今日」で種目を選ぶと、カードの下で<b>その種目の推移グラフ</b>（推定1RM・総重量）も見られます。' },
+  ] },
+
+  { id: 'report', g: '記録を見る・直す', icon: '📣', name: '報告を投稿する', steps: [
+    { tab: 'history', setup: () => { hist.unit = 'week'; hist.anchor = null; }, sel: '#view-history .rp-open', t: '報告を開く', b: '<b>「履歴」の上</b>、または「今日の記録」の下の<b>「📣 今日の報告を投稿」</b>から開きます。' },
+    { t: '期間を選ぶ', b: '<b>日・週・月・四半期・年</b>から選び、‹ › で前後の期間に動かします（日は日付で選びます）。', mock: TM.period },
+    { t: '内容を整える', b: '<b>文章</b>は記録から自動で作られ（短め／詳しく）、自由に書き直せます。X換算の文字数も出ます。<br><b>報告画像</b>（数字・グラフ・自己ベスト・キャラ）は自動で作られ、オン・オフできます。<b>写真</b>も9枚まで付けられます。', mock: TM.report },
+    { t: '投稿する', b: '<b>「投稿する」</b>でスマホの共有メニューが開き、X・LINE・Instagramなどに文章と画像をまとめて渡せます。文章はクリップボードにもコピーされます。' },
+  ] },
+
+  { id: 'adventure', g: '冒険', icon: '🗺️', name: '冒険モード（育成・装備・ショップ）', steps: [
+    { tab: 'game', setup: () => { gtab = 'muscle'; }, sel: '#view-game .card.hero', t: 'あなたのキャラクター', b: '記録すると<b>経験値</b>でレベルが上がり、<b>コイン</b>がたまります。攻撃・防御・HPは、筋肉のレベルと装備で決まります。' },
+    { tab: 'game', setup: () => { gtab = 'muscle'; }, sel: '#view-game .weekrow', t: '週の目標', b: '週の目標の日数（設定で変更）トレーニングすると<b>コインのボーナス</b>。何週も続けると<b>攻撃力が上がります</b>。' },
+    { tab: 'game', setup: () => { gtab = 'muscle'; }, sel: '#view-game .seg', t: '4つの画面', b: '<b>筋肉</b>：部位ごとのレベル ／ <b>装備</b>：持ち物を付け外し ／ <b>ショップ</b>：コインで買い物 ／ <b>ボス</b>：ボス戦' },
+    { tab: 'game', setup: () => { gtab = 'muscle'; }, sel: '#view-game .mrow', t: '部位ごとの筋肉', b: 'セットごとに、鍛えた部位に「効きポイント」が入ります。重さそのものではなく、<b>自分の自己ベストにどれだけ近いセットか</b>で決まるので、誰でも同じように育ちます。' },
+    { tab: 'game', setup: () => { gtab = 'shop'; }, sel: '#view-game .shoprow', t: 'ショップと装備', b: 'コインで装備を買うと、攻撃・防御・HPが上がります。装備はキャラクターの下に並びます。「装備」で付け外しできます。' },
+    { tab: 'game', setup: () => { gtab = 'muscle'; }, sel: '#view-game [data-gchar]', t: 'キャラクターを変える', b: '見た目のキャラクターを選べます。レベル・筋肉・装備はそのままです。' },
+  ] },
+
+  { id: 'battle', g: '冒険', icon: '⚔️', name: 'バトルモード（ボス戦）', steps: [
+    { tab: 'game', setup: () => { gtab = 'boss'; }, sel: '#view-game .bosscard .bicon', t: '今のボス', b: 'ボスを順番に倒していきます。倒すと<b>コインと非売品の装備</b>がもらえます。全部倒すと闘技場が始まります。' },
+    { tab: 'game', setup: () => { gtab = 'boss'; }, sel: '#view-game [data-gfight]', t: '挑戦できる日', b: 'ボスに挑めるのは、<b>トレーニングを記録した日に1日1回</b>だけです。挑戦できる日は「今日」の画面にも案内が出ます。' },
+    { tab: 'game', setup: () => { gtab = 'boss'; }, sel: '#view-game .bosscard .wr', t: '手ごたえと気合', b: '「手ごたえ」で勝てそうかが分かります。<b>気合</b>は必殺技に使うゲージで、<b>今日4セットごとに1つ</b>たまった状態で始まります。' },
+    { t: '1ターンごとに行動を選ぶ', b: '<b>こうげき</b>：ダメージ＋気合1 ／ <b>ぼうぎょ</b>：受けるダメージ半減＋気合2 ／ <b>必殺技</b>：気合が3つたまると使える大ダメージ。いちばん鍛えた部位で技の名前が変わります。', mock: TM.acts },
+    { t: '力をためたら、ぼうぎょ', b: 'ボスが<b>「力をためている」</b>と、次のターンに強い攻撃が来ます。そのときは<b>ぼうぎょ</b>でダメージを大きく減らせます（気合もたまります）。', mock: TM.blog },
+    { t: '勝ち負けのルール', b: '<b>15ターン以内</b>にボスのHPを0にすれば勝ち。負けたり時間切れでも、<b>与えたダメージはボスに残る</b>ので（HPは回復しない）、次の日に続きから戦えます。' },
+    { tab: 'game', setup: () => { gtab = 'boss'; }, sel: '#view-game .blist', t: 'ボス一覧', b: '倒したボスともらった装備、次のボスが分かります。' },
+  ] },
+
+  { id: 'sync', g: '設定', icon: '☁️', name: 'Google Drive 同期とデータ', steps: [
+    { tab: 'settings', sel: '#badge', t: '同期の状態', b: '右上に同期の状態が出ます。<b>「未同期」や「タップで同期」</b>のときはタップすると同期します。ログインは約1時間で切れるので、そのときもここをタップします。' },
+    { tab: 'settings', sel: () => secByH('#view-settings', 'Google Drive'), t: 'Googleに接続', b: '記録はまず端末に保存され、Googleに接続すると<b>マイドライブ</b>に保存して、ほかの端末と同じ記録を使えます。', alt: 'この版では同期は使えません。' },
+    { tab: 'settings', sel: () => secByH('#view-settings', 'データ'), t: '書き出し・読み込み', b: '記録のコピー＆貼り付け、<b>CSV・JSON</b>での書き出し、JSONの読み込み（統合）ができます。' },
+    { tab: 'settings', sel: () => secByH('#view-settings', '提案の設定'), t: '提案・休憩・週の目標', b: '目標回数の範囲、読み上げ、記録前の確認画面、休憩タイマーの長さ、週の目標の日数を変えられます。' },
+  ] },
+];
+const tutTopic = id => TUT_TOPICS.find(t => t.id === id);
+
+function tutSt() {
+  const s = S.settings.tut = S.settings.tut || {};
+  s.done = s.done || {};
+  return s;
+}
+
+// ---------- 実行 ----------
+let TUT = null;
+function tutStart(id) {
+  const tp = tutTopic(id); if (!tp) return;
+  if (TUT) tutEnd(false);
+  TUT = { tp, i: 0, keep: { tab, ex: cur.ex, w: cur.w, r: cur.r, pick: pick.tab, gtab: typeof gtab !== 'undefined' ? gtab : null, hu: hist.unit, ha: hist.anchor, y: window.scrollY } };
+  const ov = document.createElement('div');
+  ov.id = 'tut'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); ov.setAttribute('aria-label', '使い方：' + tp.name);
+  ov.innerHTML = '<div class="tut-hole"></div><div class="tut-bub" tabindex="-1"></div>';
+  document.body.appendChild(ov);
+  ov.addEventListener('click', e => {
+    e.stopPropagation();
+    const b = e.target.closest('[data-tb]'); if (!b) return;
+    const a = b.dataset.tb;
+    if (a === 'next') { if (TUT.i < TUT.tp.steps.length - 1) { TUT.i++; tutShow(); } else tutEnd(true); }
+    if (a === 'prev' && TUT.i > 0) { TUT.i--; tutShow(); }
+    if (a === 'close') tutEnd(TUT.i >= TUT.tp.steps.length - 1);
+    if (a === 'menu') { tutEnd(true); tutMenu(); }
+  });
+  document.addEventListener('keydown', tutKey);
+  window.addEventListener('resize', tutPlace);
+  tutShow();
+}
+function tutKey(e) {
+  if (!TUT) return;
+  if (e.key === 'Escape') tutEnd(false);
+  if (e.key === 'ArrowRight') { const b = $q('#tut [data-tb="next"]'); if (b) b.click(); }
+  if (e.key === 'ArrowLeft') { const b = $q('#tut [data-tb="prev"]'); if (b) b.click(); }
+}
+function tutTarget(st) {
+  if (!st.sel) return null;
+  const el = typeof st.sel === 'function' ? st.sel() : $q(st.sel);
+  if (!el) return null;
+  const r = el.getBoundingClientRect();
+  return r.width > 0 && r.height > 0 ? el : null;
+}
+function tutShow() {
+  const st = TUT.tp.steps[TUT.i], n = TUT.tp.steps.length, last = TUT.i === n - 1;
+  if (st.tab || st.setup) {
+    if (st.setup) st.setup();
+    if (st.tab) tab = st.tab;
+    render();
+  }
+  const el = tutTarget(st);
+  if (el) {
+    const r = el.getBoundingClientRect();
+    const fixed = getComputedStyle(el).position === 'fixed' || el.closest('nav,#hud');
+    if (!fixed && (r.top < 60 || r.bottom > innerHeight - 90)) el.scrollIntoView({ block: 'center' });
+  } else if (st.tab) window.scrollTo(0, 0);
+  TUT.el = el;
+  const useMock = st.mock && (!el || !st.sel || st.always);
+  const note = !el && st.sel ? (st.alt || '') : '';
+  const bub = $q('#tut .tut-bub');
+  bub.innerHTML = `<div class="tut-top"><span class="tut-cnt">${esc(TUT.tp.icon)} ${TUT.i + 1} / ${n}</span><button class="tut-x" data-tb="close" aria-label="チュートリアルを終わる">✕</button></div>
+    <h3>${esc(st.t)}</h3><p>${st.b}</p>${note ? `<p class="tut-note">${esc(note)}</p>` : ''}${useMock ? `<div class="tut-mock" aria-hidden="true">${st.mock}</div>` : ''}
+    <div class="tut-dots" aria-hidden="true">${Array.from({ length: n }, (_, k) => `<i class="${k === TUT.i ? 'on' : k < TUT.i ? 'done' : ''}"></i>`).join('')}</div>
+    <div class="tut-btns"><button class="ghost" data-tb="prev" ${TUT.i ? '' : 'disabled'}>戻る</button>${last
+      ? `<button class="primary" data-tb="next">おわり</button>`
+      : `<button class="primary" data-tb="next">次へ</button>`}</div>
+    ${last ? '<button class="tut-more" data-tb="menu">ほかの使い方を見る</button>' : `<button class="tut-skip" data-tb="close">${TUT.tp.id === 'intro' ? 'スキップ' : 'やめる'}</button>`}`;
+  requestAnimationFrame(() => requestAnimationFrame(() => { tutPlace(); const nb = bub.querySelector('[data-tb="next"]'); if (nb) nb.focus({ preventScroll: true }); }));
+}
+function tutPlace() {
+  if (!TUT) return;
+  const hole = $q('#tut .tut-hole'), bub = $q('#tut .tut-bub'); if (!hole || !bub) return;
+  const el = TUT.el && document.contains(TUT.el) ? TUT.el : null;
+  if (!el) { hole.classList.add('off'); bub.classList.remove('top'); bub.classList.add('mid'); return; }
+  const r = el.getBoundingClientRect(), p = 6;
+  const top = Math.max(2, r.top - p), bot = Math.min(innerHeight - 2, r.bottom + p);
+  hole.classList.remove('off');
+  Object.assign(hole.style, { left: Math.max(2, r.left - p) + 'px', top: top + 'px', width: (Math.min(innerWidth - 2, r.right + p) - Math.max(2, r.left - p)) + 'px', height: Math.max(8, bot - top) + 'px' });
+  bub.classList.remove('mid');
+  // 明るくした所と重ならない側（上か下）に説明を出す
+  const room = { up: top, down: innerHeight - bot };
+  bub.classList.toggle('top', room.up > room.down);
+}
+function tutEnd(done) {
+  if (!TUT) return;
+  const { keep, tp } = TUT;
+  const s = tutSt(); s.seen = 1; if (done) s.done[tp.id] = 1; save();
+  TUT = null;
+  const ov = $q('#tut'); if (ov) ov.remove();
+  document.removeEventListener('keydown', tutKey);
+  window.removeEventListener('resize', tutPlace);
+  cur.ex = keep.ex; cur.w = keep.w; cur.r = keep.r; pick.tab = keep.pick;
+  if (keep.gtab != null) gtab = keep.gtab;
+  hist.unit = keep.hu; hist.anchor = keep.ha; tab = keep.tab;
+  render(); window.scrollTo(0, keep.y);
+  if (done && tp.id === 'intro') toast('「？」からいつでも使い方を見られます');
+}
+
+// ---------- やりたいことから選ぶ ----------
+function tutMenu() {
+  const s = tutSt(), groups = [...new Set(TUT_TOPICS.map(t => t.g))];
+  return dialog(`<h3>📘 使い方ガイド</h3><p class="muted small">やりたいことを選ぶと、実際の画面で説明します。</p>
+    ${groups.map(g => `<div class="tut-g">${esc(g)}</div><div class="tut-list">${TUT_TOPICS.filter(t => t.g === g).map(t => `<button class="tut-item" data-tt="${t.id}"><span class="ic">${t.icon}</span><span class="nm">${esc(t.name)}<small>${t.steps.length}ステップ</small></span>${s.done[t.id] ? '<span class="ok" aria-label="見た">✓</span>' : '<span class="go">▶</span>'}</button>`).join('')}</div>`).join('')}
+    <button class="ghost" data-tt="0">閉じる</button>`,
+  (m, close) => {
+    m.querySelector('.sheet').onclick = e => {
+      const b = e.target.closest('[data-tt]'); if (!b) return;
+      close(null);
+      if (b.dataset.tt !== '0') setTimeout(() => tutStart(b.dataset.tt), 30);
+    };
+  });
+}
+
+// ---------- 初めて開いたとき ----------
+function tutWelcome() {
+  const back = S.sets.some(s => !s.del);
+  let pic = '';
+  try { pic = charSvg(hero().pl, 'tut-hero', 'biceps'); } catch (e) { /* 絵なしで続行 */ }
+  return dialog(`<div class="tut-wel">${pic}
+    <h3>${back ? '使い方ガイドができました' : 'ようこそ！'}</h3>
+    <p>${back ? '画面の見方や、記録の直し方・バトルのルールなどを、実際の画面で案内します。' : '筋トレを記録して、キャラクターを育てよう。<br>最初に、基本の使い方を1分ほどで案内します。'}</p>
+    <button class="primary" data-w="go">${back ? '基本の案内を見る' : '使い方を見る'}</button>
+    <button class="ghost" data-w="menu">やりたいことを選んで見る</button>
+    <button class="ghost" data-w="skip">スキップしてそのまま使う</button>
+    <p class="muted small">あとで、右上の「？」や設定からいつでも見られます。</p></div>`,
+  (m, close) => {
+    m.querySelector('.sheet').onclick = e => {
+      const b = e.target.closest('[data-w]'); if (!b) return;
+      const s = tutSt(); s.seen = 1; save();
+      close(null);
+      if (b.dataset.w === 'go') setTimeout(() => tutStart('intro'), 30);
+      if (b.dataset.w === 'menu') setTimeout(tutMenu, 30);
+    };
+  }).then(() => { const s = tutSt(); if (!s.seen) { s.seen = 1; save(); } });
+}
+
+// 設定画面の「使い方ガイド」
+function tutCardHtml() {
+  const s = tutSt(), n = TUT_TOPICS.filter(t => s.done[t.id]).length;
+  return `<section class="card"><h3>📘 使い方ガイド <small class="muted">${n}/${TUT_TOPICS.length} 見た</small></h3>
+    <p class="muted small">種目の選び方・記録の直し方・履歴の見方・報告・バトルなど、やりたいことを選んで、実際の画面で説明を見られます。</p>
+    <div class="row2" style="grid-template-columns:1fr 1.5fr"><button class="ghost" data-tut="intro">はじめての案内</button><button class="primary" data-tut="menu" style="margin-top:10px;font-size:15px">やりたいことから選ぶ</button></div></section>`;
+}
+
+function tutInit() {
+  const hud = $q('#hud');
+  if (hud && !$q('#tut-help')) {
+    const b = document.createElement('button');
+    b.id = 'tut-help'; b.type = 'button'; b.textContent = '？'; b.setAttribute('aria-label', '使い方ガイド');
+    hud.appendChild(b);
+  }
+  document.addEventListener('click', e => {
+    const b = e.target.closest('#tut-help,[data-tut]'); if (!b) return;
+    if (b.id === 'tut-help' || b.dataset.tut === 'menu') return tutMenu();
+    tutStart(b.dataset.tut);
+  });
+  if (tab === 'settings') render();
+  // OAuth から戻った直後や、ほかの画面を開いているときは出さない
+  if (!tutSt().seen && !window.TL_AUTH_BACK && $q('#modal').hidden) setTimeout(() => { if ($q('#modal').hidden && !TUT) tutWelcome(); }, 500);
+}
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tutInit); else tutInit();
+}
+</script>
+
 </body>
 </html>
