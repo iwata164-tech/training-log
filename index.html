@@ -14,7 +14,7 @@ body.resting{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
 button,input,select{font:inherit;color:inherit}
 button{cursor:pointer;border:0;background:none}
 #hud{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:8px;min-height:36px;padding:calc(3px + env(safe-area-inset-top)) 12px 3px;background:rgba(16,19,23,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-#hud-main{flex:1;min-width:0;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text);padding:5px 2px;white-space:nowrap;overflow:hidden;text-align:left}
+#hud-main{flex:1;min-width:0;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);padding:5px 2px;white-space:nowrap;overflow:hidden;text-align:left}
 .badge{font-size:12px;padding:5px 10px;border-radius:99px;border:1px solid var(--line);white-space:nowrap}
 .badge.ok{color:var(--ok);border-color:rgba(62,207,142,.4)}
 .badge.warn{color:var(--warn);border-color:rgba(245,184,75,.5)}
@@ -75,7 +75,7 @@ main{padding:12px 14px;max-width:640px;margin:0 auto}
 .log ol{margin:6px 0 0;padding-left:22px}
 .log li{display:flex;align-items:center;justify-content:space-between}
 .log li::marker{color:var(--muted)}
-.log li .x{width:30px;height:30px}
+.log li .x{width:40px;height:40px}
 .picker .filters{position:static}
 .filters{position:sticky;top:calc(37px + env(safe-area-inset-top));z-index:2;background:var(--bg);padding-bottom:4px}
 .exlist{list-style:none;margin:0;padding:0}
@@ -85,12 +85,24 @@ main{padding:12px 14px;max-width:640px;margin:0 auto}
 .day h3{margin:0 0 8px;font-size:16px}
 .day h3 small{color:var(--muted);font-weight:400}
 .hrow{padding:6px 0;border-top:1px solid var(--line)}
+.hrow .log-head{flex-wrap:wrap;row-gap:4px}
+.hrow .log-title{white-space:nowrap}
+.hrow .tags{margin-left:auto}
+.mon-h{margin:14px 2px 6px}
+.more-days{margin-top:4px}
 .pills{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
 .pill{font-size:13px;padding:3px 9px;border-radius:8px;background:var(--card2)}
 .vol{font-size:12px;color:var(--muted);margin-top:2px}
 .field{display:block;font-size:13px;color:var(--muted);margin:8px 0}
 .field input,.field select{color:var(--text);display:block;width:100%;margin-top:4px;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card2);font-size:16px}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+details.more{margin:-2px 0 8px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:13px;list-style:none}
+details.more summary::-webkit-details-marker{display:none}
+details.more summary::after{content:' ▾ くわしく';color:var(--acc2);font-size:12px}
+details.more[open] summary::after{content:' ▴ 閉じる'}
+details.more p{margin:6px 0 0}
+.tut-row .ghost{font-size:14px;padding:12px 4px;white-space:nowrap}
 .toggle{display:flex;align-items:center;gap:8px;margin-top:8px}
 .toggle input{width:20px;height:20px;accent-color:var(--acc)}
 .card h3{margin:0 0 6px;font-size:16px}
@@ -121,10 +133,23 @@ nav button.on{color:var(--text);box-shadow:inset 0 2px 0 var(--text)}
 
 .plate-btn{display:block;width:100%;margin:-2px 0 10px;padding:10px;border-radius:12px;border:1px dashed #3a4452;color:var(--acc2);font-size:14px}
 .orm{background:var(--card2);border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:13px}
+details.orm{padding:0}
+details.orm summary{list-style:none;display:flex;align-items:center;gap:8px;padding:11px 12px;cursor:pointer;color:var(--muted)}
+details.orm summary::-webkit-details-marker{display:none}
+details.orm summary b{color:var(--text);font-size:15px;margin-left:auto}
+details.orm summary::after{content:'▾';color:var(--muted);transition:transform .2s}
+details.orm[open] summary::after{transform:rotate(180deg)}
+details.orm summary .pr{font-size:11px}
+details.orm #orm{padding:0 12px 10px}
+details.orm #orm .orm-main{display:none}
+.sugg.done{background:linear-gradient(135deg,rgba(62,207,142,.22),rgba(62,207,142,.06));border-color:rgba(62,207,142,.45)}
+.sugg.done .lbl{color:var(--ok);font-weight:700}
 .orm:empty{display:none}
 .orm-main{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
 .orm-main .lbl{margin:0}
 .orm-main b{font-size:20px}
+.orm-past{display:flex;flex-wrap:wrap;column-gap:12px;row-gap:2px}
+.orm-past .op{white-space:nowrap}
 .orm-past{color:#c9d2dc;margin-top:2px}
 .orm-past small{color:var(--muted);margin-left:3px}
 .goals-h{margin-top:10px;font-size:13px;font-weight:700;color:var(--acc2)}
@@ -145,7 +170,7 @@ nav button.on{color:var(--text);box-shadow:inset 0 2px 0 var(--text)}
 .orm-tag.pr{background:rgba(62,207,142,.18);color:var(--ok)}
 .log li .row{flex:1;text-align:left;padding:6px 0;display:flex;align-items:baseline;gap:4px}
 .log li .row small{color:var(--muted);font-size:12px}
-.log li .row .pen{margin-left:auto;color:var(--muted);font-size:13px;padding-right:6px}
+.log li .row .pen{margin-left:auto;color:#b4bfcc;font-size:15px;padding:0 14px 0 10px}
 .pd-tabs{margin-bottom:6px}
 .pd-total{font-size:40px;font-weight:800;text-align:center;margin:6px 0}
 .pd-total small{font-size:18px;margin-left:2px}
@@ -160,6 +185,9 @@ nav button.on{color:var(--text);box-shadow:inset 0 2px 0 var(--text)}
 .steps{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
 .steps .chip{padding:11px 0;text-align:center}
 .danger-t{color:var(--bad)}
+.dopts{display:grid;gap:8px;margin:8px 0 4px}
+.dopt{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--card2);text-align:left}
+.dopt small{color:var(--muted);font-size:12px}
 .sheet{max-height:88vh;overflow:auto}
 
 .seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:3px;margin-bottom:12px}
@@ -173,6 +201,11 @@ nav button.on{color:var(--text);box-shadow:inset 0 2px 0 var(--text)}
 .seg.sm button{padding:6px 0;font-size:13px}
 .upc{color:var(--ok)}.dnc{color:var(--warn)}
 .seg button.on{background:#3b4654;color:#fff;font-weight:700}
+.card.hint{position:relative;padding-right:44px}
+.hint-x{position:absolute;top:6px;right:6px}
+.find-ex{margin-top:4px}
+.page-h{font-size:20px;margin:4px 2px 2px}
+.page-sub{margin:0 2px 10px}
 .pnav{display:flex;align-items:center;justify-content:space-between;margin:0 0 10px}
 .jump{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:-4px 0 12px}
 .jump select,.jump input{padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:15px;color-scheme:dark}
@@ -282,7 +315,7 @@ nav button.on{color:var(--text);box-shadow:inset 0 2px 0 var(--text)}
 /* ---- 装備の並び（体には重ねず、キャラクターの下に置く） ---- */
 .gear{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;width:100%;max-width:150px;margin:8px auto 0;padding:0}
 .gi{height:28px;display:grid;place-items:center;border-radius:7px;background:var(--card2);border:1px solid var(--line);border-bottom:3px solid var(--c,var(--line));font-size:16px;line-height:1}
-.gi.none{border:1px dashed var(--line);background:none;opacity:.55}
+.gi.none{border:1px dashed #4a5563;background:none;color:var(--muted);font-size:10px;letter-spacing:-.02em}
 .gi.sp{border-color:#b38cff;border-bottom-color:var(--c)}
 .gi.new{outline:2px solid var(--acc);outline-offset:1px}
 .gear.sm{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;max-width:none;margin-top:4px}
@@ -333,6 +366,14 @@ nav button.on{color:var(--text);box-shadow:inset 0 2px 0 var(--text)}
 .wdots i{width:9px;height:9px;border-radius:50%;border:1.5px solid #4a5563}
 .wdots i.on{background:var(--ok);border-color:var(--ok)}
 body.local #badge{display:none}
+.badge.sync{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:4px;min-width:36px;height:36px;padding:0 8px;flex:none}
+.badge.sync svg{width:20px;height:20px}
+.badge.sync .dot{position:absolute;left:21px;top:8px;width:8px;height:8px;border-radius:50%;background:currentColor;box-shadow:0 0 0 2px var(--bg)}
+.badge.sync.wide .dot{left:22px}
+.badge.sync.muted .dot{display:none}
+.badge.sync.busy svg{animation:syncpulse 1s infinite alternate}
+@keyframes syncpulse{from{opacity:.4}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.badge.sync.busy svg{animation:none}}
 /* ---- 休憩タイマー ---- */
 #rest{position:fixed;left:0;right:0;bottom:calc(60px + env(safe-area-inset-bottom));z-index:6;padding:6px 10px;pointer-events:none}
 #rest[hidden]{display:none}
@@ -474,7 +515,7 @@ body.local #badge{display:none}
 <body>
 <header id="hud">
   <button id="hud-main" data-go="game" aria-label="冒険の状況（タップで冒険へ）"></button>
-  <button id="badge" class="badge muted">…</button>
+  <button id="badge" class="badge sync muted" aria-label="同期の状態"></button>
 </header>
 <main>
   <div class="cmdbar">
@@ -1365,19 +1406,32 @@ function recentExNames(n = 8) {
   return seen;
 }
 
-function renderBadge() {
-  const b = $('#badge'); if (!b) return;
-  let cls = 'ok', txt = '同期済み';
-  if (LOCAL_ONLY) { b.className = 'badge ok'; b.textContent = '端末に保存'; return; }
+// 同期の状態：雲のマークと色で示す。タップが必要なときだけ短い言葉を添える（詳しい状態は長押し・読み上げ用の説明に入れる）
+const CLOUD_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 18 9.5a4.25 4.25 0 0 1-.5 8.5Z"/></svg>';
+function syncState() {
+  let cls = 'ok', txt = '同期済み', short = '';
+  if (LOCAL_ONLY) return { cls: 'ok', txt: '端末に保存', short: '' };
   if (!clientId()) { cls = 'muted'; txt = 'Drive未設定'; }
   else if (syncing) { cls = 'busy'; txt = '同期中…'; }
-  else if (!navigator.onLine) { cls = 'warn'; txt = S.sync.dirty ? 'オフライン・端末に保存中' : 'オフライン'; }
-  else if (lastError) { cls = 'bad'; txt = '同期エラー'; }
-  else if (S.sync.dirty) { cls = 'warn'; txt = tokenValid() ? '未同期' : '未同期（タップで同期）'; }
-  else if (!S.sync.lastSync) { cls = 'muted'; txt = 'タップで同期'; }
-  b.className = 'badge ' + cls; b.textContent = txt;
+  else if (!navigator.onLine) { cls = 'warn'; txt = S.sync.dirty ? 'オフライン（端末に保存中）' : 'オフライン'; }
+  else if (lastError) { cls = 'bad'; txt = '同期エラー（タップで再試行）'; short = 'エラー'; }
+  else if (S.sync.dirty) { cls = 'warn'; txt = tokenValid() ? '未同期（まもなく自動で同期）' : '未同期（タップで同期）'; short = tokenValid() ? '' : '同期'; }
+  else if (!S.sync.lastSync) { cls = 'muted'; txt = '未接続（タップで同期）'; short = '同期'; }
+  return { cls, txt, short };
+}
+function renderBadge() {
+  const b = $('#badge'); if (!b) return;
+  const st = syncState();
+  b.className = 'badge sync ' + st.cls + (st.short ? ' wide' : '');
+  b.innerHTML = CLOUD_SVG + '<i class="dot"></i>' + (st.short ? `<span>${st.short}</span>` : '');
+  b.setAttribute('aria-label', '同期の状態：' + st.txt); b.title = st.txt;
 }
 
+// 推定1RMの欄をたたんだときの見出し（今の入力の推定1RMを出す）
+function ormSum(name) {
+  const w = +cur.w, r = +cur.r, now = e1rm(w, r), st = ormStats(name);
+  return `<span>📈 推定1RM・目標の目安</span><b>${now ? r1(now) + 'kg' : '—'}</b>${now && st.best && now > st.best.o ? '<span class="pr">ベスト超え</span>' : ''}`;
+}
 function ormHtml(name) {
   const ex = exInfo(name); if (ex.equip === '自重' || ex.equip === 'チューブ') return '';
   const w = +cur.w, r = +cur.r, st = ormStats(name);
@@ -1386,9 +1440,9 @@ function ormHtml(name) {
   let h = '<div class="orm-main"><span class="lbl">この入力の推定1RM</span><b>' + (now ? r1(now) + 'kg' : '—') + '</b>';
   if (now && st.best && now > st.best.o) h += '<span class="pr">自己ベスト超え</span>';
   h += '</div><div class="orm-past">';
-  h += st.last ? `前回 <b>${r1(st.last.o)}kg</b><small>${fmtDate(st.last.date)}</small>` : '前回 —';
-  h += st.best ? `　ベスト <b>${r1(st.best.o)}kg</b><small>${fmtDate(st.best.date)}</small>` : '';
-  if (st.today) h += `　今日 <b>${r1(st.today)}kg</b>`;
+  h += st.last ? `<span class="op">前回 <b>${r1(st.last.o)}kg</b><small>${fmtDate(st.last.date)}</small></span>` : '<span class="op">前回 —</span>';
+  h += st.best ? `<span class="op">ベスト <b>${r1(st.best.o)}kg</b><small>${fmtDate(st.best.date)}</small></span>` : '';
+  if (st.today) h += `<span class="op">今日 <b>${r1(st.today)}kg</b></span>`;
   h += '</div>';
   if (base) {
     const t = [];
@@ -1416,9 +1470,11 @@ function renderToday() {
     const ex = exInfo(cur.ex), sg = suggest(cur.ex), t = todaySets(cur.ex), inc = INC[ex.equip] || 1;
     const goal = sg.first ? (sg.w === 0 ? `自重 × できる回数 × ${sg.sets}セット` : `${sg.r}回できる重量を探す × ${sg.sets}セット`)
       : `${fmtW(sg.w)} × ${sg.r}回 × ${sg.sets}セット`;
+    const done = sg.sets > 0 && t.length >= sg.sets;
     h += `<section class="card ex-card">
       <div class="ex-head"><h2>${esc(ex.name)}</h2><span class="tag">${esc(ex.part)}・${esc(ex.equip)}</span><button class="x" data-act="clear" aria-label="選択解除">✕</button></div>
-      <div class="sugg ${sg.up ? 'up' : sg.down ? 'down' : ''}"><div class="lbl">今日の目安</div><div class="goal">${goal}</div><div class="why">${esc(sg.reason)}</div></div>
+      ${done ? `<div class="sugg done"><div class="lbl">今日の分は完了 ✓</div><div class="goal">${t.length}セット記録済み</div><div class="why">今日の目安は ${goal}。続けるなら、もう1セット記録できます。</div></div>`
+        : `<div class="sugg ${sg.up ? 'up' : sg.down ? 'down' : ''}"><div class="lbl">今日の目安</div><div class="goal">${goal}</div><div class="why">${esc(sg.reason)}</div></div>`}
       ${sg.last ? `<div class="last">前回 ${fmtDate(sg.last.date)}：${esc(setsLine(sg.last.sets))}</div>` : ''}
       ${ex.equip === 'ダンベル' ? '<div class="note">ダンベルは片手の重量で記録</div>' : ''}
       ${exNoteHtml(ex.name)}
@@ -1427,16 +1483,17 @@ function renderToday() {
         <label>回数<div class="stepper"><button data-act="r-" aria-label="回数を減らす">−</button><input id="in-r" type="number" inputmode="numeric" value="${esc(cur.r)}" placeholder="0"><button data-act="r+" aria-label="回数を増やす">＋</button></div></label>
       </div>
       <button class="plate-btn" data-act="plates">🏋️ プレート・増減で重量を入れる</button>
-      <div class="orm" id="orm">${ormHtml(cur.ex)}</div>
-      <button class="primary" data-act="rec">1セット記録</button>
+      ${ormHtml(cur.ex) ? `<details class="orm" id="orm-d" ${S.settings.ormOpen ? 'open' : ''}><summary id="orm-s">${ormSum(cur.ex)}</summary><div id="orm">${ormHtml(cur.ex)}</div></details>` : ''}
+      <button class="primary" data-act="rec">${done ? 'もう1セット記録' : '1セット記録'}</button>
       <div class="progress">${Array.from({ length: Math.max(sg.sets, t.length) }, (_, i) => `<span class="dot ${i < t.length ? 'done' : ''}"></span>`).join('')}<span>今日 ${t.length} / ${sg.sets} セット</span></div>
       <div class="trendbox">${trendHtml(cur.ex)}</div>
     </section>`;
     h = h.replace('data-act="w-"', `data-act="w-" data-inc="${inc}"`).replace('data-act="w+"', `data-act="w+" data-inc="${inc}"`);
   } else {
-    h += `<section class="card empty"><p>下のリストから<b>種目</b>か<b>パターン</b>を選ぶと、前回の記録から今日の重量・回数の目安が出ます。</p><p class="muted small">上の入力欄に「ベンチ」と打って探したり、「ベンチプレス 60キロ 10回」でそのまま記録もできます。</p>
-      ${LOCAL_ONLY && !S.sets.length ? '<button class="ghost" data-act="seed">サンプル記録を入れて試す</button>' : ''}</section>
-      <div class="picker">${pickerHtml()}</div>`;
+    const days = new Set(S.sets.filter(x => !x.del).map(x => x.date)).size;
+    if (!S.settings.hintOff && days < 3) h += `<section class="card empty hint"><button class="x hint-x" data-act="hint-x" aria-label="この説明を閉じる">✕</button><p>下のリストから<b>種目</b>か<b>パターン</b>を選ぶと、前回の記録から今日の重量・回数の目安が出ます。</p><p class="muted small">上の入力欄に「ベンチ」と打って探したり、「ベンチプレス 60キロ 10回」でそのまま記録もできます。</p>
+      ${LOCAL_ONLY && !S.sets.length ? '<button class="ghost" data-act="seed">サンプル記録を入れて試す</button>' : ''}</section>`;
+    h += `<div class="picker">${pickerHtml()}</div>`;
   }
   const all = todaySets();
   if (typeof gameTodayHtml === 'function') h += gameTodayHtml();
@@ -1460,34 +1517,37 @@ function exRow(x) {
 }
 function pickerHtml() {
   const rec = recentExNames(12);
-  if (!pick.tab) pick.tab = rec.length ? 'recent' : 'pattern';
-  const seg = `<div class="seg">${[['recent', '最近'], ['pattern', 'パターン'], ['ex', '種目']].map(([k, l]) => `<button class="${pick.tab === k ? 'on' : ''}" data-pick="${k}">${l}</button>`).join('')}</div>`;
+  if (!pick.tab || pick.tab === 'ex') pick.tab = rec.length ? 'recent' : 'pattern';
+  const seg = `<div class="seg">${[['recent', '最近'], ['pattern', 'パターン']].map(([k, l]) => `<button class="${pick.tab === k ? 'on' : ''}" data-pick="${k}">${l}</button>`).join('')}</div>`;
   let body = '';
   if (pick.tab === 'recent') {
-    body = rec.length ? `<ul class="exlist">${rec.map(n => exRow(exInfo(n))).join('')}</ul>` : '<p class="muted pad">まだ記録がありません。「種目」タブから選んでください。</p>';
-  } else if (pick.tab === 'pattern') {
+    body = rec.length ? `<ul class="exlist">${rec.map(n => exRow(exInfo(n))).join('')}</ul>` : '<p class="muted pad">まだ記録がありません。下の「種目を探す」から選んでください。</p>';
+  } else {
     const ps = livePatterns();
     body = `<section class="card pats">${ps.map(p => `<div class="patrow"><button class="pname" data-pat="${p.id}"><b>📋 ${esc(p.name)}</b><small>${p.items.length}種目：${esc(p.items.slice(0, 3).join('、'))}${p.items.length > 3 ? '…' : ''}</small></button><button class="chip" data-pedit="${p.id}">編集</button></div>`).join('') || '<p class="muted small">パターンがありません</p>'}
       <p class="muted small">名前をタップするとそのパターンで始めます。</p>
       <div class="row2"><button class="ghost" data-act="pat-new">＋ 新しいパターン</button><button class="ghost" data-act="pat-today" ${todaySets().length ? '' : 'disabled'}>今日の記録から作る</button></div></section>`;
-  } else {
-    const list = filteredEx();
-    const partBtns = ['すべて', ...PARTS.filter(p => p !== 'その他' || allEx().some(x => x.part === 'その他'))].map(p => {
-      const on = p === 'すべて' ? !browse.parts.length : browse.parts.length === 1 && browse.parts[0] === p;
-      return `<button class="chip ${on ? 'on' : ''}" data-part="${p}">${p}</button>`;
-    }).join('');
-    const eqBtns = ['すべて', ...EQUIPS.filter(e => e !== 'その他' || allEx().some(x => x.equip === 'その他'))].map(e => {
-      const on = e === 'すべて' ? !browse.equip : browse.equip === e;
-      return `<button class="chip ${on ? 'on' : ''}" data-equip="${e}">${e}</button>`;
-    }).join('');
-    body = `<div class="filters"><div class="lbl">部位</div><div class="chips">${partBtns}</div><div class="lbl">器具</div><div class="chips">${eqBtns}</div></div>
-      <h3 class="sec">${list.length}件</h3>
-      <ul class="exlist">${list.map(exRow).join('') || '<li class="muted pad">該当する種目がありません</li>'}</ul>
-      <button class="ghost" data-act="add-ex">＋ 種目を追加</button>`;
   }
-  return seg + body;
+  return seg + body + '<button class="ghost find-ex" data-go="browse">🔍 種目を探す（部位・器具で絞り込み）</button>';
 }
-function renderBrowse() { $('#view-browse').innerHTML = pickerHtml(); }
+// 種目タブ：すべての種目を部位・器具で絞り込んで探す画面
+function catalogHtml() {
+  const list = filteredEx();
+  const partBtns = ['すべて', ...PARTS.filter(p => p !== 'その他' || allEx().some(x => x.part === 'その他'))].map(p => {
+    const on = p === 'すべて' ? !browse.parts.length : browse.parts.length === 1 && browse.parts[0] === p;
+    return `<button class="chip ${on ? 'on' : ''}" data-part="${p}">${p}</button>`;
+  }).join('');
+  const eqBtns = ['すべて', ...EQUIPS.filter(e => e !== 'その他' || allEx().some(x => x.equip === 'その他'))].map(e => {
+    const on = e === 'すべて' ? !browse.equip : browse.equip === e;
+    return `<button class="chip ${on ? 'on' : ''}" data-equip="${e}">${e}</button>`;
+  }).join('');
+  return `<h2 class="page-h">種目を探す</h2><p class="muted small page-sub">タップすると「今日」の画面で選んだ状態になります。</p>
+    <div class="filters"><div class="lbl">部位</div><div class="chips">${partBtns}</div><div class="lbl">器具</div><div class="chips">${eqBtns}</div></div>
+    <h3 class="sec">${list.length}件</h3>
+    <ul class="exlist">${list.map(exRow).join('') || '<li class="muted pad">該当する種目がありません</li>'}</ul>
+    <button class="ghost" data-act="add-ex">＋ 種目を追加</button>`;
+}
+function renderBrowse() { $('#view-browse').innerHTML = catalogHtml(); }
 
 // ---------- 俯瞰（週・月・四半期・年） ----------
 const UNITS = [['day', '日別'], ['week', '週'], ['month', '月'], ['quarter', '四半期'], ['year', '年']];
@@ -1724,20 +1784,25 @@ function renderHistory() {
   S.sets.filter(s => !s.del).forEach(s => (by[s.date] = by[s.date] || []).push(s));
   const months = [...new Set(Object.keys(by).map(d => d.slice(0, 7)))].sort().reverse();
   const dm = hist.dayMonth && months.includes(hist.dayMonth) ? hist.dayMonth : '';
-  const days = Object.keys(by).filter(d => !dm || d.startsWith(dm)).sort().reverse().slice(0, dm ? 31 : 60);
+  const allDays = Object.keys(by).filter(d => !dm || d.startsWith(dm)).sort().reverse();
+  const shown = dm ? allDays.length : Math.min(allDays.length, hist.more || 10);
+  const days = allDays.slice(0, shown), rest = allDays.length - shown;
+  const thisYear = today().slice(0, 4);
   const mjump = months.length ? `<div class="jump"><select id="hj-dm" aria-label="表示する月">${opt('', '最近の記録', dm)}${months.map(m => opt(m, `${m.slice(0, 4)}年${+m.slice(5)}月`, dm)).join('')}</select></div>` : '';
   if (!days.length) { el.innerHTML = seg + '<p class="muted pad">まだ記録がありません</p>'; return; }
+  let lastM = '';
   el.innerHTML = seg + rpBtn + mjump + '<p class="muted small pad">記録をタップすると修正・削除できます。★はその時点の自己ベスト1RM（推定）です。</p>' + days.map(d => {
+    const m = d.slice(0, 7), mh = !dm && m !== lastM ? `<h3 class="sec mon-h">${m.slice(0, 4) === thisYear ? '' : m.slice(0, 4) + '年'}${+m.slice(5)}月</h3>` : ''; lastM = m;
     const ss = by[d].sort((a, b) => a.ts - b.ts); const order = [];
     ss.forEach(s => { if (!order.includes(s.ex)) order.push(s.ex); });
     const dv = ss.reduce((a, s) => a + s.w * s.r, 0);
-    return `<section class="card day"><h3>${fmtDate(d)} <small>${d.slice(0, 4)}</small>${dv ? `<span class="day-vol">総重量 ${fmtVol(dv)}</span>` : ''}</h3>${order.map(n => {
+    return mh + `<section class="card day"><h3>${fmtDate(d)}${d.slice(0, 4) === thisYear ? '' : ` <small>${d.slice(0, 4)}</small>`}${dv ? `<span class="day-vol">総重量 ${fmtVol(dv)}</span>` : ''}</h3>${order.map(n => {
       const x = ss.filter(s => s.ex === n);
       const vol = x.reduce((a, s) => a + s.w * s.r, 0);
       const o = dayOrm(x), pr = isPrDay(n, d);
       return `<div class="hrow"><div class="log-head"><button class="log-title" data-ex="${esc(n)}">${esc(n)}</button><span class="tags">${vol ? `<span class="vol-tag">総重量 ${fmtVol(vol)}</span>` : ''}${o ? `<span class="orm-tag ${pr ? 'pr' : ''}">${pr ? '★ ' : ''}1RM ${r1(o)}kg</span>` : ''}</span></div><div class="pills">${x.map(s => `<button class="pill" data-edit="${s.id}">${s.w === 0 ? '自重' : num(s.w)}×${s.r}</button>`).join('')}</div></div>`;
     }).join('')}</section>`;
-  }).join('');
+  }).join('') + (rest > 0 ? `<button class="ghost more-days" data-act="hist-more">もっと見る（あと${rest}日）</button>` : '');
 }
 
 function renderSettings() {
@@ -1748,7 +1813,7 @@ function renderSettings() {
     ${CLIENT_ID ? '' : `<label class="field">OAuth クライアントID<input id="cid" type="text" autocomplete="off" spellcheck="false" placeholder="xxxx.apps.googleusercontent.com" value="${esc(st.clientId)}"></label>`}
     <button class="primary" data-act="sync">${S.sync.connected ? '今すぐ同期' : 'Googleに接続して同期'}</button>
     ${S.sync.email ? `<p class="small">接続中のアカウント：<b>${esc(S.sync.email)}</b></p><button data-act="switch-acct">別のアカウントに切り替える</button>` : ''}
-    <p class="muted small">保存先：マイドライブの <b>${FILE_NAME}</b><br>最終同期：${S.sync.lastSync ? new Date(S.sync.lastSync).toLocaleString('ja-JP') : 'なし'}${lastError ? `<br><span class="err">エラー：${esc(lastError)}</span>` : ''}<br>記録はまず端末に保存され、通信できるときに自動で同期されます。ログインは約1時間で切れるので、その後は上の「未同期」バッジをタップしてください（アカウントは覚えているので選び直す必要はありません）。</p>
+    <p class="muted small">保存先：マイドライブの <b>${FILE_NAME}</b><br>最終同期：${S.sync.lastSync ? new Date(S.sync.lastSync).toLocaleString('ja-JP') : 'なし'}${lastError ? `<br><span class="err">エラー：${esc(lastError)}</span>` : ''}<br>記録はまず端末に保存され、通信できるときに自動で同期されます。ログインは約1時間で切れるので、その後は右上の<b>雲のマーク</b>（「同期」と出ているとき）をタップしてください（アカウントは覚えているので選び直す必要はありません）。<br>雲のマークの色：<span style="color:var(--ok)">緑＝同期済み</span>／<span style="color:var(--warn)">黄＝未同期</span>／<span style="color:var(--bad)">赤＝エラー</span>／灰＝未接続</p>
   </section>`) + `
   <section class="card"><h3>提案の設定</h3>
     <div class="row2"><label class="field">目標回数の下限<input id="rmin" type="number" inputmode="numeric" value="${st.repMin}"></label><label class="field">上限<input id="rmax" type="number" inputmode="numeric" value="${st.repMax}"></label></div>
@@ -1761,10 +1826,10 @@ function renderSettings() {
     <p class="muted small">記録すると休憩タイマーが自動で始まり、終わると音と振動でお知らせします（+30秒・✕で調整）。週の目標を達成するとコインがもらえ、連続で達成すると冒険の攻撃力が上がります。</p>
   </section>
   ${LOCAL_ONLY ? '<section class="card"><h3>データ</h3><p class="muted small">記録はこの端末（ブラウザ）に保存されます。別のページや端末へ移すときは「書き出し」でコピーし、移した先で「読み込み」に貼り付けます。</p><div class="row2"><button class="ghost" data-act="copy-out">記録を書き出し（コピー）</button><button class="ghost" data-act="paste-in">記録を読み込み（貼り付け）</button></div><button class="ghost" data-act="seed">サンプル記録を入れる</button><button class="ghost" data-act="wipe">記録をすべて消す</button></section>' : `<section class="card"><h3>データ</h3>
-    <div class="row2"><button class="ghost" data-act="copy-out">記録を書き出し（コピー）</button><button class="ghost" data-act="paste-in">記録を読み込み（貼り付け）</button></div>
-    <div class="row2"><button class="ghost" data-act="csv">CSVで書き出し</button><button class="ghost" data-act="json">JSONで書き出し</button></div>
-    <label class="ghost filebtn">JSONを読み込む（統合）<input id="imp" type="file" accept=".json,application/json" hidden></label>
+    <p class="muted small">別の端末へ移したり、バックアップを取ったりできます。</p>
+    <div class="row2"><button class="ghost" data-act="data-out">⬆️ 書き出す</button><button class="ghost" data-act="data-in">⬇️ 読み込む</button></div>
   </section>`}
+  <section class="card"><h3>冒険のリセット</h3><p class="muted small">キャラクターの育成・コイン・装備・ボスの進み具合を最初からやり直します。トレーニングの記録は消えません。</p><button class="ghost danger-t" data-greset="1">冒険をリセット</button></section>
   <section class="card"><h3>入力欄で使える言葉 <small class="muted">今日タブの上の欄</small></h3><ul class="small">
     <li>「ベンチプレス 60キロ 10回」→ 1セット記録</li>
     <li>「スクワット 80キロ 8回 3セット」→ 3セット分記録</li>
@@ -1799,6 +1864,25 @@ function dialog(html, onOpen) {
     const close = v => { m.hidden = true; m.innerHTML = ''; res(v); };
     m.onclick = e => { if (e.target === m) close(null); };
     onOpen(m, close);
+  });
+}
+// 設定の「書き出す」「読み込む」：やり方を選ぶ画面
+function dataDialog(kind) {
+  const opts = kind === 'out'
+    ? [['copy-out', '📋 コピーする', '別の端末で「読み込む → 貼り付け」に使う'], ['csv', '📊 CSVファイル', '表計算アプリで開く'], ['json', '💾 JSONファイル', 'バックアップ用']]
+    : [['paste-in', '📋 貼り付ける', '「書き出す → コピー」した記録を入れる'], ['imp', '💾 JSONファイルを選ぶ', '今の記録と合わせて読み込む（統合）']];
+  return dialog(`<h3>${kind === 'out' ? '記録を書き出す' : '記録を読み込む'}</h3><div class="dopts">${opts.map(([a, t, d]) => a === 'imp'
+    ? `<label class="dopt filebtn"><b>${t}</b><small>${d}</small><input id="imp" type="file" accept=".json,application/json" hidden></label>`
+    : `<button class="dopt" data-d="${a}"><b>${t}</b><small>${d}</small></button>`).join('')}</div>
+    <button class="ghost" data-c="0">閉じる</button>`, (m, close) => {
+    m.querySelector('[data-c="0"]').onclick = () => close(null);
+    m.querySelectorAll('[data-d]').forEach(b => (b.onclick = () => {
+      close(null);
+      const a = b.dataset.d;
+      if (a === 'copy-out') copyOut(); else if (a === 'paste-in') pasteIn(); else if (a === 'csv') exportCsv();
+      else download(`training-log-${today()}.json`, JSON.stringify({ app: 'training-log', version: 1, sets: S.sets, customEx: S.customEx, patterns: S.patterns, game: S.game, notes: S.notes }, null, 1), 'application/json');
+    }));
+    const f = m.querySelector('#imp'); if (f) f.addEventListener('change', () => setTimeout(() => close(null), 0));
   });
 }
 function confirmDialog(msg, ok = '削除') {
@@ -2069,7 +2153,7 @@ function exportCsv() {
 
 // ---------- イベント ----------
 function updTrend() { const b = document.querySelector('.trendbox'); if (b && cur.ex) b.innerHTML = trendHtml(cur.ex); }
-function updOrm() { const o = $('#orm'); if (o && cur.ex) o.innerHTML = ormHtml(cur.ex); }
+function updOrm() { const o = $('#orm'); if (o && cur.ex) { o.innerHTML = ormHtml(cur.ex); const s = $('#orm-s'); if (s) s.innerHTML = ormSum(cur.ex); } }
 
 function bind() {
   document.addEventListener('click', async e => {
@@ -2094,6 +2178,8 @@ function bind() {
     if (d.equip) { browse.equip = d.equip === 'すべて' ? null : d.equip; return render(); }
     switch (d.act) {
       case 'clear': cur.ex = null; return render();
+      case 'hist-more': hist.more = (hist.more || 10) + 20; return render();
+      case 'hint-x': S.settings.hintOff = 1; save(); toast('説明を閉じました（右上の「？」からいつでも使い方を見られます）'); return render();
       case 'note': return editNote(cur.ex);
       case 'w-': case 'w+': {
         const inc = +d.inc || 1; const v = +($('#in-w').value || 0) + (d.act === 'w+' ? inc : -inc);
@@ -2123,6 +2209,8 @@ function bind() {
       case 'add-ex': { const x = await openAddDialog(''); if (x) selectEx(x.name); return; }
       case 'report': return reportDialog(tab === 'today' ? { unit: 'day', key: today() } : null);
       case 'copy-out': return copyOut();
+      case 'data-out': return dataDialog('out');
+      case 'data-in': return dataDialog('in');
       case 'paste-in': return pasteIn();
       case 'claim-past': return claimPast();
       case 'to-boss': gtab = 'boss'; return go('game');
@@ -2146,13 +2234,14 @@ function bind() {
     if (id === 'in-r') cur.r = e.target.value;
     if (id === 'in-w' || id === 'in-r') updOrm();
   });
+  document.addEventListener('toggle', e => { if (e.target && e.target.id === 'orm-d') { S.settings.ormOpen = e.target.open ? 1 : 0; save(); } }, true);
   document.addEventListener('change', async e => {
     const id = e.target.id;
     if (id === 'cid') { S.settings.clientId = e.target.value.trim(); S.sync.connected = false; S.sync.token = null; S.sync.email = null; save(); renderBadge(); }
     if (id === 'rmin' || id === 'rmax') { const v = parseInt(e.target.value, 10); if (v > 0) { S.settings[id === 'rmin' ? 'repMin' : 'repMax'] = v; save(); } }
     if (id && id.startsWith('hj-')) {
       const u = hist.unit, v = e.target.value;
-      if (id === 'hj-dm') hist.dayMonth = v;
+      if (id === 'hj-dm') { hist.dayMonth = v; hist.more = 0; }
       else if (id === 'hj-w') { if (v) hist.anchor = startOf(v, 'week'); }
       else {
         const y = +($('#hj-y') || {}).value || +today().slice(0, 4);
@@ -2502,7 +2591,7 @@ function gearHtml(equip, o = {}) {
   const names = [];
   const tiles = SLOTS.map(([slot, l]) => {
     const it = itemById((equip || {})[slot]);
-    if (!it) return `<span class="gi none"></span>`;
+    if (!it) return `<span class="gi none" title="${l}：なし">${l}</span>`;
     names.push(`${l} ${it.name}`);
     return `<span class="gi ${it.special ? 'sp' : ''} ${o.hl === it.id ? 'new' : ''}" style="--c:${it.c}">${it.icon}</span>`;
   }).join('');
@@ -3198,7 +3287,7 @@ function renderHud() {
   const h = hero();
   el.innerHTML = `<span class="hud-lv">Lv<b>${h.lv.L}</b></span><span class="hud-xp"><i style="width:${(h.lv.cur / h.lv.need) * 100}%"></i></span>
     <span class="hud-coin">🪙<b id="hud-coin">${Math.max(0, h.coins).toLocaleString()}</b></span>
-    <span class="hud-wk">今週${weekDots(h.wi)}</span>${h.wi.streak ? `<span class="hud-st">🔥${h.wi.streak}週</span>` : ''}`;
+    <span class="hud-wk">今週${weekDots(h.wi)}</span>${h.wi.streak ? `<span class="hud-st" title="${h.wi.streak}週連続で目標達成">🔥${h.wi.streak}</span>` : ''}`;
 }
 const reduceMotion = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 let fxTimer = null;
@@ -3271,12 +3360,12 @@ function renderGame() {
   x += `<div class="seg">${[['muscle', '筋肉'], ['equip', '装備'], ['shop', 'ショップ'], ['boss', 'ボス']].map(([k, l]) => `<button class="${gtab === k ? 'on' : ''}" data-gtab="${k}">${l}</button>`).join('')}</div>`;
 
   if (gtab === 'muscle') {
-    x += `<section class="card"><h3>部位ごとの筋肉</h3><p class="muted small">セットごとに「効きポイント」が入ります。自己ベスト（推定1RM、自重は回数）に近いセットほど大きく、軽いセットは0.5、ベスト級は1.5ポイント。重さの絶対値ではなく自分の限界との近さで決まります。</p>${G_PARTS.map(([p, l]) => {
+    x += `<section class="card"><h3>部位ごとの筋肉</h3><details class="more"><summary>セットごとに「効きポイント」が入ります</summary><p class="muted small">自己ベスト（推定1RM、自重は回数）に近いセットほど大きく、軽いセットは0.5、ベスト級は1.5ポイント。重さの絶対値ではなく自分の限界との近さで決まります。</p></details>${G_PARTS.map(([p, l]) => {
       const n = h.pp[p], v = h.pl[p], L = Math.floor(v), nx = L < 10 ? Math.ceil(6 * (L + 1) ** 2 - n) : 0;
       return `<div class="mrow"><span>${l}</span><div class="mbar"><i style="width:${v * 10}%"></i></div><b>Lv${L}</b><small>${L < 10 ? `あと${nx}pt` : 'MAX'}</small></div>`;
     }).join('')}</section>`;
-    const ev = scoreAll().events.slice(0, 12);
-    x += `<section class="card"><h3>コインの獲得</h3><p class="muted small">1セットごと 🪙${COIN.set}（種目・器具を問わず同じ）／ トレーニングした日 🪙${COIN.day} ／ 自己ベスト更新 🪙${COIN.pr} ／ 週の目標達成 🪙${COIN.week} ／ ボス撃破ボーナス</p>
+    const ev = scoreAll().events.slice(0, 6);
+    x += `<section class="card"><h3>コインの獲得</h3><details class="more"><summary>コインのもらい方</summary><p class="muted small">1セットごと 🪙${COIN.set}（種目・器具を問わず同じ）／ トレーニングした日 🪙${COIN.day} ／ 自己ベスト更新 🪙${COIN.pr} ／ 週の目標達成 🪙${COIN.week} ／ ボス撃破ボーナス</p></details>
       ${ev.length ? `<ul class="coinlog">${ev.map(e => `<li><span>${fmtDate(e.date)}</span><span>${esc(e.why)}</span><b>+${e.c}</b></li>`).join('')}</ul>` : '<p class="muted small">まだありません</p>'}
       <p class="muted small">記録から 🪙${h.earned.toLocaleString()} ／ ボーナス・引き継ぎ 🪙${g.bonus.toLocaleString()} ／ 使用 🪙${g.spent.toLocaleString()}</p></section>`;
   }
@@ -3311,7 +3400,7 @@ function renderGame() {
     x += `<section class="card"><h3>ボス一覧</h3><ul class="blist">${BOSSES.map((b, i) => `<li class="${i < g.beaten ? 'done' : i === g.beaten ? 'cur' : 'lock'}"><span>${i <= g.beaten ? bossSvg(b.art) : '❓'}</span><span>${i <= g.beaten ? esc(b.name) : '？？？'}</span><small>${i < g.beaten ? `✓ ${itemById(b.reward).icon} ${esc(itemById(b.reward).name)}` : i === g.beaten ? '挑戦中' : ''}</small></li>`).join('')}
       <li class="${g.beaten >= BOSSES.length ? 'cur' : 'lock'}"><span>${g.beaten >= BOSSES.length ? bossSvg('champ') : '❓'}</span><span>${g.beaten >= BOSSES.length ? `闘技場（Lv${g.beaten - BOSSES.length + 1}挑戦中）` : '？？？'}</span><small>全ボス撃破後</small></li></ul></section>`;
   }
-  x += `<button class="ghost danger-t" data-greset="1">冒険をリセット</button>${g.since ? `<p class="muted small pad">${new Date(g.since).toLocaleString('ja-JP', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })} にリセット。これ以降の記録で育成中</p>` : ''}`;
+  x += `${g.since ? `<p class="muted small pad">${new Date(g.since).toLocaleString('ja-JP', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })} にリセット。これ以降の記録で育成中</p>` : ''}`;
   el.innerHTML = x;
 }
 
@@ -3806,11 +3895,11 @@ const TUT_TOPICS = [
   { id: 'pick', g: 'トレーニング', icon: '🏋️', name: 'いまからやる種目を選ぶ', steps: [
     { tab: 'today', setup: noEx, sel: '#view-today .picker .seg', t: '3つの選び方', b: '<b>最近</b>：最近やった種目 ／ <b>パターン</b>：「胸の日」などのメニュー ／ <b>種目</b>：全部の種目から部位・器具で絞り込み' },
     { tab: 'today', setup: () => { noEx(); pick.tab = 'recent'; }, sel: '#view-today .picker .exlist li', t: '最近やった種目', b: '最近やった順に並び、<b>前回の日付と重量×回数</b>も表示されます。タップすると選べます。', alt: 'まだ記録がないので、今は空です。記録するとここに並びます。' },
-    { tab: 'today', setup: () => { noEx(); pick.tab = 'ex'; }, sel: '#view-today .picker .filters', t: '部位・器具で絞り込む', b: '「種目」タブでは、<b>部位</b>（胸・背中・脚…）と<b>器具</b>（バーベル・ダンベル・マシン…）で一覧を絞り込めます。' },
-    { tab: 'today', setup: () => { noEx(); pick.tab = 'ex'; }, sel: '#view-today .picker .exlist li', t: 'タップして選ぶ', b: '種目名をタップすると選べます。名前の横に <b>📝</b> がある種目は、設定メモ（椅子の位置など）が残っています。' },
-    { tab: 'today', setup: () => { noEx(); pick.tab = 'ex'; }, sel: '#view-today .picker [data-act="add-ex"]', t: '一覧にない種目', b: '一覧にない種目は<b>「＋ 種目を追加」</b>で、名前・部位・器具を決めて追加できます。' },
+    { tab: 'today', setup: noEx, sel: '#view-today .find-ex', t: 'ぜんぶの種目から探す', b: '最近やっていない種目は、<b>「🔍 種目を探す」</b>か、下の<b>「種目」</b>から探せます。' },
+    { tab: 'browse', sel: '#view-browse .filters', t: '部位・器具で絞り込む', b: '「種目」画面では、<b>部位</b>（胸・背中・脚…）と<b>器具</b>（バーベル・ダンベル・マシン…）ですべての種目を絞り込めます。' },
+    { tab: 'browse', sel: '#view-browse .exlist li', t: 'タップして選ぶ', b: '種目名をタップすると、「今日」の画面でその種目を選んだ状態になります。名前の横に <b>📝</b> がある種目は、設定メモ（椅子の位置など）が残っています。' },
+    { tab: 'browse', sel: '#view-browse [data-act="add-ex"]', t: '一覧にない種目', b: '一覧にない種目は<b>「＋ 種目を追加」</b>で、名前・部位・器具を決めて追加できます。' },
     { tab: 'today', setup: noEx, sel: '.cmdbar', t: '名前で探す', b: '上の入力欄に「<b>ベンチ</b>」「<b>ラット</b>」など一部を打つと探せます。「<b>胸 ダンベル</b>」なら、胸のダンベル種目の一覧が出ます。' },
-    { tab: 'browse', sel: 'nav [data-go="browse"]', t: '「種目」画面からも', b: '下の<b>「種目」</b>からも同じ一覧で選べます。選ぶと「今日」の画面に移ります。' },
   ] },
 
   { id: 'change', g: 'トレーニング', icon: '🔁', name: '選んでいる種目を変える', steps: [
@@ -3824,7 +3913,7 @@ const TUT_TOPICS = [
     { tab: 'today', setup: tutDemoEx, sel: '.ex-card .sugg', t: '今日の目安', b: '前回の記録から、今日の<b>重量×回数×セット数</b>を提案します。目標回数（初期値8〜12回）の上限に全セット届いたら重量アップ、2回続けて下限に届かなければ約10%ダウン。範囲は設定で変えられます。' },
     { tab: 'today', setup: tutDemoEx, sel: '.ex-card .inputs', t: '重量・回数の入れ方', b: '<b>−・＋</b>で器具に合わせた幅（バーベル・マシン2.5kg、ダンベル1kgなど）で増減します。欄をタップすると中身が選ばれ、そのまま打ち直せます。<b>ダンベルは片手の重量</b>で記録します。' },
     { tab: 'today', setup: tutDemoEx, sel: '.ex-card .plate-btn', t: 'プレートで重量を入れる', b: 'バーに付けたプレートを選ぶと、合計の重量を計算して入れます。' },
-    { tab: 'today', setup: tutDemoEx, sel: '.ex-card .orm', t: '推定1RMと目標の目安', b: '入れた重量・回数から<b>推定1RM</b>（1回だけ挙がる重さ）を出し、前回・ベストと比べます。「この重量なら何回」「この回数なら何kg」の目安も出ます。' },
+    { tab: 'today', setup: tutDemoEx, sel: '.ex-card .orm', t: '推定1RMと目標の目安', b: 'ここを<b>タップすると開きます</b>。入れた重量・回数から<b>推定1RM</b>（1回だけ挙がる重さ）を出し、前回・ベストと比べます。「この重量なら何回」「この回数なら何kg」の目安も出ます。閉じていても、見出しに今の推定1RMが出ます。' },
     { tab: 'today', setup: tutDemoEx, sel: '.ex-card [data-act="rec"]', t: '1セット記録', b: '押すたびに1セット記録され、下の●が埋まります。<b>休憩タイマー</b>が自動で始まり、終わると音と振動で知らせます（+30秒・✕で調整）。' },
     { tab: 'today', setup: tutDemoEx, sel: '.ex-card .memo', t: '種目ごとの設定メモ', b: 'マシンの<b>椅子の位置・ベンチの角度</b>などを種目ごとに残せます。次にこの種目を選ぶと表示されます。' },
     { tab: 'today', setup: noEx, sel: '.cmdbar', t: '入力欄でまとめて記録', b: '「<b>スクワット 80キロ 8回 3セット</b>」のように打つと、3セット分をまとめて記録できます。記録の前に確認画面が出て、重量・回数・セット数を直せます。', mock: TM.confirm, always: 1 },
@@ -3881,9 +3970,10 @@ const TUT_TOPICS = [
   ] },
 
   { id: 'sync', g: '設定', icon: '☁️', name: 'Google Drive 同期とデータ', steps: [
-    { tab: 'settings', sel: '#badge', t: '同期の状態', b: '右上に同期の状態が出ます。<b>「未同期」や「タップで同期」</b>のときはタップすると同期します。ログインは約1時間で切れるので、そのときもここをタップします。' },
+    { tab: 'settings', sel: '#badge', t: '同期の状態', b: '右上の<b>雲のマーク</b>が同期の状態です。緑＝同期済み、黄＝未同期、赤＝エラー。<b>「同期」</b>と出ているときはタップすると同期します。ログインは約1時間で切れるので、そのときもここをタップします。' },
     { tab: 'settings', sel: () => secByH('#view-settings', 'Google Drive'), t: 'Googleに接続', b: '記録はまず端末に保存され、Googleに接続すると<b>マイドライブ</b>に保存して、ほかの端末と同じ記録を使えます。', alt: 'この版では同期は使えません。' },
-    { tab: 'settings', sel: () => secByH('#view-settings', 'データ'), t: '書き出し・読み込み', b: '記録のコピー＆貼り付け、<b>CSV・JSON</b>での書き出し、JSONの読み込み（統合）ができます。' },
+    { tab: 'settings', sel: () => secByH('#view-settings', 'データ'), t: '書き出し・読み込み', b: '<b>「書き出す」</b>で、コピー・CSVファイル・JSONファイルを選べます。<b>「読み込む」</b>では、貼り付けかJSONファイル（今の記録と合わせて統合）を選べます。' },
+    { tab: 'settings', sel: () => secByH('#view-settings', '冒険のリセット'), t: '冒険のリセット', b: '冒険（育成・コイン・装備・ボス）を最初からやり直すときはここ。<b>トレーニングの記録は消えません</b>。' },
     { tab: 'settings', sel: () => secByH('#view-settings', '提案の設定'), t: '提案・休憩・週の目標', b: '目標回数の範囲、読み上げ、記録前の確認画面、休憩タイマーの長さ、週の目標の日数を変えられます。' },
   ] },
 ];
@@ -4029,7 +4119,7 @@ function tutCardHtml() {
   const s = tutSt(), n = TUT_TOPICS.filter(t => s.done[t.id]).length;
   return `<section class="card"><h3>📘 使い方ガイド <small class="muted">${n}/${TUT_TOPICS.length} 見た</small></h3>
     <p class="muted small">種目の選び方・記録の直し方・履歴の見方・報告・バトルなど、やりたいことを選んで、実際の画面で説明を見られます。</p>
-    <div class="row2" style="grid-template-columns:1fr 1.5fr"><button class="ghost" data-tut="intro">はじめての案内</button><button class="primary" data-tut="menu" style="margin-top:10px;font-size:15px">やりたいことから選ぶ</button></div></section>`;
+    <div class="row2 tut-row"><button class="ghost" data-tut="menu">📖 やりたいことから選ぶ</button><button class="ghost" data-tut="intro">▶ はじめての案内</button></div></section>`;
 }
 
 function tutInit() {
