@@ -113,6 +113,16 @@ details.more p{margin:6px 0 0}
 .cmdbar form{display:flex;gap:8px;align-items:center;max-width:640px;margin:0 auto}
 .cmdbar input{flex:1;min-width:0;padding:13px 14px;border-radius:99px;border:1px solid var(--line);background:var(--card);font-size:16px;outline:none}
 .cmdbar input:focus{border-color:var(--acc2)}
+#cmd-sug{max-width:640px;margin:8px auto 0;background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;max-height:52vh;overflow-y:auto}
+#cmd-sug[hidden]{display:none}
+.sug{display:flex;align-items:center;gap:8px;width:100%;text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);font-size:15px;color:var(--text)}
+.sug:last-child{border-bottom:0}
+.sug:active,.sug.on{background:var(--card2)}
+.sug .nm{flex:1;min-width:0}
+.sug .nm small{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+.sug mark{background:none;color:var(--acc2);font-weight:700}
+.sug.add{color:var(--acc2)}
+.pick-list{max-height:50vh;overflow-y:auto;border:1px solid var(--line);border-radius:12px;margin:8px 0}
 #mic{width:58px;height:58px;border-radius:50%;background:var(--acc);color:#1a0d00;flex:none;display:grid;place-items:center;box-shadow:0 4px 16px rgba(255,122,26,.35)}
 #mic svg{width:26px;height:26px}
 #mic.on{background:var(--bad);color:#fff;animation:pulse 1.2s infinite}
@@ -525,6 +535,7 @@ body.local #badge{display:none}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
       </button>
     </form>
+    <div id="cmd-sug" role="listbox" aria-label="種目の候補" hidden></div>
   </div>
   <div id="view-today"></div>
   <div id="view-browse" hidden></div>
@@ -879,6 +890,29 @@ function matchEx(q, allowFuzzy = true) {
   return fd <= 0.34 ? fb : null;
 }
 
+// 入力の一部を含む種目を探す（名前・別名の部分一致）。よく使う種目・前方一致を上に
+function searchEx(q, limit = 12) {
+  q = norm(q); if (!q) return [];
+  const cnt = {}; for (const s of S.sets) if (!s.del) cnt[s.ex] = (cnt[s.ex] || 0) + 1;
+  const out = [];
+  for (const x of allEx()) {
+    let sc = -1, hit = '';
+    for (const k of [x.name, ...x.aliases]) {
+      const nk = norm(k); const i = nk.indexOf(q); if (i < 0) continue;
+      const v = (nk === q ? 3000 : i === 0 ? 2000 : 1000) - nk.length;
+      if (v > sc) { sc = v; hit = k; }
+    }
+    if (sc >= 0) out.push({ ex: x, hit: norm(x.name).includes(q) ? '' : hit, sc: sc + Math.min(cnt[x.name] || 0, 200) * 5 });
+  }
+  return out.sort((a, b) => b.sc - a.sc).slice(0, limit);
+}
+// 入力から重量・回数・セット数を除いた「種目名の部分」
+function nameQuery(raw) {
+  let t = convertKanjiNums(String(raw || '').normalize('NFKC'));
+  t = t.replace(/(\d+(?:\.\d+)?)\s*(?:kg|キログラム|キロ|きろ|セット|せっと|sets?|回|かい|レップ|れっぷ|reps?)/gi, ' ').replace(/\d+(?:\.\d+)?/g, ' ');
+  return norm(t).replace(/[×x*]/g, '');
+}
+
 function matchPartEquip(q) {
   let t = q; const parts = new Set(); let equip = null;
   const all = [];
@@ -1095,10 +1129,13 @@ function selectEx(name, speak = false) {
 }
 
 // ---------- コマンド実行 ----------
-async function handleCommand(text, alts = []) {
+async function handleCommand(text, alts = [], forceEx = null) {
   text = (text || '').trim(); if (!text) return;
   let c = null;
-  for (const cand of [text, ...alts]) { const p = parseCommand(cand); if (p.type !== 'unknown') { c = p; break; } if (!c) c = p; }
+  if (forceEx) {
+    const p = parseCommand(text);
+    c = p.type === 'record' ? { ...p, ex: forceEx } : { type: 'suggest', ex: forceEx };
+  } else for (const cand of [text, ...alts]) { const p = parseCommand(cand); if (p.type !== 'unknown') { c = p; break; } if (!c) c = p; }
   switch (c.type) {
     case 'undo': undoLast(); break;
     case 'pattern': startPattern(c.p.id, true); break;
@@ -1119,7 +1156,7 @@ async function handleCommand(text, alts = []) {
       primeAudio();
       let ex = c.ex;
       if (!ex && !c.rawName && cur.ex) ex = exInfo(cur.ex);
-      if (!ex && c.rawName) ex = await openAddDialog(c.rawName);
+      if (!ex && c.rawName) ex = await pickOrAddEx(c.rawName);
       if (!ex) { if (!c.rawName) say('種目を指定してください'); return; }
       let w = c.w;
       if (w == null) {
@@ -1139,7 +1176,7 @@ async function handleCommand(text, alts = []) {
     }
     default:
       if (c.rawName) {
-        const ex = await openAddDialog(c.rawName);
+        const ex = await pickOrAddEx(c.rawName);
         if (ex) selectEx(ex.name, true);
       } else say('うまく聞き取れませんでした');
   }
@@ -1889,6 +1926,71 @@ function confirmDialog(msg, ok = '削除') {
   return dialog(`<p>${esc(msg)}</p><div class="row2"><button class="ghost" data-c="0">キャンセル</button><button class="primary danger" data-c="1">${esc(ok)}</button></div>`,
     (m, close) => m.querySelectorAll('[data-c]').forEach(b => (b.onclick = () => close(b.dataset.c === '1'))));
 }
+// 一致する種目が見つからない時：部分一致の候補から選ぶ。候補がなければ・合うものがなければ新しく追加
+async function pickOrAddEx(name) {
+  const cands = searchEx(name, 30);
+  if (!cands.length) return openAddDialog(name);
+  const v = await dialog(`<h3>「${esc(name)}」を含む種目</h3><p class="muted small">選んでください。一覧にない時は新しく追加できます。</p>
+    <div class="pick-list">${cands.map((c, i) => `<button class="sug" data-i="${i}"><span class="nm">${hlName(c.ex.name, name)}${c.hit ? `<small>（${hlName(c.hit, name)}）</small>` : ''}</span><span class="tag">${esc(c.ex.part)}</span></button>`).join('')}</div>
+    <button class="ghost slim" data-c="new">＋「${esc(name)}」を新しい種目として追加</button>
+    <button class="ghost" data-c="0">キャンセル</button>`, (m, close) => {
+    m.querySelectorAll('[data-i]').forEach(b => (b.onclick = () => close(cands[+b.dataset.i].ex)));
+    m.querySelector('[data-c="new"]').onclick = () => close('new');
+    m.querySelector('[data-c="0"]').onclick = () => close(null);
+  });
+  return v === 'new' ? openAddDialog(name) : v;
+}
+// 一致した部分を強調（ひらがな/カタカナの違いは無視）
+function hlName(text, q) {
+  const nq = norm(q); if (!nq) return esc(text);
+  const chars = [...text]; let acc = '', map = [];
+  chars.forEach((ch, i) => { const n = norm(ch); for (const _ of n) map.push(i); acc += n; });
+  const at = acc.indexOf(nq); if (at < 0) return esc(text);
+  const a = map[at], b = map[at + nq.length - 1];
+  return esc(chars.slice(0, a).join('')) + '<mark>' + esc(chars.slice(a, b + 1).join('')) + '</mark>' + esc(chars.slice(b + 1).join(''));
+}
+// 入力欄の下に候補を出す
+let sugList = [], sugIdx = -1;
+function renderSug() {
+  const box = $('#cmd-sug'), inp = $('#cmd'); if (!box) return;
+  const q = nameQuery(inp.value);
+  const pn = (S.patterns || []).filter(p => !p.del && norm(p.name).includes(q));
+  if (!q || document.activeElement !== inp || /^(取り?消|トリケ|キャンセル|次|ツギ)/.test(q)) { box.hidden = true; sugList = []; return; }
+  sugList = searchEx(q, 12); sugIdx = -1;
+  const exact = sugList.some(c => norm(c.ex.name) === q);
+  const raw = inp.value.replace(/[\d.]+\s*(kg|キロ|きろ|回|かい|セット|せっと|レップ)?/gi, '').trim();
+  box.innerHTML = pn.slice(0, 3).map(p => `<button class="sug" data-pat="${esc(p.id)}" role="option"><span class="nm">📋 ${hlName(p.name, q)}<small>パターンを始める</small></span></button>`).join('')
+    + sugList.map((c, i) => `<button class="sug" data-i="${i}" role="option"><span class="nm">${hlName(c.ex.name, q)}${c.hit ? `<small>（${hlName(c.hit, q)}）</small>` : ''}</span><span class="tag">${esc(c.ex.part)}・${esc(c.ex.equip)}</span></button>`).join('')
+    + (exact || !raw ? '' : `<button class="sug add" data-add="1" role="option"><span class="nm">＋「${esc(raw)}」を新しい種目として追加</span></button>`);
+  box.hidden = !box.innerHTML;
+}
+function pickSug(btn) {
+  const inp = $('#cmd'), v = inp.value; inp.value = ''; inp.blur(); $('#cmd-sug').hidden = true;
+  if (btn.dataset.pat) { startPattern(btn.dataset.pat, true); return; }
+  if (btn.dataset.add) {
+    const raw = v.replace(/[\d.]+\s*(kg|キロ|きろ|回|かい|セット|せっと|レップ)?/gi, '').trim();
+    openAddDialog(raw).then(ex => { if (!ex) return; if (/\d/.test(v)) handleCommand(v, [], ex); else selectEx(ex.name, true); });
+    return;
+  }
+  const c = sugList[+btn.dataset.i]; if (c) handleCommand(v, [], c.ex);
+}
+function initSug() {
+  const inp = $('#cmd'), box = $('#cmd-sug');
+  inp.addEventListener('input', renderSug);
+  inp.addEventListener('focus', renderSug);
+  inp.addEventListener('blur', () => setTimeout(() => { if (document.activeElement !== inp) box.hidden = true; }, 150));
+  inp.addEventListener('keydown', e => {
+    const bs = [...box.querySelectorAll('.sug')]; if (box.hidden || !bs.length) return;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault(); sugIdx = (sugIdx + (e.key === 'ArrowDown' ? 1 : -1) + bs.length) % bs.length;
+      bs.forEach((b, i) => b.classList.toggle('on', i === sugIdx)); bs[sugIdx].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter' && sugIdx >= 0) { e.preventDefault(); pickSug(bs[sugIdx]); }
+    else if (e.key === 'Escape') box.hidden = true;
+  });
+  box.addEventListener('pointerdown', e => e.preventDefault()); // タップで入力欄のフォーカスが外れて候補が消えないように
+  box.addEventListener('click', e => { const b = e.target.closest('.sug'); if (b) pickSug(b); });
+}
+
 function openAddDialog(name = '') {
   const pre = matchPartEquip(norm(name)) || { parts: [], equip: null };
   return dialog(`<h3>新しい種目${name ? `「${esc(name)}」` : ''}を追加</h3>
@@ -2270,7 +2372,8 @@ function bind() {
   $('#badge').onclick = () => syncNow(true);
   $('#mic').onclick = toggleMic;
   $('#toast').onclick = () => $('#toast').classList.remove('show');
-  $('#cmdform').onsubmit = e => { e.preventDefault(); const v = $('#cmd').value; $('#cmd').value = ''; $('#cmd').blur(); handleCommand(v); };
+  $('#cmdform').onsubmit = e => { e.preventDefault(); const v = $('#cmd').value; $('#cmd').value = ''; $('#cmd').blur(); $('#cmd-sug').hidden = true; handleCommand(v); };
+  initSug();
 
   window.addEventListener('online', () => syncNow(false));
   window.addEventListener('offline', renderBadge);
